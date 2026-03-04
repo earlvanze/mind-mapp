@@ -24,8 +24,13 @@ body, html, #root {
   gap: 12px;
 }
 
-.toolbar button {
+.toolbar-actions {
   margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.toolbar button {
   padding: 6px 10px;
   border: 1px solid #cfd6e4;
   background: #fff;

@@ -1,6 +1,7 @@
 import { useMindMapStore } from './store/useMindMapStore';
 import Node from './components/Node';
 import { useKeyboard } from './hooks/useKeyboard';
+import { exportPng } from './utils/exportPng';
 
 export default function App() {
   const { nodes } = useMindMapStore();
@@ -17,12 +18,21 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
+  const exportPngClick = async () => {
+    const el = document.querySelector('.canvas') as HTMLElement | null;
+    if (!el) return;
+    await exportPng(el);
+  };
+
   return (
     <div className="app">
       <div className="toolbar">
         <strong>Mind Mapp</strong>
         <span style={{ color: '#666' }}>MVP scaffold</span>
-        <button onClick={exportJson}>Export JSON</button>
+        <div className="toolbar-actions">
+          <button onClick={exportJson}>Export JSON</button>
+          <button onClick={exportPngClick}>Export PNG</button>
+        </div>
       </div>
       <div className="canvas">
         {Object.values(nodes).map(n => (
