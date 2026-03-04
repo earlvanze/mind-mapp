@@ -22,7 +22,7 @@ export function usePanZoom({ selector }: Options) {
     };
 
     const onMouseDown = (e: MouseEvent) => {
-      if (e.code !== 'Space') return;
+      if (!e.shiftKey) return;
       isPanning = true;
       startX = e.clientX;
       startY = e.clientY;
@@ -45,10 +45,10 @@ export function usePanZoom({ selector }: Options) {
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space') el.style.cursor = 'grab';
+      if (e.key === 'Shift') el.style.cursor = 'grab';
     };
     const onKeyUp = (e: KeyboardEvent) => {
-      if (e.code === 'Space') el.style.cursor = 'default';
+      if (e.key === 'Shift') el.style.cursor = 'default';
     };
 
     window.addEventListener('wheel', onWheel, { passive: false });

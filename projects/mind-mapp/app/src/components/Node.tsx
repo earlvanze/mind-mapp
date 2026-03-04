@@ -29,7 +29,10 @@ export default function Node({ node }: Props) {
       ref={ref}
       className={`node ${focusId === node.id ? 'focused' : ''}`}
       style={{ left: node.x, top: node.y }}
-      onMouseDown={onDragStart}
+      onMouseDown={(e) => {
+        if (e.shiftKey) return;
+        onDragStart(e);
+      }}
       onClick={() => setFocus(node.id)}
       contentEditable
       suppressContentEditableWarning
