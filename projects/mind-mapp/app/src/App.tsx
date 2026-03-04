@@ -4,12 +4,13 @@ import Node from './components/Node';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { exportPng } from './utils/exportPng';
+import { fitToView } from './utils/fitToView';
 import SearchDialog from './components/SearchDialog';
 
 export default function App() {
   const { nodes, importState } = useMindMapStore();
   const [searchOpen, setSearchOpen] = useState(false);
-  useKeyboard({ onSearch: () => setSearchOpen(true) });
+  useKeyboard({ onSearch: () => setSearchOpen(true), onFit: () => fitToView() });
   usePanZoom({ selector: '.canvas' });
 
   const exportJson = () => {

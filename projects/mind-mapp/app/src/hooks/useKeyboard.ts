@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 
-type Props = { onSearch: () => void };
+type Props = { onSearch: () => void; onFit: () => void };
 
-export function useKeyboard({ onSearch }: Props) {
+export function useKeyboard({ onSearch, onFit }: Props) {
   const { focusId, addSibling, addChild, deleteNode, moveFocus } = useMindMapStore();
 
   useEffect(() => {
@@ -11,6 +11,9 @@ export function useKeyboard({ onSearch }: Props) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         onSearch();
+      }
+      if (e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey) {
+        onFit();
       }
       if (e.key === 'Enter') {
         e.preventDefault();
