@@ -21,11 +21,29 @@ type MindMapState = {
 
 const rootId = 'n_root';
 
-export const useMindMapStore = create<MindMapState>((set, get) => ({
+const defaultState = {
   nodes: {
     [rootId]: { id: rootId, text: 'Root', x: 320, y: 180, parentId: null, children: [] },
   },
   focusId: rootId,
+};
+
+const STORAGE_KEY = 'mindmapp.v0.1.map';
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState;
+    const parsed = JSON.parse(raw);
+    if (!parsed.nodes || !parsed.focusId) return defaultState;
+    return parsed;
+  } catch {
+    return defaultState;
+  }
+}
+
+export const useMindMapStore = create<MindMapState>((set, get) => ({
+  ...(typeof window !== 'undefined' ? loadState() : defaultState),
   setText: (id, text) => set(state => ({
     nodes: { ...state.nodes, [id]: { ...state.nodes[id], text } }
   })),
@@ -61,3 +79,12 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
     }));
   }
 }));
+
+// autosave
+useMindMapStore.subscribe((state) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes: state.nodes, focusId: state.focusId }));
+  } catch {
+    // ignore storage errors
+  }
+});

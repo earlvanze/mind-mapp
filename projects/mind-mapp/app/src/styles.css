@@ -20,7 +20,17 @@ body, html, #root {
   border-bottom: 1px solid #e2e6ee;
   background: #fff;
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolbar button {
+  margin-left: auto;
+  padding: 6px 10px;
+  border: 1px solid #cfd6e4;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 .canvas {
