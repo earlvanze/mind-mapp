@@ -48,6 +48,7 @@ body, html, #root {
   flex: 1;
   position: relative;
   overflow: hidden;
+  transform-origin: 0 0;
 }
 
 .node {
