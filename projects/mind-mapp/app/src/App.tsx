@@ -56,6 +56,8 @@ export default function App() {
               }}
             />
           </label>
+          <button onClick={() => fitToView()}>Fit</button>
+          <button onClick={() => setHelpOpen(true)}>Help</button>
           <button onClick={exportJson}>Export JSON</button>
           <button onClick={exportPngClick}>Export PNG</button>
         </div>
