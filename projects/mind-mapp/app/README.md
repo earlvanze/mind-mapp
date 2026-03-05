@@ -34,3 +34,4 @@ npm run dev
 - `TODO.md` — next steps
 - `KEYS.md` — full shortcut reference
 - `CONTRIBUTING.md` — dev setup & conventions
+- `KNOWN_ISSUES.md` — known gaps/advisories
