@@ -55,7 +55,10 @@ export default function Node({ node }: Props) {
           (e.currentTarget as HTMLElement).blur();
         }
       }}
-      onBlur={(e) => setText(node.id, e.currentTarget.textContent || '')}
+      onBlur={(e) => {
+        setText(node.id, e.currentTarget.textContent || '');
+        (e.currentTarget as HTMLElement).contentEditable = 'false';
+      }}
     >
       {node.text}
     </div>
