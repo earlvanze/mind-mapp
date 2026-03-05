@@ -36,3 +36,4 @@ npm run dev
 - `CONTRIBUTING.md` — dev setup & conventions
 - `KNOWN_ISSUES.md` — known gaps/advisories
 - `ROADMAP.md` — upcoming milestones
+- `LINKS.md` — doc index
