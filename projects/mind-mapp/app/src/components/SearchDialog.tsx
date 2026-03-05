@@ -12,7 +12,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return [];
-    return Object.values(nodes).filter(n => n.text.toLowerCase().includes(q));
+    return Object.values(nodes).filter(n => n.text.toLowerCase().includes(q)).slice(0, 20);
   }, [nodes, query]);
 
   useEffect(() => {
