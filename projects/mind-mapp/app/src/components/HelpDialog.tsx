@@ -21,6 +21,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
           <li><b>Tab</b>: new child</li>
           <li><b>Delete</b>: delete node</li>
           <li><b>Cmd/Ctrl+K</b>: search</li>
+          <li><b>E</b> / double‑click: edit node</li>
           <li><b>Arrow keys</b>: move focus</li>
           <li><b>F</b>: fit to view</li>
           <li><b>L</b>: auto‑layout children</li>
