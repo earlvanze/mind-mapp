@@ -21,6 +21,13 @@ export function usePanZoom({ selector }: Options) {
       el.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
     };
 
+    const onDoubleClick = () => {
+      scale = 1;
+      originX = 0;
+      originY = 0;
+      el.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
+    };
+
     const onMouseDown = (e: MouseEvent) => {
       if (!e.shiftKey) return;
       isPanning = true;
@@ -52,6 +59,7 @@ export function usePanZoom({ selector }: Options) {
     };
 
     window.addEventListener('wheel', onWheel, { passive: false });
+    window.addEventListener('dblclick', onDoubleClick);
     window.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
@@ -60,6 +68,7 @@ export function usePanZoom({ selector }: Options) {
 
     return () => {
       window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('dblclick', onDoubleClick);
       window.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
