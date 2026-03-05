@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useMindMapStore } from './store/useMindMapStore';
+import { useMindMapStore, saveState } from './store/useMindMapStore';
 import Node from './components/Node';
 import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
+import { useAutosave } from './hooks/useAutosave';
 import { exportPng } from './utils/exportPng';
 import { fitToView } from './utils/fitToView';
 import SearchDialog from './components/SearchDialog';
@@ -15,6 +16,7 @@ export default function App() {
   const [helpOpen, setHelpOpen] = useState(false);
   useKeyboard({ onSearch: () => setSearchOpen(true), onFit: () => fitToView(), onHelp: () => setHelpOpen(true) });
   usePanZoom({ selector: '.canvas' });
+  useAutosave(() => saveState(), 600);
 
   const exportJson = () => {
     const data = { nodes };

@@ -176,11 +176,12 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
   }
 }));
 
-// autosave
-useMindMapStore.subscribe((state) => {
+// autosave is triggered from hook to debounce localStorage writes
+export function saveState() {
+  const state = useMindMapStore.getState();
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes: state.nodes, focusId: state.focusId }));
   } catch {
     // ignore storage errors
   }
-});
+}
