@@ -29,3 +29,6 @@ npm run dev
 - `src/` — app source
 - `RUN.md` — quick start + shortcuts
 - `CHANGELOG.md` — feature log
+- `STATUS.md` — current status + priorities
+- `DEPLOY.md` — deployment notes
+- `TODO.md` — next steps
