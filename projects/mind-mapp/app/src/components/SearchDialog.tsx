@@ -4,9 +4,13 @@ import { useMindMapStore } from '../store/useMindMapStore';
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
   const [query, setQuery] = useState('');
+  const [selected, setSelected] = useState(0);
 
   useEffect(() => {
-    if (open) setQuery('');
+    if (open) {
+      setQuery('');
+      setSelected(0);
+    }
   }, [open]);
 
   const results = useMemo(() => {
@@ -19,10 +23,25 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelected(s => Math.min(results.length - 1, s + 1));
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelected(s => Math.max(0, s - 1));
+      }
+      if (e.key === 'Enter') {
+        const item = results[selected];
+        if (item) {
+          setFocus(item.id);
+          onClose();
+        }
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  }, [open, onClose, results, selected, setFocus]);
 
   if (!open) return null;
 
@@ -36,10 +55,10 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
           onChange={(e) => setQuery(e.target.value)}
         />
         <div className="search-results">
-          {results.map(r => (
+          {results.map((r, i) => (
             <div
               key={r.id}
-              className="search-item"
+              className={`search-item ${i === selected ? 'active' : ''}`}
               onClick={() => { setFocus(r.id); onClose(); }}
             >
               {r.text || '(empty)'}

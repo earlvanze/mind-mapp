@@ -121,7 +121,8 @@ body, html, #root {
   cursor: pointer;
 }
 
-.search-item:hover {
+.search-item:hover,
+.search-item.active {
   background: #f1f5ff;
 }
 
