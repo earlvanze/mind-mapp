@@ -21,12 +21,16 @@ export function usePanZoom({ selector }: Options) {
       el.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
     };
 
-    const onDoubleClick = () => {
+    const resetView = () => {
       scale = 1;
       originX = 0;
       originY = 0;
       el.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
     };
+
+    const onDoubleClick = () => resetView();
+
+    (window as any).__mindmappResetView = resetView;
 
     const onMouseDown = (e: MouseEvent) => {
       if (!e.shiftKey) return;
@@ -74,6 +78,7 @@ export function usePanZoom({ selector }: Options) {
       window.removeEventListener('mouseup', onMouseUp);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      delete (window as any).__mindmappResetView;
     };
   }, [selector]);
 }

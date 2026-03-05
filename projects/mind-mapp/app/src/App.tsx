@@ -66,7 +66,7 @@ export default function App() {
           <button onClick={() => importState(sampleMap())}>Sample</button>
           <button data-export="json" onClick={exportJson}>Export JSON</button>
           <button onClick={exportPngClick}>Export PNG</button>
-          <button onClick={() => location.reload()}>Reset View</button>
+          <button onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
         </div>
       </div>
       <div className="canvas">
