@@ -2,7 +2,7 @@
 
 ## Build
 - Framework: Vite + React + TypeScript
-- Current version: 0.1.1
+- Current version: 0.1.2
 - Last build output in `dist/`
 
 ## Core Features
