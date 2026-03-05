@@ -14,8 +14,9 @@ export function fitToView() {
   const padding = 100;
   const width = (maxX - minX) + padding;
   const height = (maxY - minY) + padding;
-  const scaleX = window.innerWidth / width;
-  const scaleY = window.innerHeight / height;
+  const rect = el.getBoundingClientRect();
+  const scaleX = rect.width / width;
+  const scaleY = rect.height / height;
   const scale = Math.min(1.6, Math.max(0.4, Math.min(scaleX, scaleY)));
 
   const originX = -minX + padding / 2;
