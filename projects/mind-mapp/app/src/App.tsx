@@ -8,6 +8,7 @@ import { useAutosave } from './hooks/useAutosave';
 import { exportPng } from './utils/exportPng';
 import { fitToView } from './utils/fitToView';
 import { confirmAction } from './utils/confirm';
+import { APP_VERSION } from './utils/version';
 import SearchDialog from './components/SearchDialog';
 import HelpDialog from './components/HelpDialog';
 
@@ -46,7 +47,7 @@ export default function App() {
     <div className="app">
       <div className="toolbar">
         <strong>Mind Mapp</strong>
-        <span style={{ color: '#666' }}>MVP scaffold</span>
+        <span style={{ color: '#666' }}>v{APP_VERSION}</span>
         <div className="toolbar-actions">
           <label className="import-btn">
             Import JSON
