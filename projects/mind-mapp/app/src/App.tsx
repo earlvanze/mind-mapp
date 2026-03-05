@@ -48,6 +48,7 @@ export default function App() {
       <div className="toolbar">
         <strong>Mind Mapp</strong>
         <span style={{ color: '#666' }}>v{APP_VERSION}</span>
+        <span style={{ color: '#666' }}>{Object.keys(nodes).length} nodes</span>
         <div className="toolbar-actions">
           <label className="import-btn">
             Import JSON
