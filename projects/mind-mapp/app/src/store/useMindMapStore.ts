@@ -21,6 +21,7 @@ type MindMapState = {
   addChild: (id: string) => void;
   promoteNode: (id: string) => void;
   importState: (nodes: Record<string, Node>) => void;
+  resetMap: () => void;
   deleteNode: (id: string) => void;
   moveFocus: (direction: 'left' | 'right' | 'up' | 'down') => void;
   autoLayoutChildren: (parentId: string) => void;
@@ -109,6 +110,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
     set({ nodes: updated });
   },
   importState: (nodes) => set({ nodes, focusId: Object.keys(nodes)[0] || rootId }),
+  resetMap: () => set(defaultState),
   deleteNode: (id) => {
     if (id === rootId) return; // don't delete root
     const state = get();

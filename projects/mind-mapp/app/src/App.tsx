@@ -11,7 +11,7 @@ import SearchDialog from './components/SearchDialog';
 import HelpDialog from './components/HelpDialog';
 
 export default function App() {
-  const { nodes, importState } = useMindMapStore();
+  const { nodes, importState, resetMap } = useMindMapStore();
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   useKeyboard({ onSearch: () => setSearchOpen(true), onFit: () => fitToView(), onHelp: () => setHelpOpen(true) });
@@ -60,6 +60,7 @@ export default function App() {
           </label>
           <button onClick={() => fitToView()}>Fit</button>
           <button onClick={() => setHelpOpen(true)}>Help</button>
+          <button onClick={() => resetMap()}>Clear</button>
           <button onClick={exportJson}>Export JSON</button>
           <button onClick={exportPngClick}>Export PNG</button>
         </div>
