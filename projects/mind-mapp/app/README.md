@@ -33,3 +33,4 @@ npm run dev
 - `DEPLOY.md` — deployment notes
 - `TODO.md` — next steps
 - `KEYS.md` — full shortcut reference
+- `CONTRIBUTING.md` — dev setup & conventions
