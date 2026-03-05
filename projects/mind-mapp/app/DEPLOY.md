@@ -12,3 +12,4 @@ npx serve dist
 ## Notes
 - No backend required
 - All data stored in browser localStorage
+- Build output is static; host on Netlify/Vercel/S3
