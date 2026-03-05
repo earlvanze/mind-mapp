@@ -43,6 +43,7 @@ export default function Node({ node }: Props) {
       style={{ left: node.x, top: node.y, minWidth: 60 }}
       onMouseDown={(e) => {
         if (e.shiftKey) return;
+        if (editingId === node.id) return;
         onDragStart(e);
       }}
       onClick={() => setFocus(node.id)}
