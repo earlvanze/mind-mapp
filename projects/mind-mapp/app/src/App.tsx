@@ -68,7 +68,7 @@ export default function App() {
           >
             Clear
           </button>
-          <button onClick={exportJson}>Export JSON</button>
+          <button data-export="json" onClick={exportJson}>Export JSON</button>
           <button onClick={exportPngClick}>Export PNG</button>
         </div>
       </div>

@@ -38,8 +38,9 @@ export function useKeyboard({ onSearch, onFit, onHelp }: Props) {
         }
       }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
-        // allow default browser save for now (no-op)
         e.preventDefault();
+        const btn = document.querySelector('button[data-export="json"]') as HTMLButtonElement | null;
+        btn?.click();
       }
       if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
