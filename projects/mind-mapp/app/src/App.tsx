@@ -6,6 +6,7 @@ import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
 import { exportPng } from './utils/exportPng';
+import { exportJsonData } from './utils/exportJson';
 import { fitToView } from './utils/fitToView';
 import { confirmAction } from './utils/confirm';
 import { sampleMap } from './utils/sampleMap';
@@ -21,16 +22,7 @@ export default function App() {
   usePanZoom({ selector: '.canvas' });
   useAutosave(() => saveState(), 600);
 
-  const exportJson = () => {
-    const data = { version: 1, nodes };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'mindmapp.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const exportJson = () => exportJsonData(nodes);
 
   const exportPngClick = async () => {
     const el = document.querySelector('.canvas') as HTMLElement | null;
