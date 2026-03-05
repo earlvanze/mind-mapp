@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { loadFromStorage, saveToStorage } from '../utils/storage';
 
 export type Node = {
   id: string;
@@ -37,18 +38,12 @@ const defaultState = {
   editingId: undefined,
 };
 
-const STORAGE_KEY = 'mindmapp.v0.1.map';
+import { loadFromStorage, saveToStorage } from '../utils/storage';
 
 function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultState;
-    const parsed = JSON.parse(raw);
-    if (!parsed.nodes || !parsed.focusId) return defaultState;
-    return parsed;
-  } catch {
-    return defaultState;
-  }
+  const parsed = loadFromStorage<{ nodes: Record<string, Node>; focusId: string }>();
+  if (!parsed || !parsed.nodes || !parsed.focusId) return defaultState;
+  return parsed;
 }
 
 export const useMindMapStore = create<MindMapState>((set, get) => ({
@@ -181,9 +176,5 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
 // autosave is triggered from hook to debounce localStorage writes
 export function saveState() {
   const state = useMindMapStore.getState();
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ nodes: state.nodes, focusId: state.focusId }));
-  } catch {
-    // ignore storage errors
-  }
+  saveToStorage({ nodes: state.nodes, focusId: state.focusId });
 }
