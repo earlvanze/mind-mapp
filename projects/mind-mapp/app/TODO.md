@@ -5,6 +5,7 @@
 - [ ] Multi-select + group move
 - [ ] Undo/redo
 - [ ] Mini‑map
+- [ ] Touch gestures (pinch/pan)
 
 ## Data
 - [ ] Import validation + schema versioning
