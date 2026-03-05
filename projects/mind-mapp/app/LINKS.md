@@ -6,3 +6,4 @@
 - Deploy: DEPLOY.md
 - Shortcuts: KEYS.md
 - Known issues: KNOWN_ISSUES.md
+- Audit: AUDIT.md
