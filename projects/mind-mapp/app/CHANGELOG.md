@@ -1,6 +1,15 @@
 # Mind Mapp — Changelog
 
-## Unreleased
+## 0.1.1
+- Added toolbar actions (Fit/Help/Clear)
+- Added help dialog and shortcut updates
+- Search keyboard navigation + result cap
+- Edge arrowheads
+- Autosave improvements + storage helpers
+- JSON export versioning + Cmd/Ctrl+S mapping
+- UI polish: node count, min width, edit focus behavior
+
+## 0.1.0
 - Scaffolded Vite + React + TS app
 - Node CRUD (create sibling/child, delete)
 - Keyboard navigation (arrows)
