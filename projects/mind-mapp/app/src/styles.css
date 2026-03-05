@@ -22,6 +22,7 @@ body, html, #root {
   display: flex;
   align-items: center;
   gap: 12px;
+  font-size: 14px;
 }
 
 .toolbar-actions {
