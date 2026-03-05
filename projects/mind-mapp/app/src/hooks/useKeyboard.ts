@@ -4,7 +4,7 @@ import { useMindMapStore } from '../store/useMindMapStore';
 type Props = { onSearch: () => void; onFit: () => void; onHelp: () => void };
 
 export function useKeyboard({ onSearch, onFit, onHelp }: Props) {
-  const { focusId, addSibling, addChild, deleteNode, moveFocus, setFocus, autoLayoutChildren, editingId, startEditing } = useMindMapStore();
+  const { focusId, addSibling, addChild, promoteNode, deleteNode, moveFocus, setFocus, autoLayoutChildren, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -31,7 +31,11 @@ export function useKeyboard({ onSearch, onFit, onHelp }: Props) {
       }
       if (e.key === 'Tab') {
         e.preventDefault();
-        addChild(focusId);
+        if (e.shiftKey) {
+          promoteNode(focusId);
+        } else {
+          addChild(focusId);
+        }
       }
       if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();

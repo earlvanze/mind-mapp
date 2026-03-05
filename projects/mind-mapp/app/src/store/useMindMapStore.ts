@@ -19,6 +19,7 @@ type MindMapState = {
   startEditing: (id: string) => void;
   addSibling: (id: string) => void;
   addChild: (id: string) => void;
+  promoteNode: (id: string) => void;
   importState: (nodes: Record<string, Node>) => void;
   deleteNode: (id: string) => void;
   moveFocus: (direction: 'left' | 'right' | 'up' | 'down') => void;
@@ -85,6 +86,27 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       },
       focusId: newId
     }));
+  },
+  promoteNode: (id) => {
+    const state = get();
+    const node = state.nodes[id];
+    if (!node || !node.parentId) return;
+    const parent = state.nodes[node.parentId];
+    if (!parent) return;
+    const newParentId = parent.parentId;
+    const updated: Record<string, Node> = { ...state.nodes };
+    // remove from current parent
+    updated[parent.id] = {
+      ...parent,
+      children: parent.children.filter(c => c !== id)
+    };
+    // attach to new parent (or root if null)
+    if (newParentId) {
+      const grand = updated[newParentId];
+      updated[newParentId] = { ...grand, children: [...grand.children, id] };
+    }
+    updated[id] = { ...node, parentId: newParentId, x: node.x + 120 };
+    set({ nodes: updated });
   },
   importState: (nodes) => set({ nodes, focusId: Object.keys(nodes)[0] || rootId }),
   deleteNode: (id) => {
