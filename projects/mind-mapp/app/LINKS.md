@@ -5,5 +5,6 @@
 - Roadmap: ROADMAP.md
 - Deploy: DEPLOY.md
 - Shortcuts: KEYS.md
+- Contributing: CONTRIBUTING.md
 - Known issues: KNOWN_ISSUES.md
 - Audit: AUDIT.md
