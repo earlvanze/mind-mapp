@@ -11,3 +11,8 @@
 - AUDIT.md
 - KNOWN_ISSUES.md
 - LINKS.md
+- .nvmrc
+- package.json
+- package-lock.json
+- tsconfig.json
+- vite.config.ts
