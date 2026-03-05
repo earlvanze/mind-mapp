@@ -37,3 +37,4 @@ npm run dev
 - `KNOWN_ISSUES.md` — known gaps/advisories
 - `ROADMAP.md` — upcoming milestones
 - `LINKS.md` — doc index
+- `OVERVIEW.md` — quick product summary
