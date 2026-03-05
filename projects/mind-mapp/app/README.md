@@ -32,3 +32,4 @@ npm run dev
 - `STATUS.md` — current status + priorities
 - `DEPLOY.md` — deployment notes
 - `TODO.md` — next steps
+- `KEYS.md` — full shortcut reference
