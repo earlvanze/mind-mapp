@@ -10,12 +10,13 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Search (Cmd/Ctrl+K)
 - Edit (double‑click or E)
 - Pan/zoom (Shift+drag, Ctrl/Cmd+wheel)
-- Fit to view (F)
+- Fit to view (F) + Reset View button
 - Auto‑layout children (L)
 - Help dialog (?)
 - Autosave + JSON import/export
-- PNG export
+- PNG export (Cmd/Ctrl+Shift+S)
 - Edge rendering
+- Sample map loader
 
 ## Run
 ```bash
