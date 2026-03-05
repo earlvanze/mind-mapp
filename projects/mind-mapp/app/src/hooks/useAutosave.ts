@@ -8,6 +8,10 @@ export function useAutosave(onSave: () => void, delay = 500) {
       t = window.setTimeout(() => onSave(), delay);
     };
     window.addEventListener('keyup', handler);
-    return () => window.removeEventListener('keyup', handler);
+    window.addEventListener('mouseup', handler);
+    return () => {
+      window.removeEventListener('keyup', handler);
+      window.removeEventListener('mouseup', handler);
+    };
   }, [onSave, delay]);
 }
