@@ -31,4 +31,3 @@
 - Edge rendering
 - Explicit edit mode + Shift+Tab promote
 - Reset view (double-click)
-
