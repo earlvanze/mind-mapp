@@ -5,12 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng } from './utils/exportPng';
-import { exportJsonData } from './utils/exportJson';
-import { fitToView } from './utils/fitToView';
-import { confirmAction } from './utils/confirm';
-import { sampleMap } from './utils/sampleMap';
-import { APP_VERSION } from './utils/version';
+import { exportPng, exportJsonData, fitToView, confirmAction, sampleMap, APP_VERSION } from './utils';
 import SearchDialog from './components/SearchDialog';
 import HelpDialog from './components/HelpDialog';
 
