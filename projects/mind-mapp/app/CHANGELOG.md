@@ -14,6 +14,7 @@
 - Keyboard hook dependency fix
 - Added FAQ + glossary docs
 - Added exports doc
+- Added imports doc
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
