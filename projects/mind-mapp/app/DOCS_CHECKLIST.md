@@ -7,6 +7,7 @@
 - GLOSSARY.md
 - EXPORTS.md
 - IMPORTS.md
+- ARCHITECTURE.md
 - OVERVIEW.md
 - STATUS.md
 - ROADMAP.md

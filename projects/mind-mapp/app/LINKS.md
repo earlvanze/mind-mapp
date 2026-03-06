@@ -7,6 +7,7 @@
 - Glossary: GLOSSARY.md
 - Exports: EXPORTS.md
 - Imports: IMPORTS.md
+- Architecture: ARCHITECTURE.md
 - Status: STATUS.md
 - Roadmap: ROADMAP.md
 - Deploy: DEPLOY.md

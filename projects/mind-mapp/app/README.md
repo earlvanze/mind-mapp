@@ -48,4 +48,5 @@ npm run dev
 - `GLOSSARY.md` — key terms
 - `EXPORTS.md` — export formats
 - `IMPORTS.md` — import flows
+- `ARCHITECTURE.md` — app architecture
 - `.editorconfig` — formatting defaults
