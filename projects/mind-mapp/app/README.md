@@ -47,4 +47,5 @@ npm run dev
 - `FAQ.md` — product FAQ
 - `GLOSSARY.md` — key terms
 - `EXPORTS.md` — export formats
+- `IMPORTS.md` — import flows
 - `.editorconfig` — formatting defaults

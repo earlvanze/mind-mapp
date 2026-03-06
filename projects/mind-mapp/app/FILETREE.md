@@ -17,6 +17,7 @@
 - FAQ.md
 - GLOSSARY.md
 - EXPORTS.md
+- IMPORTS.md
 - FILETREE.md
 - SECURITY.md
 - SESSION_NOTES.md
