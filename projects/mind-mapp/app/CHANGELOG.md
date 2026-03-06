@@ -12,6 +12,7 @@
 - Docs inventory refresh (checklist + links)
 - Utilities barrel import cleanup
 - Keyboard hook dependency fix
+- Added FAQ + glossary docs
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
