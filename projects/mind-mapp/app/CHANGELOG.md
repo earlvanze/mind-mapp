@@ -9,6 +9,9 @@
 - Higher-res PNG export
 - UI hints (node count + shortcut hint)
 - Deploy notes + status summary
+- Docs inventory refresh (checklist + links)
+- Utilities barrel import cleanup
+- Keyboard hook dependency fix
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
