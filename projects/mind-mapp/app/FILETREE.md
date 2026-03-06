@@ -11,6 +11,13 @@
 - AUDIT.md
 - KNOWN_ISSUES.md
 - LINKS.md
+- DOCS_CHECKLIST.md
+- MIGRATIONS.md
+- RELEASE.md
+- FILETREE.md
+- SECURITY.md
+- SESSION_NOTES.md
+- .editorconfig
 - .nvmrc
 - package.json
 - package-lock.json
