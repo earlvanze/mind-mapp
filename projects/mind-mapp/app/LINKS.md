@@ -5,10 +5,14 @@
 - Roadmap: ROADMAP.md
 - Deploy: DEPLOY.md
 - Overview: OVERVIEW.md
+- File tree: FILETREE.md
 - Shortcuts: KEYS.md
 - Contributing: CONTRIBUTING.md
 - Known issues: KNOWN_ISSUES.md
+- Security: SECURITY.md
 - Audit: AUDIT.md
 - Release checklist: RELEASE.md
 - Docs checklist: DOCS_CHECKLIST.md
 - Docs index: docs.json
+- Migrations: MIGRATIONS.md
+- Session notes: SESSION_NOTES.md
