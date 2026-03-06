@@ -10,6 +10,7 @@
 - Architecture: ARCHITECTURE.md
 - Gestures: GESTURES.md
 - Style guide: STYLE.md
+- Accessibility: ACCESSIBILITY.md
 - Status: STATUS.md
 - Roadmap: ROADMAP.md
 - Deploy: DEPLOY.md

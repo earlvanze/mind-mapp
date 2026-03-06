@@ -51,4 +51,5 @@ npm run dev
 - `ARCHITECTURE.md` — app architecture
 - `GESTURES.md` — mouse/trackpad gestures
 - `STYLE.md` — UI style guide
+- `ACCESSIBILITY.md` — a11y notes
 - `.editorconfig` — formatting defaults
