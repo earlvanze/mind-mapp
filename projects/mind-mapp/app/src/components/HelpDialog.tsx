@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { SHORTCUTS } from '../utils/shortcuts';
+import { SHORTCUTS } from '../utils';
 
 export default function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   useEffect(() => {

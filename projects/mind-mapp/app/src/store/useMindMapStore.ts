@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { loadFromStorage, saveToStorage } from '../utils/storage';
-import { uid } from '../utils/id';
+import { loadFromStorage, saveToStorage, uid } from '../utils';
 
 export type Node = {
   id: string;
