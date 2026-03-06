@@ -43,4 +43,5 @@ npm run dev
 - `SESSION_NOTES.md` — session summary
 - `RELEASE.md` — release checklist
 - `DOCS_CHECKLIST.md` — doc inventory
+- `MIGRATIONS.md` — schema migration notes
 - `.editorconfig` — formatting defaults
