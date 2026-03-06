@@ -17,6 +17,7 @@
 - Added imports doc
 - Linked imports/exports in overview
 - Added app architecture doc
+- Added gestures doc
 - Updated docs status summary
 
 ## 0.1.1
