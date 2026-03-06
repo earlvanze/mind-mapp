@@ -42,4 +42,5 @@ npm run dev
 - `SECURITY.md` — security notes
 - `SESSION_NOTES.md` — session summary
 - `RELEASE.md` — release checklist
+- `DOCS_CHECKLIST.md` — doc inventory
 - `.editorconfig` — formatting defaults
