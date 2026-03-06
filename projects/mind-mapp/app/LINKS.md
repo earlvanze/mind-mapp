@@ -9,4 +9,6 @@
 - Contributing: CONTRIBUTING.md
 - Known issues: KNOWN_ISSUES.md
 - Audit: AUDIT.md
+- Release checklist: RELEASE.md
+- Docs checklist: DOCS_CHECKLIST.md
 - Docs index: docs.json
