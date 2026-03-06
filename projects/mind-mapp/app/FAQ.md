@@ -20,3 +20,6 @@ A: Shift+drag pans; Ctrl/Cmd+wheel zooms; double-click background resets view.
 
 Q: Is autosave enabled?
 A: Yes — changes autosave to localStorage with a 600ms debounce.
+
+Q: How do I reset view?
+A: Double-click the background or use the Reset View toolbar button.
