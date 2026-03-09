@@ -5,6 +5,8 @@ type ImportEnvelope = {
   nodes?: Record<string, Node>;
 };
 
+const ROOT_ID = 'n_root';
+
 function isNode(value: unknown): value is Node {
   if (!value || typeof value !== 'object') return false;
   const node = value as Node;
@@ -33,6 +35,83 @@ function validateNodes(nodes: Record<string, Node>): Record<string, Node> {
     if (!isNode(node)) {
       throw new Error(`Invalid import: malformed node "${id}".`);
     }
+
+    if (node.id !== id) {
+      throw new Error(`Invalid import: node id mismatch for "${id}".`);
+    }
+
+    if (node.parentId === id) {
+      throw new Error(`Invalid import: node "${id}" cannot parent itself.`);
+    }
+  }
+
+  const root = nodes[ROOT_ID];
+  if (!root) {
+    throw new Error(`Invalid import: missing root node "${ROOT_ID}".`);
+  }
+
+  if (root.parentId !== null) {
+    throw new Error(`Invalid import: root node "${ROOT_ID}" must have parentId null.`);
+  }
+
+  const nullParents = entries.filter(([, node]) => node.parentId === null).map(([id]) => id);
+  if (nullParents.length !== 1 || nullParents[0] !== ROOT_ID) {
+    throw new Error('Invalid import: only root may have parentId null.');
+  }
+
+  for (const [id, node] of entries) {
+    if (node.parentId && !nodes[node.parentId]) {
+      throw new Error(`Invalid import: node "${id}" has missing parent "${node.parentId}".`);
+    }
+
+    const deduped = new Set(node.children);
+    if (deduped.size !== node.children.length) {
+      throw new Error(`Invalid import: node "${id}" contains duplicate children.`);
+    }
+
+    for (const childId of node.children) {
+      const child = nodes[childId];
+      if (!child) {
+        throw new Error(`Invalid import: node "${id}" references missing child "${childId}".`);
+      }
+      if (child.parentId !== id) {
+        throw new Error(`Invalid import: child "${childId}" parent mismatch (expected "${id}").`);
+      }
+    }
+  }
+
+  for (const [id, node] of entries) {
+    if (!node.parentId) continue;
+    const parent = nodes[node.parentId];
+    if (!parent.children.includes(id)) {
+      throw new Error(`Invalid import: parent "${node.parentId}" missing child link to "${id}".`);
+    }
+  }
+
+  const visited = new Set<string>();
+  const stack = new Set<string>();
+
+  const visit = (id: string) => {
+    if (stack.has(id)) {
+      throw new Error(`Invalid import: cycle detected at "${id}".`);
+    }
+    if (visited.has(id)) return;
+
+    stack.add(id);
+    const node = nodes[id];
+    for (const childId of node.children) visit(childId);
+    stack.delete(id);
+    visited.add(id);
+  };
+
+  visit(ROOT_ID);
+
+  if (visited.size !== entries.length) {
+    const unreachable = entries.map(([id]) => id).filter(id => !visited.has(id));
+    const preview = unreachable.slice(0, 5).join(', ');
+    throw new Error(
+      `Invalid import: orphan/unreachable nodes detected (${preview}${unreachable.length > 5 ? ', ...' : ''}).`
+    );
   }
 
   return nodes;

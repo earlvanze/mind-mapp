@@ -24,6 +24,7 @@
 - Added style guide status note
 - Added import validation with clear success/error notices
 - Added undo/redo history (toolbar + shortcuts)
+- Added import graph integrity checks (root/links/cycles/orphans)
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
