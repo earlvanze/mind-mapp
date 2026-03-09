@@ -27,6 +27,7 @@
 - Added import graph integrity checks (root/links/self-parent/unreachable)
 - Avoided no-op text edits in undo history
 - Added Vitest setup + import validation unit tests
+- Added undo/redo store unit tests
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
