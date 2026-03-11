@@ -58,6 +58,7 @@
 - Added selection stacking commands (Alt+[ / Alt+] + toolbar)
 - Added grid-snapping command (Alt+Shift+G + toolbar)
 - Added selection mirroring commands (Alt+Shift+M / Alt+Shift+W + toolbar)
+- Added fit-selection command (Alt+F + toolbar)
 - Search selection now centers viewport on the chosen node
 
 ## 0.1.1

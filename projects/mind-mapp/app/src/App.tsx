@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, centerPointInView, confirmAction, parseImportPayload, sampleMap, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, centerPointInView, confirmAction, parseImportPayload, sampleMap, APP_VERSION } from './utils';
 import SearchDialog from './components/SearchDialog';
 import HelpDialog from './components/HelpDialog';
 import MiniMap from './components/MiniMap';
@@ -40,9 +40,31 @@ export default function App() {
     centerOnWorld(node.x + 30, node.y + 16);
   };
 
+  const fitSelection = () => {
+    const selected = selectedIds
+      .map(id => nodes[id])
+      .filter(Boolean);
+    if (!selected.length) return;
+
+    const el = document.querySelector('.canvas') as HTMLElement | null;
+    if (!el) return;
+
+    const panZoom = (window as any).__mindmappPanZoom;
+    const rect = el.getBoundingClientRect();
+    const view = computeFitView(selected, { width: rect.width, height: rect.height }, { padding: 140, maxScale: 2 });
+
+    if (panZoom?.setView) {
+      panZoom.setView(view);
+      return;
+    }
+
+    el.style.transform = `translate(${view.originX}px, ${view.originY}px) scale(${view.scale})`;
+  };
+
   useKeyboard({
     onSearch: () => setSearchOpen(true),
     onFit: () => fitToView(),
+    onFitSelection: () => fitSelection(),
     onCenterFocus: () => centerOnNode(focusId),
     onHelp: () => setHelpOpen(true),
     onUndo: () => undo(),
@@ -123,6 +145,7 @@ export default function App() {
             />
           </label>
           <button title="Fit to view" onClick={() => fitToView()}>Fit</button>
+          <button title="Fit selected nodes (Alt+F)" onClick={fitSelection}>Fit Sel</button>
           <button title="Center focused node (C)" onClick={() => centerOnNode(focusId)}>Center</button>
           <button title="Show shortcuts" onClick={() => setHelpOpen(true)}>Help</button>
           <button

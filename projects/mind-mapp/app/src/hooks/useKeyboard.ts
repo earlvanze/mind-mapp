@@ -4,6 +4,7 @@ import { useMindMapStore } from '../store/useMindMapStore';
 type Props = {
   onSearch: () => void;
   onFit: () => void;
+  onFitSelection: () => void;
   onCenterFocus: () => void;
   onHelp: () => void;
   onUndo: () => void;
@@ -11,7 +12,7 @@ type Props = {
   onExportMarkdown: () => void;
 };
 
-export function useKeyboard({ onSearch, onFit, onCenterFocus, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
@@ -119,6 +120,10 @@ export function useKeyboard({ onSearch, onFit, onCenterFocus, onHelp, onUndo, on
       if (e.altKey && e.key.toLowerCase() === 'p' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         selectParent();
+      }
+      if (e.altKey && e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        onFitSelection();
       }
       if (e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey) {
         onFit();
@@ -228,6 +233,7 @@ export function useKeyboard({ onSearch, onFit, onCenterFocus, onHelp, onUndo, on
     startEditing,
     onSearch,
     onFit,
+    onFitSelection,
     onCenterFocus,
     onHelp,
     onUndo,

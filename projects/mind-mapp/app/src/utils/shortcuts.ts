@@ -37,6 +37,7 @@ export const SHORTCUTS = [
   { key: 'Alt+Arrow', desc: 'nudge selected node(s) by 10px' },
   { key: 'Shift+Alt+Arrow', desc: 'nudge selected node(s) by 40px' },
   { key: 'F', desc: 'fit to view' },
+  { key: 'Alt+F', desc: 'fit selected nodes' },
   { key: 'C', desc: 'center focused node' },
   { key: 'L', desc: 'auto‑layout children' },
   { key: 'Shift+drag', desc: 'pan' },
