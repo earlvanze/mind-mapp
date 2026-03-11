@@ -21,6 +21,7 @@ npm test
 - Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
 - Cmd/Ctrl+K: search
 - Cmd/Ctrl+S: export JSON
+- Cmd/Ctrl+Shift+M: export Markdown
 - Cmd/Ctrl+Shift+S: export PNG
 - E / double‑click: edit node
 - Arrow keys: move focus

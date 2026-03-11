@@ -9,6 +9,7 @@
 - E / double‑click: edit node
 - Cmd/Ctrl+K: search
 - Cmd/Ctrl+S: export JSON
+- Cmd/Ctrl+Shift+M: export Markdown
 - Cmd/Ctrl+Shift+S: export PNG
 - Arrow keys: move focus
 - F: fit to view

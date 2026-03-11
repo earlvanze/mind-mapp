@@ -14,6 +14,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Auto‑layout children (L)
 - Help dialog (?)
 - Autosave + JSON import/export
+- Markdown export (Cmd/Ctrl+Shift+M)
 - PNG export (Cmd/Ctrl+Shift+S)
 - Edge rendering
 - Sample map loader

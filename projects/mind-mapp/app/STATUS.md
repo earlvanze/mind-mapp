@@ -17,6 +17,7 @@
 - Search + keyboard navigation (Cmd/Ctrl+K)
 - Undo/redo (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z/Cmd/Ctrl+Y)
 - Autosave + JSON import/export (validated)
+- Markdown export (Cmd/Ctrl+Shift+M)
 - PNG export (Cmd/Ctrl+Shift+S)
 - Pan/zoom + fit-to-view + reset view
 - Help dialog + shortcuts
@@ -26,4 +27,3 @@
 - Multi-select + group move
 - Curved edges
 - Touch gestures
-- Markdown export

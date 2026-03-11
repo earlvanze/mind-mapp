@@ -7,9 +7,10 @@ type Props = {
   onHelp: () => void;
   onUndo: () => void;
   onRedo: () => void;
+  onExportMarkdown: () => void;
 };
 
-export function useKeyboard({ onSearch, onFit, onHelp, onUndo, onRedo }: Props) {
+export function useKeyboard({ onSearch, onFit, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteNode, moveFocus, setFocus, autoLayoutChildren, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
@@ -64,6 +65,10 @@ export function useKeyboard({ onSearch, onFit, onHelp, onUndo, onRedo }: Props) 
         const btn = document.querySelector('button[data-export="png"]') as HTMLButtonElement | null;
         btn?.click();
       }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        onExportMarkdown();
+      }
       if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
         deleteNode(focusId);
@@ -106,5 +111,6 @@ export function useKeyboard({ onSearch, onFit, onHelp, onUndo, onRedo }: Props) 
     onHelp,
     onUndo,
     onRedo,
+    onExportMarkdown,
   ]);
 }

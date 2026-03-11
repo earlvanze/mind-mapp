@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, fitToView, confirmAction, parseImportPayload, sampleMap, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, confirmAction, parseImportPayload, sampleMap, APP_VERSION } from './utils';
 import SearchDialog from './components/SearchDialog';
 import HelpDialog from './components/HelpDialog';
 
@@ -20,6 +20,7 @@ export default function App() {
     onHelp: () => setHelpOpen(true),
     onUndo: () => undo(),
     onRedo: () => redo(),
+    onExportMarkdown: () => exportMarkdownData(nodes),
   });
   usePanZoom({ selector: '.canvas' });
   useAutosave(() => saveState(), 600);
@@ -83,6 +84,7 @@ export default function App() {
           </button>
           <button title="Load sample map" onClick={() => importState(sampleMap())}>Sample</button>
           <button title="Export JSON" data-export="json" onClick={exportJson}>Export JSON</button>
+          <button title="Export Markdown" data-export="markdown" onClick={() => exportMarkdownData(nodes)}>Export MD</button>
           <button title="Export PNG" data-export="png" onClick={exportPngClick}>Export PNG</button>
           <button title="Reset pan/zoom" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
         </div>

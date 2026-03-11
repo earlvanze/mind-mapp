@@ -8,6 +8,7 @@ export const SHORTCUTS = [
   { key: 'Cmd/Ctrl+K', desc: 'search' },
   { key: 'Cmd/Ctrl+S', desc: 'export JSON' },
   { key: 'Cmd/Ctrl+Shift+S', desc: 'export PNG' },
+  { key: 'Cmd/Ctrl+Shift+M', desc: 'export Markdown' },
   { key: 'E / double‑click', desc: 'edit node' },
   { key: 'Arrow keys', desc: 'move focus' },
   { key: 'F', desc: 'fit to view' },

@@ -1,5 +1,6 @@
 export * from './confirm';
 export * from './exportJson';
+export * from './exportMarkdown';
 export * from './exportPng';
 export * from './fitToView';
 export * from './id';
