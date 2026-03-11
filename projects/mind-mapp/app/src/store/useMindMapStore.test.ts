@@ -293,6 +293,30 @@ describe('useMindMapStore history', () => {
     expect(next.focusId).toBe(children[1]);
   });
 
+  it('alignSelection aligns selected nodes to focused X or Y', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+
+    const [a, b] = useMindMapStore.getState().nodes[ROOT_ID].children;
+    useMindMapStore.getState().setFocus(a);
+    useMindMapStore.getState().toggleSelection(b);
+
+    const before = useMindMapStore.getState();
+    const ax = before.nodes[a].x;
+    const ay = before.nodes[a].y;
+
+    useMindMapStore.getState().alignSelection('x');
+    let next = useMindMapStore.getState();
+    expect(next.nodes[a].x).toBe(ax);
+    expect(next.nodes[b].x).toBe(ax);
+
+    useMindMapStore.getState().alignSelection('y');
+    next = useMindMapStore.getState();
+    expect(next.nodes[a].y).toBe(ay);
+    expect(next.nodes[b].y).toBe(ay);
+  });
+
   it('expandSelectionToNeighbors adds parent and children of selected nodes', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);

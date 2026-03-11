@@ -29,6 +29,8 @@ npm test
 - Alt+G: select nodes at focused depth level
 - Alt+X: clear selection extras (keep focus)
 - Alt+N: expand selection to parents + children
+- Alt+Shift+X: align selected nodes to focused X
+- Alt+Shift+Y: align selected nodes to focused Y
 - Alt+B: select focused subtree
 - Alt+P: select parent of focused node
 - Cmd/Ctrl+Z: undo

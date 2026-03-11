@@ -21,6 +21,8 @@ export const SHORTCUTS = [
   { key: 'Alt+G', desc: 'select nodes at focused depth level' },
   { key: 'Alt+X', desc: 'clear selection extras (keep focus)' },
   { key: 'Alt+N', desc: 'expand selection to parents + children' },
+  { key: 'Alt+Shift+X', desc: 'align selected nodes to focused X' },
+  { key: 'Alt+Shift+Y', desc: 'align selected nodes to focused Y' },
   { key: 'Alt+B', desc: 'select focused subtree' },
   { key: 'Alt+P', desc: 'select parent of focused node' },
   { key: 'E / double‑click', desc: 'edit node' },

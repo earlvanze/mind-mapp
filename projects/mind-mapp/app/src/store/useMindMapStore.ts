@@ -41,6 +41,7 @@ type MindMapState = {
   expandSelectionToNeighbors: () => void;
   selectSubtree: () => void;
   moveNode: (id: string, x: number, y: number, commitHistory?: boolean) => void;
+  alignSelection: (axis: 'x' | 'y') => void;
   moveNodes: (updates: Record<string, { x: number; y: number }>, commitHistory?: boolean) => void;
   nudgeSelected: (dx: number, dy: number) => void;
   startEditing: (id: string) => void;
@@ -391,6 +392,38 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       return {
         ...withHistory(state),
         nodes: { ...state.nodes, [id]: { ...state.nodes[id], x, y } },
+      };
+    }),
+  alignSelection: axis =>
+    set(state => {
+      const selected = state.selectedIds.filter(id => !!state.nodes[id]);
+      if (selected.length < 2) return {};
+
+      const anchorId = state.nodes[state.focusId] ? state.focusId : selected[0];
+      const anchor = state.nodes[anchorId];
+      if (!anchor) return {};
+
+      const nextNodes = { ...state.nodes };
+      let changed = false;
+
+      for (const id of selected) {
+        const node = nextNodes[id];
+        if (!node) continue;
+
+        if (axis === 'x' && node.x !== anchor.x) {
+          nextNodes[id] = { ...node, x: anchor.x };
+          changed = true;
+        }
+        if (axis === 'y' && node.y !== anchor.y) {
+          nextNodes[id] = { ...node, y: anchor.y };
+          changed = true;
+        }
+      }
+
+      if (!changed) return {};
+      return {
+        ...withHistory(state),
+        nodes: nextNodes,
       };
     }),
   moveNodes: (updates, commitHistory = false) =>

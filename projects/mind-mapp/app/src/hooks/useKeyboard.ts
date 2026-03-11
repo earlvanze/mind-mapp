@@ -12,7 +12,7 @@ type Props = {
 };
 
 export function useKeyboard({ onSearch, onFit, onCenterFocus, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
-  const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
+  const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -75,6 +75,14 @@ export function useKeyboard({ onSearch, onFit, onCenterFocus, onHelp, onUndo, on
       if (e.altKey && e.key.toLowerCase() === 'n' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         expandSelectionToNeighbors();
+      }
+      if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'x' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        alignSelection('x');
+      }
+      if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'y' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        alignSelection('y');
       }
       if (e.altKey && e.key.toLowerCase() === 'b' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
@@ -181,6 +189,7 @@ export function useKeyboard({ onSearch, onFit, onCenterFocus, onHelp, onUndo, on
     clearSelectionSet,
     expandSelectionToNeighbors,
     selectSubtree,
+    alignSelection,
     autoLayoutChildren,
     nudgeSelected,
     editingId,
