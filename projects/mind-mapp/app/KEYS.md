@@ -6,6 +6,7 @@
 - Delete/Backspace: delete selected node(s)
 - Cmd/Ctrl+click: multi-select nodes
 - Cmd/Ctrl+A: select all nodes
+- Cmd/Ctrl+D: duplicate selected node(s)
 - Cmd/Ctrl+Z: undo
 - Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
 - E / double‑click: edit node

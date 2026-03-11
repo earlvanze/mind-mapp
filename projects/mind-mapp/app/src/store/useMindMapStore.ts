@@ -41,6 +41,7 @@ type MindMapState = {
   resetMap: () => void;
   deleteNode: (id: string) => void;
   deleteSelected: () => void;
+  duplicateSelected: () => void;
   moveFocus: (direction: 'left' | 'right' | 'up' | 'down') => void;
   autoLayoutChildren: (parentId: string) => void;
   undo: () => void;
@@ -315,6 +316,44 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
 
     const nextFocus = newNodes[rootId] ? rootId : Object.keys(newNodes)[0];
     set(s => ({ ...withHistory(s), nodes: newNodes, focusId: nextFocus, selectedIds: nextFocus ? [nextFocus] : [] }));
+  },
+  duplicateSelected: () => {
+    const state = get();
+    const seeds = state.selectedIds.filter(id => id !== rootId && !!state.nodes[id]);
+    if (!seeds.length) return;
+
+    const nextNodes: Record<string, Node> = { ...state.nodes };
+    const createdIds: string[] = [];
+
+    for (const id of seeds) {
+      const source = state.nodes[id];
+      if (!source) continue;
+      const newId = uid();
+      createdIds.push(newId);
+      nextNodes[newId] = {
+        id: newId,
+        text: source.text,
+        x: source.x + 40,
+        y: source.y + 40,
+        parentId: source.parentId,
+        children: [],
+      };
+      if (source.parentId && nextNodes[source.parentId]) {
+        nextNodes[source.parentId] = {
+          ...nextNodes[source.parentId],
+          children: [...nextNodes[source.parentId].children, newId],
+        };
+      }
+    }
+
+    if (!createdIds.length) return;
+    set(s => ({
+      ...withHistory(s),
+      nodes: nextNodes,
+      focusId: createdIds[0],
+      selectedIds: createdIds,
+      editingId: undefined,
+    }));
   },
   moveFocus: direction => {
     const state = get();

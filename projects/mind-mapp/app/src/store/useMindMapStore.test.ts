@@ -142,4 +142,26 @@ describe('useMindMapStore history', () => {
     expect(undone.x).toBe(before.x);
     expect(undone.y).toBe(before.y);
   });
+
+  it('duplicates selected nodes with offset and selection handoff', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+
+    const childId = useMindMapStore.getState().nodes[ROOT_ID].children[0];
+    const source = useMindMapStore.getState().nodes[childId];
+
+    useMindMapStore.getState().setFocus(childId);
+    useMindMapStore.getState().duplicateSelected();
+
+    const next = useMindMapStore.getState();
+    expect(next.selectedIds).toHaveLength(1);
+
+    const dupId = next.selectedIds[0];
+    expect(dupId).not.toBe(childId);
+    expect(next.nodes[dupId]).toBeDefined();
+    expect(next.nodes[dupId].text).toBe(source.text);
+    expect(next.nodes[dupId].x).toBe(source.x + 40);
+    expect(next.nodes[dupId].y).toBe(source.y + 40);
+    expect(next.nodes[ROOT_ID].children).toContain(dupId);
+  });
 });
