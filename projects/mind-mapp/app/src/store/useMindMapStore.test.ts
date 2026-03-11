@@ -111,4 +111,15 @@ describe('useMindMapStore history', () => {
     expect(next.nodes[childIds[1]]).toBeUndefined();
     expect(next.nodes[ROOT_ID].children).toHaveLength(0);
   });
+
+  it('selectAll marks every node as selected', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+
+    useMindMapStore.getState().selectAll();
+
+    const next = useMindMapStore.getState();
+    expect(next.selectedIds.sort()).toEqual(Object.keys(next.nodes).sort());
+  });
 });

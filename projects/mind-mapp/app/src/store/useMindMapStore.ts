@@ -29,6 +29,7 @@ type MindMapState = {
   setFocus: (id: string) => void;
   toggleSelection: (id: string) => void;
   clearSelection: () => void;
+  selectAll: () => void;
   moveNode: (id: string, x: number, y: number, commitHistory?: boolean) => void;
   moveNodes: (updates: Record<string, { x: number; y: number }>, commitHistory?: boolean) => void;
   startEditing: (id: string) => void;
@@ -117,6 +118,16 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       };
     }),
   clearSelection: () => set(state => ({ selectedIds: state.focusId ? [state.focusId] : [] })),
+  selectAll: () =>
+    set(state => {
+      const allIds = Object.keys(state.nodes);
+      if (!allIds.length) return {};
+      return {
+        selectedIds: allIds,
+        focusId: state.focusId || allIds[0],
+        editingId: undefined,
+      };
+    }),
   startEditing: id => set({ editingId: id, focusId: id, selectedIds: [id] }),
   moveNode: (id, x, y, commitHistory = false) =>
     set(state => {

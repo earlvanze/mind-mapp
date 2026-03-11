@@ -34,6 +34,7 @@
 - Added touch pan/pinch gestures for canvas navigation
 - Added multi-select + group drag move
 - Added mini-map navigator overlay
+- Added Cmd/Ctrl+A shortcut for select-all in multi-select mode
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)

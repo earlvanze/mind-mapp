@@ -11,7 +11,7 @@ import HelpDialog from './components/HelpDialog';
 import MiniMap from './components/MiniMap';
 
 export default function App() {
-  const { nodes, focusId, selectedIds, setFocus, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
+  const { nodes, focusId, selectedIds, setFocus, selectAll, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
@@ -63,6 +63,7 @@ export default function App() {
         <div className="toolbar-actions">
           <button title="Undo (Cmd/Ctrl+Z)" onClick={undo} disabled={!canUndo}>Undo</button>
           <button title="Redo (Cmd/Ctrl+Shift+Z)" onClick={redo} disabled={!canRedo}>Redo</button>
+          <button title="Select all nodes (Cmd/Ctrl+A)" onClick={selectAll}>Select All</button>
           <label className="import-btn">
             Import JSON
             <input

@@ -10,6 +10,7 @@ export const SHORTCUTS = [
   { key: 'Cmd/Ctrl+Shift+S', desc: 'export PNG' },
   { key: 'Cmd/Ctrl+Shift+M', desc: 'export Markdown' },
   { key: 'Cmd/Ctrl+click', desc: 'multi-select nodes' },
+  { key: 'Cmd/Ctrl+A', desc: 'select all nodes' },
   { key: 'E / double‑click', desc: 'edit node' },
   { key: 'Arrow keys', desc: 'move focus' },
   { key: 'F', desc: 'fit to view' },

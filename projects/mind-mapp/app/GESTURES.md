@@ -4,6 +4,7 @@
 - Shift + drag: pan
 - Ctrl/Cmd + wheel: zoom
 - Cmd/Ctrl + click: add/remove node in multi-selection
+- Cmd/Ctrl + A: select all nodes
 - Drag selected node(s): group move
 - Click mini-map node: focus that node
 - Double-click background: reset view

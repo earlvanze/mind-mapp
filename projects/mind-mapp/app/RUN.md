@@ -18,6 +18,7 @@ npm test
 - Tab: new child
 - Delete/Backspace: delete selected node(s)
 - Cmd/Ctrl+click: multi-select nodes
+- Cmd/Ctrl+A: select all nodes
 - Cmd/Ctrl+Z: undo
 - Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
 - Cmd/Ctrl+K: search
