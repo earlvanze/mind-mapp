@@ -9,7 +9,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Arrow‑key navigation
 - Search (Cmd/Ctrl+K)
 - Edit (double‑click or E)
-- Pan/zoom (Shift+drag, Ctrl/Cmd+wheel)
+- Pan/zoom (Shift+drag, Ctrl/Cmd+wheel, touch pan/pinch)
 - Fit to view (F) + Reset View button
 - Auto‑layout children (L)
 - Help dialog (?)

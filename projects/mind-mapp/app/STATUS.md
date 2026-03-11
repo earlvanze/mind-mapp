@@ -19,11 +19,10 @@
 - Autosave + JSON import/export (validated)
 - Markdown export (Cmd/Ctrl+Shift+M)
 - PNG export (Cmd/Ctrl+Shift+S)
-- Pan/zoom + fit-to-view + reset view
+- Pan/zoom + fit-to-view + reset view (mouse + touch)
 - Help dialog + shortcuts
 - Sample map loader
 - Curved edge rendering with arrowheads
 
 ## Next Priorities
 - Multi-select + group move
-- Touch gestures

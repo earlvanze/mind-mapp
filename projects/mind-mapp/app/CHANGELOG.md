@@ -31,6 +31,7 @@
 - Added GitHub Actions CI for tests + build on app changes
 - Added Markdown export (button + shortcut)
 - Switched edge rendering from straight lines to curved paths
+- Added touch pan/pinch gestures for canvas navigation
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
