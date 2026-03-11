@@ -19,6 +19,7 @@ export const SHORTCUTS = [
   { key: 'Alt+U', desc: 'select ancestors of focused node' },
   { key: 'Alt+T', desc: 'reduce selection to top-level nodes' },
   { key: 'Alt+X', desc: 'clear selection extras (keep focus)' },
+  { key: 'Alt+N', desc: 'expand selection to parents + children' },
   { key: 'Alt+B', desc: 'select focused subtree' },
   { key: 'Alt+P', desc: 'select parent of focused node' },
   { key: 'E / double‑click', desc: 'edit node' },

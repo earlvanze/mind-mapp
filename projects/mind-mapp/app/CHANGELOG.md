@@ -51,6 +51,7 @@
 - Added ancestor-selection command (Alt+U + toolbar)
 - Added top-level-selection command (Alt+T + toolbar)
 - Added clear-selection-extras command (Alt+X + toolbar)
+- Added neighbor-expansion command (Alt+N + toolbar)
 - Search selection now centers viewport on the chosen node
 
 ## 0.1.1

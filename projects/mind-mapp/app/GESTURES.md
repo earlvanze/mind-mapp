@@ -13,6 +13,7 @@
 - Alt + U: select ancestors of focused node
 - Alt + T: reduce selection to top-level nodes
 - Alt + X: clear selection extras (keep focus)
+- Alt + N: expand selection to parents + children
 - Alt + B: select focused subtree
 - Alt + P: select parent of focused node
 - Drag selected node(s): group move

@@ -273,6 +273,21 @@ describe('useMindMapStore history', () => {
     expect(next.focusId).toBe(children[1]);
   });
 
+  it('expandSelectionToNeighbors adds parent and children of selected nodes', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+
+    const parentId = useMindMapStore.getState().nodes[ROOT_ID].children[0];
+    store.addChild(parentId);
+    const childId = useMindMapStore.getState().nodes[parentId].children[0];
+
+    useMindMapStore.getState().setFocus(parentId);
+    useMindMapStore.getState().expandSelectionToNeighbors();
+
+    const next = useMindMapStore.getState();
+    expect(next.selectedIds).toEqual(expect.arrayContaining([ROOT_ID, parentId, childId]));
+  });
+
   it('nudges selected nodes and supports undo', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);
