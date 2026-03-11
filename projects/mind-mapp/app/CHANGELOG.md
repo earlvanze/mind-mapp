@@ -68,6 +68,7 @@
 - Added Shift+M mini-map visibility toggle and persisted mini-map preference
 - Search selection now centers viewport on the chosen node
 - Added keyboard +/- zoom shortcuts (center‑preserving)
+- Added toolbar zoom percentage indicator
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)

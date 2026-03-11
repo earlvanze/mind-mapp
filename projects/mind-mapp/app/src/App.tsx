@@ -18,6 +18,7 @@ export default function App() {
   const [showGrid, setShowGrid] = useState(false);
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
+  const [viewScale, setViewScale] = useState(1);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
@@ -31,6 +32,22 @@ export default function App() {
   useEffect(() => {
     saveUiPrefs({ showGrid, showMiniMap, showAdvancedActions });
   }, [showGrid, showMiniMap, showAdvancedActions]);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<{ scale?: number }>).detail;
+      if (typeof detail?.scale === 'number') {
+        setViewScale(detail.scale);
+      }
+    };
+    window.addEventListener('mindmapp:viewchange', handler);
+    const panZoom = (window as any).__mindmappPanZoom;
+    const view = panZoom?.getView?.();
+    if (typeof view?.scale === 'number') {
+      setViewScale(view.scale);
+    }
+    return () => window.removeEventListener('mindmapp:viewchange', handler);
+  }, []);
 
   const centerOnWorld = (x: number, y: number) => {
     const el = document.querySelector('.canvas') as HTMLElement | null;
@@ -151,6 +168,7 @@ export default function App() {
         <span style={{ color: '#666' }}>{Object.keys(nodes).length} nodes</span>
         <span style={{ color: '#666' }}>{selectedIds.length} selected</span>
         {selectedBounds ? <span style={{ color: '#666' }}>sel box {selectedBounds.width}×{selectedBounds.height}</span> : null}
+        <span style={{ color: '#666' }}>zoom {Math.round(viewScale * 100)}%</span>
         <span style={{ color: '#666' }}>Press ? for shortcuts</span>
         {importNotice ? (
           <span style={{ color: importNotice.kind === 'error' ? '#ff7b7b' : '#9ad67a' }}>
