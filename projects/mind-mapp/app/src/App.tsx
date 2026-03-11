@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { useMindMapStore, saveState } from './store/useMindMapStore';
 import Node from './components/Node';
 import Edges from './components/Edges';
@@ -6,9 +6,10 @@ import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
 import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, centerPointInView, confirmAction, parseImportPayload, sampleMap, APP_VERSION } from './utils';
-import SearchDialog from './components/SearchDialog';
-import HelpDialog from './components/HelpDialog';
 import MiniMap from './components/MiniMap';
+
+const SearchDialog = lazy(() => import('./components/SearchDialog'));
+const HelpDialog = lazy(() => import('./components/HelpDialog'));
 
 export default function App() {
   const { nodes, focusId, selectedIds, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
@@ -184,8 +185,10 @@ export default function App() {
           onNavigate={(x, y) => centerOnWorld(x, y)}
         />
       </div>
-      <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
-      <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <Suspense fallback={null}>
+        <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
+        <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
+      </Suspense>
     </div>
   );
 }
