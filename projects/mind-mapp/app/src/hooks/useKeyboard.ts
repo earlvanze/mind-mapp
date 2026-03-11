@@ -14,7 +14,7 @@ type Props = {
 };
 
 export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, onToggleGrid, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
-  const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
+  const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -93,6 +93,14 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, on
       if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'v' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         distributeSelection('y');
+      }
+      if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'r' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        layoutSelection('row');
+      }
+      if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'd' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        layoutSelection('column');
       }
       if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'g' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
@@ -229,6 +237,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onCenterFocus, on
     selectSubtree,
     alignSelection,
     distributeSelection,
+    layoutSelection,
     stackSelection,
     snapSelectionToGrid,
     mirrorSelection,

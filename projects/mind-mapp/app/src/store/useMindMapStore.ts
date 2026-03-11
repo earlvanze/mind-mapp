@@ -43,6 +43,7 @@ type MindMapState = {
   moveNode: (id: string, x: number, y: number, commitHistory?: boolean) => void;
   alignSelection: (axis: 'x' | 'y') => void;
   distributeSelection: (axis: 'x' | 'y') => void;
+  layoutSelection: (mode: 'row' | 'column', gap?: number) => void;
   stackSelection: (axis: 'x' | 'y', gap?: number) => void;
   snapSelectionToGrid: (grid?: number) => void;
   mirrorSelection: (axis: 'x' | 'y') => void;
@@ -465,6 +466,45 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         }
         if (axis === 'y' && node.y !== target) {
           nextNodes[id] = { ...node, y: target };
+          changed = true;
+        }
+      });
+
+      if (!changed) return {};
+      return {
+        ...withHistory(state),
+        nodes: nextNodes,
+      };
+    }),
+  layoutSelection: (mode, gap = 120) =>
+    set(state => {
+      const selected = state.selectedIds.filter(id => !!state.nodes[id]);
+      if (selected.length < 2) return {};
+
+      const anchorId = state.nodes[state.focusId] ? state.focusId : selected[0];
+      const anchor = state.nodes[anchorId];
+      if (!anchor) return {};
+
+      const ordered = [anchorId, ...selected.filter(id => id !== anchorId)].sort((a, b) => {
+        if (a === anchorId) return -1;
+        if (b === anchorId) return 1;
+        const na = state.nodes[a];
+        const nb = state.nodes[b];
+        return mode === 'row' ? na.y - nb.y || na.x - nb.x : na.x - nb.x || na.y - nb.y;
+      });
+
+      const nextNodes = { ...state.nodes };
+      let changed = false;
+
+      ordered.forEach((id, idx) => {
+        const node = nextNodes[id];
+        if (!node) return;
+
+        const targetX = mode === 'row' ? anchor.x + gap * idx : anchor.x;
+        const targetY = mode === 'column' ? anchor.y + gap * idx : anchor.y;
+
+        if (node.x !== targetX || node.y !== targetY) {
+          nextNodes[id] = { ...node, x: targetX, y: targetY };
           changed = true;
         }
       });

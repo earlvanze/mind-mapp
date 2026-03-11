@@ -369,6 +369,33 @@ describe('useMindMapStore history', () => {
     expect(next.nodes[a].y).toBe(260);
   });
 
+  it('layoutSelection arranges selected nodes as row/column from focused anchor', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+
+    const [a, b, c] = useMindMapStore.getState().nodes[ROOT_ID].children;
+    useMindMapStore.getState().setFocus(b);
+    useMindMapStore.getState().toggleSelection(a);
+    useMindMapStore.getState().toggleSelection(c);
+
+    const anchor = useMindMapStore.getState().nodes[c];
+
+    useMindMapStore.getState().layoutSelection('row', 60);
+    let next = useMindMapStore.getState();
+    expect(next.nodes[c].x).toBe(anchor.x);
+    expect(next.nodes[c].y).toBe(anchor.y);
+
+    const rows = [next.nodes[a].x, next.nodes[b].x, next.nodes[c].x].sort((m, n) => m - n);
+    expect(rows).toEqual([anchor.x, anchor.x + 60, anchor.x + 120]);
+
+    useMindMapStore.getState().layoutSelection('column', 50);
+    next = useMindMapStore.getState();
+    const cols = [next.nodes[a].y, next.nodes[b].y, next.nodes[c].y].sort((m, n) => m - n);
+    expect(cols).toEqual([anchor.y, anchor.y + 50, anchor.y + 100]);
+  });
+
   it('stackSelection stacks selected nodes from focused anchor', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);
