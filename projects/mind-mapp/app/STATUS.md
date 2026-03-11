@@ -4,7 +4,7 @@
 - Framework: Vite + React + TypeScript
 - Current version: 0.1.2
 - Last build output in `dist/`
-- Test runner: Vitest (`npm test`) — import validation + undo/redo store covered
+- Test runner: Vitest (`npm test`) — import, store history, minimap, fit math, edge/path, and pan/zoom math covered
 - CI: GitHub Actions workflow runs `npm test` + `npm run build` on app changes
 - Docs inventory + migration notes maintained
 - FAQ + glossary + exports/imports + architecture + gestures + style docs available
@@ -24,7 +24,7 @@
 - Help dialog + shortcuts
 - Sample map loader
 - Curved edge rendering with arrowheads
-- Mini-map navigator
+- Mini-map navigator (focus + center)
 
 ## Next Priorities
 - Canvas renderer for larger maps

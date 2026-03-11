@@ -10,3 +10,4 @@ export * from './sampleMap';
 export * from './shortcuts';
 export * from './storage';
 export * from './version';
+export * from './viewMath';

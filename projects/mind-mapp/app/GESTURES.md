@@ -6,7 +6,7 @@
 - Cmd/Ctrl + click: add/remove node in multi-selection
 - Cmd/Ctrl + A: select all nodes
 - Drag selected node(s): group move
-- Click mini-map node: focus that node
+- Click mini-map node: focus + center that node
 - Double-click background: reset view
 
 ## Touch

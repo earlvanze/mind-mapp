@@ -17,6 +17,7 @@
 - Alt+Arrow: nudge selected node(s) by 10px
 - Shift+Alt+Arrow: nudge selected node(s) by 40px
 - F: fit to view
+- C: center focused node
 - L: auto‑layout children
 - Shift+drag: pan
 - Ctrl/Cmd+wheel: zoom

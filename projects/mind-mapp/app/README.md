@@ -11,14 +11,14 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Search (Cmd/Ctrl+K)
 - Edit (double‑click or E)
 - Pan/zoom (Shift+drag, Ctrl/Cmd+wheel, touch pan/pinch)
-- Fit to view (F) + Reset View button
+- Fit to view (F) + Center focused node (C) + Reset View button
 - Auto‑layout children (L)
 - Help dialog (?)
 - Autosave + JSON import/export
 - Markdown export (Cmd/Ctrl+Shift+M)
 - PNG export (Cmd/Ctrl+Shift+S)
 - Curved edge rendering with arrowheads
-- Mini-map navigator (click node to focus)
+- Mini-map navigator (click node to focus + center)
 - Sample map loader
 
 ## Run

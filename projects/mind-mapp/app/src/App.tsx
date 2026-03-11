@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, confirmAction, parseImportPayload, sampleMap, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, centerPointInView, confirmAction, parseImportPayload, sampleMap, APP_VERSION } from './utils';
 import SearchDialog from './components/SearchDialog';
 import HelpDialog from './components/HelpDialog';
 import MiniMap from './components/MiniMap';
@@ -15,9 +15,32 @@ export default function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
+
+  const centerOnNode = (id: string) => {
+    const node = nodes[id];
+    if (!node) return;
+
+    const el = document.querySelector('.canvas') as HTMLElement | null;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const panZoom = (window as any).__mindmappPanZoom;
+    if (!panZoom?.setView || !panZoom?.getView) return;
+
+    const current = panZoom.getView();
+    const centered = centerPointInView(
+      { x: node.x + 30, y: node.y + 16 },
+      { width: rect.width, height: rect.height },
+      current.scale ?? 1,
+    );
+
+    panZoom.setView(centered);
+  };
+
   useKeyboard({
     onSearch: () => setSearchOpen(true),
     onFit: () => fitToView(),
+    onCenterFocus: () => centerOnNode(focusId),
     onHelp: () => setHelpOpen(true),
     onUndo: () => undo(),
     onRedo: () => redo(),
@@ -76,6 +99,7 @@ export default function App() {
             />
           </label>
           <button title="Fit to view" onClick={() => fitToView()}>Fit</button>
+          <button title="Center focused node (C)" onClick={() => centerOnNode(focusId)}>Center</button>
           <button title="Show shortcuts" onClick={() => setHelpOpen(true)}>Help</button>
           <button
             title="Clear map"
@@ -97,7 +121,15 @@ export default function App() {
         {Object.values(nodes).map(n => (
           <Node key={n.id} node={n} />
         ))}
-        <MiniMap nodes={nodes} focusId={focusId} selectedIds={selectedIds} onFocus={setFocus} />
+        <MiniMap
+          nodes={nodes}
+          focusId={focusId}
+          selectedIds={selectedIds}
+          onFocus={(id) => {
+            setFocus(id);
+            centerOnNode(id);
+          }}
+        />
       </div>
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
       <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />

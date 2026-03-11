@@ -37,6 +37,7 @@
 - Added Cmd/Ctrl+A shortcut for select-all in multi-select mode
 - Added Alt+Arrow keyboard nudge for selected node groups
 - Synced Fit-to-view with pan/zoom controller state (prevents post-fit jump)
+- Added center-focused-node control (C shortcut + mini-map click center)
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
