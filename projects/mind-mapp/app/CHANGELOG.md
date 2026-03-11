@@ -56,6 +56,7 @@
 - Added selection alignment commands (Alt+Shift+X / Alt+Shift+Y + toolbar)
 - Added selection distribution commands (Alt+Shift+H / Alt+Shift+V + toolbar)
 - Added selection stacking commands (Alt+[ / Alt+] + toolbar)
+- Added grid-snapping command (Alt+Shift+G + toolbar)
 - Search selection now centers viewport on the chosen node
 
 ## 0.1.1

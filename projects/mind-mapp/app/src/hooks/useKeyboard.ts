@@ -12,7 +12,7 @@ type Props = {
 };
 
 export function useKeyboard({ onSearch, onFit, onCenterFocus, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
-  const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, stackSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
+  const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, stackSelection, snapSelectionToGrid, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -91,6 +91,10 @@ export function useKeyboard({ onSearch, onFit, onCenterFocus, onHelp, onUndo, on
       if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'v' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         distributeSelection('y');
+      }
+      if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'g' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        snapSelectionToGrid(20);
       }
       if (e.altKey && e.key.toLowerCase() === '[' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
@@ -208,6 +212,7 @@ export function useKeyboard({ onSearch, onFit, onCenterFocus, onHelp, onUndo, on
     alignSelection,
     distributeSelection,
     stackSelection,
+    snapSelectionToGrid,
     autoLayoutChildren,
     nudgeSelected,
     editingId,

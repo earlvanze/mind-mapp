@@ -33,6 +33,7 @@ npm test
 - Alt+Shift+Y: align selected nodes to focused Y
 - Alt+Shift+H: distribute selected nodes horizontally
 - Alt+Shift+V: distribute selected nodes vertically
+- Alt+Shift+G: snap selected nodes to 20px grid
 - Alt+[: stack selected nodes along X from focus
 - Alt+]: stack selected nodes along Y from focus
 - Alt+B: select focused subtree

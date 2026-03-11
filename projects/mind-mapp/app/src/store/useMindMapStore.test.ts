@@ -370,6 +370,21 @@ describe('useMindMapStore history', () => {
     expect(ys).toEqual([anchor.y, anchor.y + 40, anchor.y + 80]);
   });
 
+  it('snapSelectionToGrid rounds selected coordinates to grid', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+
+    const id = useMindMapStore.getState().nodes[ROOT_ID].children[0];
+    useMindMapStore.getState().setFocus(id);
+    useMindMapStore.getState().moveNode(id, 113, 167);
+
+    useMindMapStore.getState().snapSelectionToGrid(20);
+
+    const next = useMindMapStore.getState().nodes[id];
+    expect(next.x).toBe(120);
+    expect(next.y).toBe(160);
+  });
+
   it('expandSelectionToNeighbors adds parent and children of selected nodes', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);

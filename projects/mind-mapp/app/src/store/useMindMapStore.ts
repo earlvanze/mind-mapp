@@ -44,6 +44,7 @@ type MindMapState = {
   alignSelection: (axis: 'x' | 'y') => void;
   distributeSelection: (axis: 'x' | 'y') => void;
   stackSelection: (axis: 'x' | 'y', gap?: number) => void;
+  snapSelectionToGrid: (grid?: number) => void;
   moveNodes: (updates: Record<string, { x: number; y: number }>, commitHistory?: boolean) => void;
   nudgeSelected: (dx: number, dy: number) => void;
   startEditing: (id: string) => void;
@@ -507,6 +508,34 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
           changed = true;
         }
       });
+
+      if (!changed) return {};
+      return {
+        ...withHistory(state),
+        nodes: nextNodes,
+      };
+    }),
+  snapSelectionToGrid: (grid = 20) =>
+    set(state => {
+      const step = Math.max(1, Math.round(grid));
+      const selected = state.selectedIds.filter(id => !!state.nodes[id]);
+      if (!selected.length) return {};
+
+      const nextNodes = { ...state.nodes };
+      let changed = false;
+
+      for (const id of selected) {
+        const node = nextNodes[id];
+        if (!node) continue;
+
+        const snappedX = Math.round(node.x / step) * step;
+        const snappedY = Math.round(node.y / step) * step;
+
+        if (snappedX !== node.x || snappedY !== node.y) {
+          nextNodes[id] = { ...node, x: snappedX, y: snappedY };
+          changed = true;
+        }
+      }
 
       if (!changed) return {};
       return {
