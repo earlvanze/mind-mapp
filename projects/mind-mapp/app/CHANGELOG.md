@@ -38,7 +38,7 @@
 - Added Alt+Arrow keyboard nudge for selected node groups
 - Synced Fit-to-view with pan/zoom controller state (prevents post-fit jump)
 - Added center-focused-node control (C shortcut + mini-map click center)
-- Added duplicate-selected control (Cmd/Ctrl+D + toolbar)
+- Added duplicate-selected control (Cmd/Ctrl+D + toolbar, including subtree duplication)
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)

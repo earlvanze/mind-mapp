@@ -164,4 +164,51 @@ describe('useMindMapStore history', () => {
     expect(next.nodes[dupId].y).toBe(source.y + 40);
     expect(next.nodes[ROOT_ID].children).toContain(dupId);
   });
+
+  it('duplicates subtree structure for selected parent nodes', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+
+    const parentId = useMindMapStore.getState().nodes[ROOT_ID].children[0];
+    store.addChild(parentId);
+
+    const childId = useMindMapStore.getState().nodes[parentId].children[0];
+    const sourceParent = useMindMapStore.getState().nodes[parentId];
+    const sourceChild = useMindMapStore.getState().nodes[childId];
+
+    useMindMapStore.getState().setFocus(parentId);
+    useMindMapStore.getState().duplicateSelected();
+
+    const next = useMindMapStore.getState();
+    const dupParentId = next.selectedIds[0];
+    const dupParent = next.nodes[dupParentId];
+
+    expect(dupParent.parentId).toBe(sourceParent.parentId);
+    expect(dupParent.children).toHaveLength(1);
+
+    const dupChildId = dupParent.children[0];
+    const dupChild = next.nodes[dupChildId];
+    expect(dupChild.parentId).toBe(dupParentId);
+    expect(dupChild.text).toBe(sourceChild.text);
+    expect(dupChild.x).toBe(sourceChild.x + 40);
+    expect(dupChild.y).toBe(sourceChild.y + 40);
+  });
+
+  it('does not double-duplicate descendants when parent and child are both selected', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+
+    const parentId = useMindMapStore.getState().nodes[ROOT_ID].children[0];
+    store.addChild(parentId);
+    const childId = useMindMapStore.getState().nodes[parentId].children[0];
+
+    const beforeCount = Object.keys(useMindMapStore.getState().nodes).length;
+
+    useMindMapStore.getState().setFocus(parentId);
+    useMindMapStore.getState().toggleSelection(childId);
+    useMindMapStore.getState().duplicateSelected();
+
+    const afterCount = Object.keys(useMindMapStore.getState().nodes).length;
+    expect(afterCount).toBe(beforeCount + 2);
+  });
 });

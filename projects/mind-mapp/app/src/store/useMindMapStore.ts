@@ -319,39 +319,75 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
   },
   duplicateSelected: () => {
     const state = get();
-    const seeds = state.selectedIds.filter(id => id !== rootId && !!state.nodes[id]);
-    if (!seeds.length) return;
+    const selected = new Set(state.selectedIds.filter(id => id !== rootId && !!state.nodes[id]));
+    if (!selected.size) return;
+
+    const hasSelectedAncestor = (id: string) => {
+      let parentId = state.nodes[id]?.parentId;
+      while (parentId) {
+        if (selected.has(parentId)) return true;
+        parentId = state.nodes[parentId]?.parentId ?? null;
+      }
+      return false;
+    };
+
+    const seedRoots = [...selected].filter(id => !hasSelectedAncestor(id));
+    if (!seedRoots.length) return;
 
     const nextNodes: Record<string, Node> = { ...state.nodes };
-    const createdIds: string[] = [];
+    const createdRootIds: string[] = [];
 
-    for (const id of seeds) {
-      const source = state.nodes[id];
-      if (!source) continue;
-      const newId = uid();
-      createdIds.push(newId);
-      nextNodes[newId] = {
-        id: newId,
-        text: source.text,
-        x: source.x + 40,
-        y: source.y + 40,
-        parentId: source.parentId,
-        children: [],
-      };
-      if (source.parentId && nextNodes[source.parentId]) {
-        nextNodes[source.parentId] = {
-          ...nextNodes[source.parentId],
-          children: [...nextNodes[source.parentId].children, newId],
+    for (const seed of seedRoots) {
+      const seedNode = state.nodes[seed];
+      if (!seedNode) continue;
+
+      const stack = [seed];
+      const order: string[] = [];
+      while (stack.length) {
+        const id = stack.pop()!;
+        if (!state.nodes[id]) continue;
+        order.push(id);
+        stack.push(...state.nodes[id].children);
+      }
+
+      const idMap: Record<string, string> = {};
+      for (const oldId of order) {
+        idMap[oldId] = uid();
+      }
+
+      for (const oldId of order) {
+        const source = state.nodes[oldId];
+        if (!source) continue;
+
+        const isSeedRoot = oldId === seed;
+        const mappedParentId = source.parentId ? idMap[source.parentId] : undefined;
+
+        nextNodes[idMap[oldId]] = {
+          id: idMap[oldId],
+          text: source.text,
+          x: source.x + 40,
+          y: source.y + 40,
+          parentId: isSeedRoot ? source.parentId : mappedParentId ?? null,
+          children: source.children.map(cid => idMap[cid]).filter(Boolean),
+        };
+      }
+
+      const cloneRootId = idMap[seed];
+      createdRootIds.push(cloneRootId);
+      if (seedNode.parentId && nextNodes[seedNode.parentId]) {
+        nextNodes[seedNode.parentId] = {
+          ...nextNodes[seedNode.parentId],
+          children: [...nextNodes[seedNode.parentId].children, cloneRootId],
         };
       }
     }
 
-    if (!createdIds.length) return;
+    if (!createdRootIds.length) return;
     set(s => ({
       ...withHistory(s),
       nodes: nextNodes,
-      focusId: createdIds[0],
-      selectedIds: createdIds,
+      focusId: createdRootIds[0],
+      selectedIds: createdRootIds,
       editingId: undefined,
     }));
   },
