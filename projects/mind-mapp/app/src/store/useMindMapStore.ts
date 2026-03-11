@@ -45,6 +45,7 @@ type MindMapState = {
   distributeSelection: (axis: 'x' | 'y') => void;
   stackSelection: (axis: 'x' | 'y', gap?: number) => void;
   snapSelectionToGrid: (grid?: number) => void;
+  mirrorSelection: (axis: 'x' | 'y') => void;
   moveNodes: (updates: Record<string, { x: number; y: number }>, commitHistory?: boolean) => void;
   nudgeSelected: (dx: number, dy: number) => void;
   startEditing: (id: string) => void;
@@ -534,6 +535,44 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         if (snappedX !== node.x || snappedY !== node.y) {
           nextNodes[id] = { ...node, x: snappedX, y: snappedY };
           changed = true;
+        }
+      }
+
+      if (!changed) return {};
+      return {
+        ...withHistory(state),
+        nodes: nextNodes,
+      };
+    }),
+  mirrorSelection: axis =>
+    set(state => {
+      const selected = state.selectedIds.filter(id => !!state.nodes[id]);
+      if (selected.length < 2) return {};
+
+      const anchorId = state.nodes[state.focusId] ? state.focusId : selected[0];
+      const anchor = state.nodes[anchorId];
+      if (!anchor) return {};
+
+      const nextNodes = { ...state.nodes };
+      let changed = false;
+
+      for (const id of selected) {
+        if (id === anchorId) continue;
+        const node = nextNodes[id];
+        if (!node) continue;
+
+        if (axis === 'x') {
+          const mirroredX = anchor.x * 2 - node.x;
+          if (mirroredX !== node.x) {
+            nextNodes[id] = { ...node, x: mirroredX };
+            changed = true;
+          }
+        } else {
+          const mirroredY = anchor.y * 2 - node.y;
+          if (mirroredY !== node.y) {
+            nextNodes[id] = { ...node, y: mirroredY };
+            changed = true;
+          }
         }
       }
 

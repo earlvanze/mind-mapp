@@ -346,6 +346,29 @@ describe('useMindMapStore history', () => {
     expect(next.nodes[b].y).toBeCloseTo(200, 5);
   });
 
+  it('mirrorSelection reflects selected nodes around focused axis', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+
+    const [a, b] = useMindMapStore.getState().nodes[ROOT_ID].children;
+    useMindMapStore.getState().moveNode(a, 100, 100);
+    useMindMapStore.getState().moveNode(b, 220, 180);
+
+    useMindMapStore.getState().setFocus(a);
+    useMindMapStore.getState().toggleSelection(b); // focus becomes b (anchor)
+
+    useMindMapStore.getState().mirrorSelection('x');
+    let next = useMindMapStore.getState();
+    expect(next.nodes[b].x).toBe(220);
+    expect(next.nodes[a].x).toBe(340);
+
+    useMindMapStore.getState().mirrorSelection('y');
+    next = useMindMapStore.getState();
+    expect(next.nodes[b].y).toBe(180);
+    expect(next.nodes[a].y).toBe(260);
+  });
+
   it('stackSelection stacks selected nodes from focused anchor', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);

@@ -26,6 +26,8 @@ export const SHORTCUTS = [
   { key: 'Alt+Shift+H', desc: 'distribute selected nodes horizontally' },
   { key: 'Alt+Shift+V', desc: 'distribute selected nodes vertically' },
   { key: 'Alt+Shift+G', desc: 'snap selected nodes to 20px grid' },
+  { key: 'Alt+Shift+M', desc: 'mirror selected nodes across focused X axis' },
+  { key: 'Alt+Shift+W', desc: 'mirror selected nodes across focused Y axis' },
   { key: 'Alt+[', desc: 'stack selected nodes along X from focus' },
   { key: 'Alt+]', desc: 'stack selected nodes along Y from focus' },
   { key: 'Alt+B', desc: 'select focused subtree' },
