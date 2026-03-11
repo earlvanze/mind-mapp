@@ -3,6 +3,7 @@ export * from './exportJson';
 export * from './exportMarkdown';
 export * from './exportPng';
 export * from './fitToView';
+export * from './fitViewMath';
 export * from './id';
 export * from './importValidation';
 export * from './sampleMap';

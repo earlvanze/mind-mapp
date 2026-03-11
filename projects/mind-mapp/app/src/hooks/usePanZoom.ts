@@ -3,6 +3,12 @@ import { clampScale, distance, midpoint } from '../utils/panZoomMath';
 
 type Options = { selector: string };
 
+type ViewState = {
+  originX: number;
+  originY: number;
+  scale: number;
+};
+
 export function usePanZoom({ selector }: Options) {
   useEffect(() => {
     const el = document.querySelector(selector) as HTMLElement | null;
@@ -34,24 +40,30 @@ export function usePanZoom({ selector }: Options) {
       el.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
     };
 
+    const setView = (view: Partial<ViewState>) => {
+      originX = typeof view.originX === 'number' ? view.originX : originX;
+      originY = typeof view.originY === 'number' ? view.originY : originY;
+      scale = typeof view.scale === 'number' ? clampScale(view.scale) : scale;
+      applyTransform();
+    };
+
+    const getView = (): ViewState => ({ originX, originY, scale });
+
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
       const delta = Math.sign(e.deltaY) * -0.1;
-      scale = clampScale(scale + delta);
-      applyTransform();
+      setView({ scale: scale + delta });
     };
 
     const resetView = () => {
-      scale = 1;
-      originX = 0;
-      originY = 0;
-      applyTransform();
+      setView({ scale: 1, originX: 0, originY: 0 });
     };
 
     const onDoubleClick = () => resetView();
 
     (window as any).__mindmappResetView = resetView;
+    (window as any).__mindmappPanZoom = { setView, getView, resetView };
 
     const onMouseDown = (e: MouseEvent) => {
       if (!e.shiftKey) return;
@@ -73,6 +85,7 @@ export function usePanZoom({ selector }: Options) {
       isPanning = false;
       originX += e.clientX - startX;
       originY += e.clientY - startY;
+      applyTransform();
       el.style.cursor = 'default';
     };
 
@@ -107,9 +120,10 @@ export function usePanZoom({ selector }: Options) {
       if (e.touches.length === 1 && isTouchPanning) {
         e.preventDefault();
         const t = e.touches[0];
-        originX = touchOriginX + (t.clientX - touchStartX);
-        originY = touchOriginY + (t.clientY - touchStartY);
-        applyTransform();
+        setView({
+          originX: touchOriginX + (t.clientX - touchStartX),
+          originY: touchOriginY + (t.clientY - touchStartY),
+        });
       }
 
       if (e.touches.length === 2 && isPinching) {
@@ -119,13 +133,13 @@ export function usePanZoom({ selector }: Options) {
 
         const d = Math.max(1, distance(p1, p2));
         const ratio = d / pinchStartDistance;
-        scale = clampScale(pinchStartScale * ratio);
 
         const mid = midpoint(p1, p2);
-        originX = pinchOriginX + (mid.x - pinchStartMidX);
-        originY = pinchOriginY + (mid.y - pinchStartMidY);
-
-        applyTransform();
+        setView({
+          scale: pinchStartScale * ratio,
+          originX: pinchOriginX + (mid.x - pinchStartMidX),
+          originY: pinchOriginY + (mid.y - pinchStartMidY),
+        });
       }
     };
 
@@ -179,6 +193,7 @@ export function usePanZoom({ selector }: Options) {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
       delete (window as any).__mindmappResetView;
+      delete (window as any).__mindmappPanZoom;
     };
   }, [selector]);
 }
