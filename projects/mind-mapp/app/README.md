@@ -8,7 +8,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Explicit edit mode (double‑click or E)
 - Delete node (Backspace/Delete)
 - Arrow‑key navigation
-- Search (Cmd/Ctrl+K)
+- Search (Cmd/Ctrl+K) with focus+center on selection
 - Edit (double‑click or E)
 - Pan/zoom (Shift+drag, Ctrl/Cmd+wheel, touch pan/pinch)
 - Fit to view (F) + Center focused node (C) + Reset View button
