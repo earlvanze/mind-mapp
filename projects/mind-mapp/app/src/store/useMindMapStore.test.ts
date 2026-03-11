@@ -123,6 +123,23 @@ describe('useMindMapStore history', () => {
     expect(next.selectedIds.sort()).toEqual(Object.keys(next.nodes).sort());
   });
 
+  it('selectSiblings selects siblings of focused node', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+    const parentIds = useMindMapStore.getState().nodes[ROOT_ID].children;
+
+    store.addChild(parentIds[0]);
+    store.addChild(parentIds[0]);
+    const siblingIds = useMindMapStore.getState().nodes[parentIds[0]].children;
+
+    useMindMapStore.getState().setFocus(siblingIds[0]);
+    useMindMapStore.getState().selectSiblings();
+
+    const selected = useMindMapStore.getState().selectedIds;
+    expect(selected.sort()).toEqual([...siblingIds].sort());
+  });
+
   it('nudges selected nodes and supports undo', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);

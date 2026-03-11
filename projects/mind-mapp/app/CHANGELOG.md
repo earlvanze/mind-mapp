@@ -41,6 +41,7 @@
 - Added duplicate-selected control (Cmd/Ctrl+D + toolbar, including subtree duplication)
 - Added mini-map viewport indicator synced with pan/zoom state
 - Switched mini-map viewport sync from polling to pan/zoom view-change events
+- Added focused-node sibling selection command (Alt+S + toolbar)
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)

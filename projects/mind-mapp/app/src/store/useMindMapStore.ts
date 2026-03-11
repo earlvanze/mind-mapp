@@ -30,6 +30,7 @@ type MindMapState = {
   toggleSelection: (id: string) => void;
   clearSelection: () => void;
   selectAll: () => void;
+  selectSiblings: () => void;
   moveNode: (id: string, x: number, y: number, commitHistory?: boolean) => void;
   moveNodes: (updates: Record<string, { x: number; y: number }>, commitHistory?: boolean) => void;
   nudgeSelected: (dx: number, dy: number) => void;
@@ -127,6 +128,31 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       return {
         selectedIds: allIds,
         focusId: state.focusId || allIds[0],
+        editingId: undefined,
+      };
+    }),
+  selectSiblings: () =>
+    set(state => {
+      const focused = state.nodes[state.focusId];
+      if (!focused) return {};
+
+      if (!focused.parentId) {
+        return {
+          selectedIds: [focused.id],
+          focusId: focused.id,
+          editingId: undefined,
+        };
+      }
+
+      const parent = state.nodes[focused.parentId];
+      if (!parent) return {};
+
+      const siblingIds = parent.children.filter(id => !!state.nodes[id]);
+      if (!siblingIds.length) return {};
+
+      return {
+        selectedIds: siblingIds,
+        focusId: focused.id,
         editingId: undefined,
       };
     }),
