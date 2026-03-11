@@ -258,6 +258,21 @@ describe('useMindMapStore history', () => {
     expect(next.focusId).toBe(parentId);
   });
 
+  it('clearSelectionSet keeps focused node only', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+    store.addChild(ROOT_ID);
+
+    const children = useMindMapStore.getState().nodes[ROOT_ID].children;
+    useMindMapStore.getState().setFocus(children[0]);
+    useMindMapStore.getState().toggleSelection(children[1]);
+    useMindMapStore.getState().clearSelectionSet();
+
+    const next = useMindMapStore.getState();
+    expect(next.selectedIds).toEqual([children[1]]);
+    expect(next.focusId).toBe(children[1]);
+  });
+
   it('nudges selected nodes and supports undo', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);
