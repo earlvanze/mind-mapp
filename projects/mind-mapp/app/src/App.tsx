@@ -11,7 +11,7 @@ import HelpDialog from './components/HelpDialog';
 import MiniMap from './components/MiniMap';
 
 export default function App() {
-  const { nodes, focusId, selectedIds, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectSubtree, selectParent, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
+  const { nodes, focusId, selectedIds, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectSubtree, selectParent, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
@@ -93,6 +93,7 @@ export default function App() {
           <button title="Invert selection (Alt+I)" onClick={invertSelection}>Invert</button>
           <button title="Select siblings of focused node (Alt+S)" onClick={selectSiblings}>Siblings</button>
           <button title="Select children of focused node (Alt+C)" onClick={selectChildren}>Children</button>
+          <button title="Select leaves under focused subtree (Alt+L)" onClick={selectLeaves}>Leaves</button>
           <button title="Select focused subtree (Alt+B)" onClick={selectSubtree}>Subtree</button>
           <button title="Select parent of focused node (Alt+P)" onClick={selectParent}>Parent</button>
           <button title="Duplicate selected nodes (Cmd/Ctrl+D)" onClick={duplicateSelected}>Duplicate</button>

@@ -15,6 +15,7 @@ export const SHORTCUTS = [
   { key: 'Cmd/Ctrl+D', desc: 'duplicate selected node(s)' },
   { key: 'Alt+S', desc: 'select siblings of focused node' },
   { key: 'Alt+C', desc: 'select children of focused node' },
+  { key: 'Alt+L', desc: 'select leaves under focused subtree' },
   { key: 'Alt+B', desc: 'select focused subtree' },
   { key: 'Alt+P', desc: 'select parent of focused node' },
   { key: 'E / double‑click', desc: 'edit node' },

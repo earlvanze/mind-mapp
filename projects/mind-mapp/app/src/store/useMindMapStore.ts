@@ -33,6 +33,7 @@ type MindMapState = {
   invertSelection: () => void;
   selectSiblings: () => void;
   selectChildren: () => void;
+  selectLeaves: () => void;
   selectSubtree: () => void;
   moveNode: (id: string, x: number, y: number, commitHistory?: boolean) => void;
   moveNodes: (updates: Record<string, { x: number; y: number }>, commitHistory?: boolean) => void;
@@ -200,6 +201,36 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
       return {
         selectedIds: childIds,
         focusId: childIds[0],
+        editingId: undefined,
+      };
+    }),
+  selectLeaves: () =>
+    set(state => {
+      const focused = state.nodes[state.focusId];
+      if (!focused) return {};
+
+      const leaves: string[] = [];
+      const stack = [focused.id];
+      const visited = new Set<string>();
+
+      while (stack.length) {
+        const id = stack.pop()!;
+        const node = state.nodes[id];
+        if (!node || visited.has(id)) continue;
+        visited.add(id);
+
+        const validChildren = node.children.filter(cid => !!state.nodes[cid]);
+        if (!validChildren.length) {
+          leaves.push(id);
+        } else {
+          stack.push(...validChildren);
+        }
+      }
+
+      if (!leaves.length) return {};
+      return {
+        selectedIds: leaves,
+        focusId: leaves[0],
         editingId: undefined,
       };
     }),
