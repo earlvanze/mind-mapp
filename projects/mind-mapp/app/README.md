@@ -4,7 +4,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 
 ## Features
 - Node creation (Enter = sibling, Tab = child, Shift+Tab = promote)
-- Multi-select (Cmd/Ctrl+click / Cmd/Ctrl+A) + group drag
+- Multi-select (Cmd/Ctrl+click / Cmd/Ctrl+A) + group drag + keyboard nudge (Alt+Arrow)
 - Explicit edit mode (double‑click or E)
 - Delete node (Backspace/Delete)
 - Arrow‑key navigation

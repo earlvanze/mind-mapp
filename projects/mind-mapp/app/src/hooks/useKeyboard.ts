@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function useKeyboard({ onSearch, onFit, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
-  const { focusId, addSibling, addChild, promoteNode, deleteSelected, moveFocus, setFocus, selectAll, autoLayoutChildren, editingId, startEditing } = useMindMapStore();
+  const { focusId, addSibling, addChild, promoteNode, deleteSelected, moveFocus, setFocus, selectAll, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -77,6 +77,15 @@ export function useKeyboard({ onSearch, onFit, onHelp, onUndo, onRedo, onExportM
         e.preventDefault();
         deleteSelected();
       }
+      if (e.altKey && e.key.startsWith('Arrow')) {
+        e.preventDefault();
+        const step = e.shiftKey ? 40 : 10;
+        if (e.key === 'ArrowLeft') nudgeSelected(-step, 0);
+        if (e.key === 'ArrowRight') nudgeSelected(step, 0);
+        if (e.key === 'ArrowUp') nudgeSelected(0, -step);
+        if (e.key === 'ArrowDown') nudgeSelected(0, step);
+        return;
+      }
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         moveFocus('left');
@@ -109,6 +118,7 @@ export function useKeyboard({ onSearch, onFit, onHelp, onUndo, onRedo, onExportM
     setFocus,
     selectAll,
     autoLayoutChildren,
+    nudgeSelected,
     editingId,
     startEditing,
     onSearch,

@@ -13,6 +13,8 @@ export const SHORTCUTS = [
   { key: 'Cmd/Ctrl+A', desc: 'select all nodes' },
   { key: 'E / double‑click', desc: 'edit node' },
   { key: 'Arrow keys', desc: 'move focus' },
+  { key: 'Alt+Arrow', desc: 'nudge selected node(s) by 10px' },
+  { key: 'Shift+Alt+Arrow', desc: 'nudge selected node(s) by 40px' },
   { key: 'F', desc: 'fit to view' },
   { key: 'L', desc: 'auto‑layout children' },
   { key: 'Shift+drag', desc: 'pan' },

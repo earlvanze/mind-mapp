@@ -14,6 +14,8 @@
 - Cmd/Ctrl+Shift+M: export Markdown
 - Cmd/Ctrl+Shift+S: export PNG
 - Arrow keys: move focus
+- Alt+Arrow: nudge selected node(s) by 10px
+- Shift+Alt+Arrow: nudge selected node(s) by 40px
 - F: fit to view
 - L: auto‑layout children
 - Shift+drag: pan

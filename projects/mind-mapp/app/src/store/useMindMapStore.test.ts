@@ -122,4 +122,24 @@ describe('useMindMapStore history', () => {
     const next = useMindMapStore.getState();
     expect(next.selectedIds.sort()).toEqual(Object.keys(next.nodes).sort());
   });
+
+  it('nudges selected nodes and supports undo', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+
+    const childId = useMindMapStore.getState().nodes[ROOT_ID].children[0];
+    const before = useMindMapStore.getState().nodes[childId];
+
+    useMindMapStore.getState().setFocus(childId);
+    useMindMapStore.getState().nudgeSelected(10, -20);
+
+    const moved = useMindMapStore.getState().nodes[childId];
+    expect(moved.x).toBe(before.x + 10);
+    expect(moved.y).toBe(before.y - 20);
+
+    useMindMapStore.getState().undo();
+    const undone = useMindMapStore.getState().nodes[childId];
+    expect(undone.x).toBe(before.x);
+    expect(undone.y).toBe(before.y);
+  });
 });

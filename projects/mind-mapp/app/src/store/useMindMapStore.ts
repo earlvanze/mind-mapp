@@ -32,6 +32,7 @@ type MindMapState = {
   selectAll: () => void;
   moveNode: (id: string, x: number, y: number, commitHistory?: boolean) => void;
   moveNodes: (updates: Record<string, { x: number; y: number }>, commitHistory?: boolean) => void;
+  nudgeSelected: (dx: number, dy: number) => void;
   startEditing: (id: string) => void;
   addSibling: (id: string) => void;
   addChild: (id: string) => void;
@@ -162,6 +163,26 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
 
       if (!commitHistory) {
         return { nodes: nextNodes };
+      }
+
+      return {
+        ...withHistory(state),
+        nodes: nextNodes,
+      };
+    }),
+  nudgeSelected: (dx, dy) =>
+    set(state => {
+      if (!dx && !dy) return {};
+      const ids = state.selectedIds.filter(id => !!state.nodes[id]);
+      if (!ids.length) return {};
+
+      const nextNodes = { ...state.nodes };
+      for (const id of ids) {
+        nextNodes[id] = {
+          ...nextNodes[id],
+          x: nextNodes[id].x + dx,
+          y: nextNodes[id].y + dy,
+        };
       }
 
       return {

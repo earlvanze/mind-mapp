@@ -27,6 +27,8 @@ npm test
 - Cmd/Ctrl+Shift+S: export PNG
 - E / double‑click: edit node
 - Arrow keys: move focus
+- Alt+Arrow: nudge selected node(s) by 10px
+- Shift+Alt+Arrow: nudge selected node(s) by 40px
 - F: fit to view
 - L: auto-layout children
 - Shift+drag: pan

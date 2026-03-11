@@ -11,7 +11,7 @@
 
 ## Core Features
 - Node creation (Enter/Tab) + promote (Shift+Tab)
-- Multi-select + group drag move (+ Cmd/Ctrl+A select all)
+- Multi-select + group drag move (+ Cmd/Ctrl+A select all + Alt+Arrow nudge)
 - Explicit edit mode (E/double‑click)
 - Delete selected node(s)
 - Arrow key navigation
