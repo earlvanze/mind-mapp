@@ -39,6 +39,7 @@
 - Synced Fit-to-view with pan/zoom controller state (prevents post-fit jump)
 - Added center-focused-node control (C shortcut + mini-map click center)
 - Added duplicate-selected control (Cmd/Ctrl+D + toolbar, including subtree duplication)
+- Added mini-map viewport indicator synced with pan/zoom state
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)

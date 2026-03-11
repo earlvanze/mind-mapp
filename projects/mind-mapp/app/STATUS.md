@@ -24,7 +24,7 @@
 - Help dialog + shortcuts
 - Sample map loader
 - Curved edge rendering with arrowheads
-- Mini-map navigator (focus + center)
+- Mini-map navigator (focus + center) with live viewport indicator
 
 ## Next Priorities
 - Canvas renderer for larger maps

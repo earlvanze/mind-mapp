@@ -18,7 +18,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Markdown export (Cmd/Ctrl+Shift+M)
 - PNG export (Cmd/Ctrl+Shift+S)
 - Curved edge rendering with arrowheads
-- Mini-map navigator (click node to focus + center)
+- Mini-map navigator (click node to focus + center) with live viewport indicator
 - Sample map loader
 
 ## Run

@@ -8,6 +8,7 @@
 - Cmd/Ctrl + D: duplicate selected node(s)
 - Drag selected node(s): group move
 - Click mini-map node: focus + center that node
+- Mini-map viewport box: shows current visible canvas window
 - Double-click background: reset view
 
 ## Touch

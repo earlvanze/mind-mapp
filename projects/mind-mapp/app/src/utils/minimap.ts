@@ -7,6 +7,20 @@ export type MapBounds = {
   height: number;
 };
 
+export type WorldRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type MiniRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
 export function getMapBounds(nodes: Record<string, Node>, pad = 80): MapBounds {
   const values = Object.values(nodes);
   if (!values.length) return { minX: 0, minY: 0, width: 1, height: 1 };
@@ -42,4 +56,28 @@ export function mapToMini(
     x: ((x - bounds.minX) / bounds.width) * miniWidth,
     y: ((y - bounds.minY) / bounds.height) * miniHeight,
   };
+}
+
+export function worldRectToMini(
+  rect: WorldRect,
+  bounds: MapBounds,
+  miniWidth: number,
+  miniHeight: number,
+  minSize = 8,
+): MiniRect {
+  const p1 = mapToMini(rect.x, rect.y, bounds, miniWidth, miniHeight);
+  const p2 = mapToMini(rect.x + rect.width, rect.y + rect.height, bounds, miniWidth, miniHeight);
+
+  let x = Math.min(p1.x, p2.x);
+  let y = Math.min(p1.y, p2.y);
+  let width = Math.max(0, Math.abs(p2.x - p1.x));
+  let height = Math.max(0, Math.abs(p2.y - p1.y));
+
+  width = Math.max(minSize, Math.min(miniWidth, width));
+  height = Math.max(minSize, Math.min(miniHeight, height));
+
+  x = Math.max(0, Math.min(miniWidth - width, x));
+  y = Math.max(0, Math.min(miniHeight - height, y));
+
+  return { x, y, width, height };
 }

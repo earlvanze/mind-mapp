@@ -78,6 +78,17 @@ body, html, #root {
   margin-bottom: 6px;
 }
 
+.minimap svg {
+  display: block;
+}
+
+.minimap-view {
+  fill: rgba(79, 70, 229, 0.1);
+  stroke: rgba(79, 70, 229, 0.8);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
 .node {
   position: absolute;
   padding: 6px 10px;
