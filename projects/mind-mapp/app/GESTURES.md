@@ -10,6 +10,7 @@
 - Alt + S: select siblings of focused node
 - Alt + C: select children of focused node
 - Alt + L: select leaves under focused subtree
+- Alt + U: select ancestors of focused node
 - Alt + B: select focused subtree
 - Alt + P: select parent of focused node
 - Drag selected node(s): group move

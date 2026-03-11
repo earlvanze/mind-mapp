@@ -225,6 +225,22 @@ describe('useMindMapStore history', () => {
     expect(leaves).toEqual([childB, grandChild].sort());
   });
 
+  it('selectAncestors selects focused node lineage up to root', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+
+    const parentId = useMindMapStore.getState().nodes[ROOT_ID].children[0];
+    store.addChild(parentId);
+    const childId = useMindMapStore.getState().nodes[parentId].children[0];
+
+    useMindMapStore.getState().setFocus(childId);
+    useMindMapStore.getState().selectAncestors();
+
+    const next = useMindMapStore.getState();
+    expect(next.selectedIds.sort()).toEqual([childId, parentId, ROOT_ID].sort());
+    expect(next.focusId).toBe(childId);
+  });
+
   it('nudges selected nodes and supports undo', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);
