@@ -45,6 +45,7 @@ type MindMapState = {
   deleteSelected: () => void;
   duplicateSelected: () => void;
   moveFocus: (direction: 'left' | 'right' | 'up' | 'down') => void;
+  selectParent: () => void;
   autoLayoutChildren: (parentId: string) => void;
   undo: () => void;
   redo: () => void;
@@ -466,6 +467,17 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
     if (!scored.length) return;
     scored.sort((a, b) => a.score - b.score);
     set({ focusId: scored[0].id, selectedIds: [scored[0].id] });
+  },
+  selectParent: () => {
+    const state = get();
+    const focused = state.nodes[state.focusId];
+    if (!focused?.parentId) return;
+    if (!state.nodes[focused.parentId]) return;
+    set({
+      focusId: focused.parentId,
+      selectedIds: [focused.parentId],
+      editingId: undefined,
+    });
   },
   autoLayoutChildren: parentId => {
     const state = get();

@@ -9,6 +9,7 @@
 - Cmd/Ctrl+D: duplicate selected node(s)
 - Alt+S: select siblings of focused node
 - Alt+B: select focused subtree
+- Alt+P: select parent of focused node
 - Cmd/Ctrl+Z: undo
 - Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
 - E / double‑click: edit node

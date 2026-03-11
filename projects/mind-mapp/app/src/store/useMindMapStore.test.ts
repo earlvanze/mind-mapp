@@ -157,6 +157,22 @@ describe('useMindMapStore history', () => {
     expect(selected).toEqual([parentId, childId, grandChildId].sort());
   });
 
+  it('selectParent focuses parent of current node', () => {
+    const store = useMindMapStore.getState();
+    store.addChild(ROOT_ID);
+
+    const parentId = useMindMapStore.getState().nodes[ROOT_ID].children[0];
+    store.addChild(parentId);
+    const childId = useMindMapStore.getState().nodes[parentId].children[0];
+
+    useMindMapStore.getState().setFocus(childId);
+    useMindMapStore.getState().selectParent();
+
+    const next = useMindMapStore.getState();
+    expect(next.focusId).toBe(parentId);
+    expect(next.selectedIds).toEqual([parentId]);
+  });
+
   it('nudges selected nodes and supports undo', () => {
     const store = useMindMapStore.getState();
     store.addChild(ROOT_ID);
