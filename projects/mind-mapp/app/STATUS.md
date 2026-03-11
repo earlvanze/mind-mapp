@@ -24,7 +24,7 @@
 - Help dialog + shortcuts
 - Sample map loader
 - Curved edge rendering with arrowheads
-- Mini-map navigator (focus + center) with live viewport indicator (event-synced)
+- Mini-map navigator (focus + center + background recenter) with live viewport indicator (event-synced)
 
 ## Next Priorities
 - Canvas renderer for larger maps

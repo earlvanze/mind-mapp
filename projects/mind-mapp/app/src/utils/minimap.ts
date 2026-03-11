@@ -58,6 +58,19 @@ export function mapToMini(
   };
 }
 
+export function miniToWorld(
+  x: number,
+  y: number,
+  bounds: MapBounds,
+  miniWidth: number,
+  miniHeight: number,
+): { x: number; y: number } {
+  return {
+    x: bounds.minX + (x / Math.max(1, miniWidth)) * bounds.width,
+    y: bounds.minY + (y / Math.max(1, miniHeight)) * bounds.height,
+  };
+}
+
 export function worldRectToMini(
   rect: WorldRect,
   bounds: MapBounds,

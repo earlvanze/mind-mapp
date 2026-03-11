@@ -9,6 +9,7 @@
 - Alt + S: select siblings of focused node
 - Drag selected node(s): group move
 - Click mini-map node: focus + center that node
+- Click mini-map background: recenter viewport to that location
 - Mini-map viewport box: shows current visible canvas window
 - Double-click background: reset view
 

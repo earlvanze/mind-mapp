@@ -16,10 +16,7 @@ export default function App() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
 
-  const centerOnNode = (id: string) => {
-    const node = nodes[id];
-    if (!node) return;
-
+  const centerOnWorld = (x: number, y: number) => {
     const el = document.querySelector('.canvas') as HTMLElement | null;
     if (!el) return;
 
@@ -29,12 +26,18 @@ export default function App() {
 
     const current = panZoom.getView();
     const centered = centerPointInView(
-      { x: node.x + 30, y: node.y + 16 },
+      { x, y },
       { width: rect.width, height: rect.height },
       current.scale ?? 1,
     );
 
     panZoom.setView(centered);
+  };
+
+  const centerOnNode = (id: string) => {
+    const node = nodes[id];
+    if (!node) return;
+    centerOnWorld(node.x + 30, node.y + 16);
   };
 
   useKeyboard({
@@ -131,6 +134,7 @@ export default function App() {
             setFocus(id);
             centerOnNode(id);
           }}
+          onNavigate={(x, y) => centerOnWorld(x, y)}
         />
       </div>
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getMapBounds, mapToMini, worldRectToMini } from './minimap';
+import { getMapBounds, mapToMini, miniToWorld, worldRectToMini } from './minimap';
 import type { Node } from '../store/useMindMapStore';
 
 describe('minimap utils', () => {
@@ -30,6 +30,11 @@ describe('minimap utils', () => {
     );
 
     expect(mini).toEqual({ x: 20, y: 10, width: 40, height: 20 });
+  });
+
+  it('maps mini-map clicks back into world coordinates', () => {
+    const world = miniToWorld(100, 50, { minX: -200, minY: 100, width: 800, height: 400 }, 200, 100);
+    expect(world).toEqual({ x: 200, y: 300 });
   });
 
   it('clamps tiny viewport rectangles to minimum size', () => {

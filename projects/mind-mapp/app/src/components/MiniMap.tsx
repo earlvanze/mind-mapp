@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Node } from '../store/useMindMapStore';
-import { getMapBounds, mapToMini, worldRectToMini, type MiniRect } from '../utils/minimap';
+import { getMapBounds, mapToMini, miniToWorld, worldRectToMini, type MiniRect } from '../utils/minimap';
 
 type Props = {
   nodes: Record<string, Node>;
   focusId: string;
   selectedIds: string[];
   onFocus: (id: string) => void;
+  onNavigate: (x: number, y: number) => void;
 };
 
 const MINI_W = 180;
 const MINI_H = 120;
 
-export default function MiniMap({ nodes, focusId, selectedIds, onFocus }: Props) {
+export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNavigate }: Props) {
   const bounds = useMemo(() => getMapBounds(nodes), [nodes]);
   const entries = Object.values(nodes);
   const [viewRect, setViewRect] = useState<MiniRect | null>(null);
@@ -55,7 +56,18 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus }: Props)
   return (
     <div className="minimap" aria-label="Mini map navigator">
       <div className="minimap-title">Mini‑map</div>
-      <svg width={MINI_W} height={MINI_H} viewBox={`0 0 ${MINI_W} ${MINI_H}`}>
+      <svg
+        width={MINI_W}
+        height={MINI_H}
+        viewBox={`0 0 ${MINI_W} ${MINI_H}`}
+        onClick={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const mx = e.clientX - rect.left;
+          const my = e.clientY - rect.top;
+          const world = miniToWorld(mx, my, bounds, MINI_W, MINI_H);
+          onNavigate(world.x, world.y);
+        }}
+      >
         {entries.flatMap(parent =>
           parent.children
             .map(cid => {
@@ -104,7 +116,10 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus }: Props)
               fill={focused ? '#4f46e5' : selected ? '#6366f1' : '#a7b3c8'}
               stroke={focused ? '#c7d2fe' : 'transparent'}
               strokeWidth={focused ? 1.5 : 0}
-              onClick={() => onFocus(node.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onFocus(node.id);
+              }}
               style={{ cursor: 'pointer' }}
             />
           );
