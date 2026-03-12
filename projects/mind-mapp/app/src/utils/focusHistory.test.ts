@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canStepFocus, createFocusHistory, findStepFocus, recordFocus, resetFocusHistory, stepFocus } from './focusHistory';
+import { canStepFocus, createFocusHistory, findStepFocus, pruneFocusHistory, recordFocus, resetFocusHistory, stepFocus } from './focusHistory';
 
 describe('focusHistory', () => {
   it('creates initial history from focused id', () => {
@@ -68,5 +68,31 @@ describe('findStepFocus', () => {
     const stepped = findStepFocus(state, -1, id => id !== 'a');
     expect(stepped.focusId).toBeNull();
     expect(stepped.state.index).toBe(0);
+  });
+});
+
+describe('pruneFocusHistory', () => {
+  it('removes invalid ids and keeps index aligned', () => {
+    const state = { entries: ['a', 'missing', 'b', 'gone'], index: 2 };
+    expect(pruneFocusHistory(state, id => id !== 'missing' && id !== 'gone')).toEqual({
+      entries: ['a', 'b'],
+      index: 1,
+    });
+  });
+
+  it('adds current focus when missing from pruned entries', () => {
+    const state = { entries: ['a', 'missing'], index: 1 };
+    expect(pruneFocusHistory(state, id => id !== 'missing', 'b')).toEqual({
+      entries: ['a', 'b'],
+      index: 1,
+    });
+  });
+
+  it('moves index to current focus when present', () => {
+    const state = { entries: ['a', 'b', 'c'], index: 0 };
+    expect(pruneFocusHistory(state, () => true, 'c')).toEqual({
+      entries: ['a', 'b', 'c'],
+      index: 2,
+    });
   });
 });

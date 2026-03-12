@@ -103,6 +103,7 @@
 - Added Shift+R + toolbar Forward action for focus-history forward navigation
 - Added Alt+Shift+Q + toolbar action to reset focus history to current node
 - Improved focus history back/forward by skipping stale entries and surfacing target labels in button hints
+- Added automatic focus-history pruning when nodes disappear (import/reset/edit safety)
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation

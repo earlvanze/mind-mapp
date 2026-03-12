@@ -89,3 +89,53 @@ export function findStepFocus(
 
   return { state: cursor, focusId: null };
 }
+
+export function pruneFocusHistory(
+  state: FocusHistoryState,
+  isValid: (focusId: string) => boolean,
+  currentFocusId?: string,
+): FocusHistoryState {
+  const pruned: string[] = [];
+  let nextIndex = 0;
+
+  for (let i = 0; i < state.entries.length; i += 1) {
+    const id = state.entries[i];
+    if (!isValid(id)) continue;
+    pruned.push(id);
+    if (i <= state.index) {
+      nextIndex = pruned.length - 1;
+    }
+  }
+
+  const currentIsValid = !!currentFocusId && isValid(currentFocusId);
+
+  if (!pruned.length) {
+    if (currentIsValid && currentFocusId) {
+      return { entries: [currentFocusId], index: 0 };
+    }
+    return state;
+  }
+
+  if (currentIsValid && currentFocusId) {
+    const currentLastIndex = pruned.lastIndexOf(currentFocusId);
+    if (currentLastIndex >= 0) {
+      nextIndex = currentLastIndex;
+    } else {
+      pruned.push(currentFocusId);
+      nextIndex = pruned.length - 1;
+    }
+  }
+
+  if (
+    pruned.length === state.entries.length
+    && nextIndex === state.index
+    && pruned.every((id, i) => id === state.entries[i])
+  ) {
+    return state;
+  }
+
+  return {
+    entries: pruned,
+    index: nextIndex,
+  };
+}
