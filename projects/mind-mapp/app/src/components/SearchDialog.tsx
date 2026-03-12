@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 import { centerPointInView, formatFocusPath, searchNodes } from '../utils';
 
@@ -24,6 +24,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   };
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(0);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const terms = useMemo(() => {
     const out: string[] = [];
     const pattern = /(-?)"([^"]+)"|(-?)(\S+)/g;
@@ -84,6 +85,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     if (open) {
       setQuery('');
       setSelected(0);
+      setTimeout(() => inputRef.current?.focus(), 0);
     }
   }, [open]);
 
@@ -105,6 +107,17 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
+        const target = e.target as HTMLElement | null;
+        if (target?.tagName === 'INPUT') return;
+        e.preventDefault();
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }
       if (e.key === 'ArrowDown' && results.length) {
         e.preventDefault();
         setSelected(s => Math.min(results.length - 1, s + 1));
@@ -112,6 +125,13 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
       if (e.key === 'ArrowUp' && results.length) {
         e.preventDefault();
         setSelected(s => Math.max(0, s - 1));
+      }
+      if (e.key === 'Tab' && results.length) {
+        e.preventDefault();
+        setSelected(s => {
+          if (e.shiftKey) return Math.max(0, s - 1);
+          return Math.min(results.length - 1, s + 1);
+        });
       }
       if (e.key === 'Enter' && results.length) {
         const item = results[selected]?.node;
@@ -132,6 +152,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     <div className="search-overlay" onClick={onClose}>
       <div className="search-box" onClick={(e) => e.stopPropagation()}>
         <input
+          ref={inputRef}
           autoFocus
           placeholder='Search nodes… (use "phrase" or -exclude)'
           value={query}
@@ -160,6 +181,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
             );
           })}
           {!results.length && query && <div className="search-empty">No results</div>}
+          <div className="search-hint">Tab/Shift+Tab: move selection • Enter: jump • Cmd/Ctrl+F: focus search</div>
         </div>
       </div>
     </div>

@@ -296,3 +296,9 @@ body, html, #root {
   padding: 8px;
   color: #777;
 }
+
+.search-hint {
+  margin-top: 8px;
+  font-size: 11px;
+  color: #98a2b3;
+}

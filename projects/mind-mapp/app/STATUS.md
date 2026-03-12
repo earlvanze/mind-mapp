@@ -18,7 +18,7 @@
 - Explicit edit mode (E/double‑click)
 - Delete selected node(s)
 - Arrow key navigation
-- Search + keyboard navigation (Cmd/Ctrl+K, centers selected result, supports ID/path multi-term matching + path metadata + term highlighting + quoted/negated terms)
+- Search + keyboard navigation (Cmd/Ctrl+K, centers selected result, supports ID/path multi-term matching + path metadata + term highlighting + quoted/negated terms + Tab cycle)
 - Undo/redo (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z/Cmd/Ctrl+Y)
 - Autosave + JSON import/export (validated)
 - Markdown export (Cmd/Ctrl+Shift+M)
