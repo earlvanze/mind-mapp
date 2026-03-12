@@ -77,6 +77,7 @@
 - Added Cmd/Ctrl+Shift+L + toolbar action to copy focused subtree outline
 - Added live filter/search inside Help shortcuts dialog
 - Added Alt+Shift+P + toolbar action to copy focused node path
+- Made focused-path breadcrumb segments clickable for ancestor navigation
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)

@@ -38,6 +38,30 @@ body, html, #root {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbar .toolbar-path-segment {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: #475467;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.toolbar .toolbar-path-segment:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.toolbar-path-sep {
+  color: #98a2b3;
+  margin: 0 2px;
 }
 
 .toolbar-notice {

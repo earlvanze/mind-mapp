@@ -25,6 +25,7 @@
 - Copy selected/focused node text (Cmd/Ctrl+Shift+C)
 - Copy focused subtree outline (Cmd/Ctrl+Shift+L)
 - Copy focused node path (Alt+Shift+P)
+- Clickable focused-path breadcrumbs for fast ancestor focus jumps
 - PNG export (Cmd/Ctrl+Shift+S)
 - Pan/zoom + fit-to-view + fit-selection + fit-focused-subtree + keyboard +/- zoom + 0 reset shortcut + toolbar zoom indicator + root-focus shortcut + grid/mini-map toggles + reset view (mouse + touch, state-synced)
 - Help dialog + live shortcut filtering

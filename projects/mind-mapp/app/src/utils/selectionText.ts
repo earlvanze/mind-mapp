@@ -1,5 +1,10 @@
 import type { Node } from '../store/useMindMapStore';
 
+export type FocusPathSegment = {
+  id: string;
+  label: string;
+};
+
 function nodeLabel(node: Node) {
   return node.text.trim() || '(untitled)';
 }
@@ -54,19 +59,25 @@ export function formatSubtreeOutline(nodes: Record<string, Node>, rootId?: strin
   return lines.join('\n');
 }
 
-export function formatFocusPath(nodes: Record<string, Node>, focusId?: string): string {
-  if (!focusId || !nodes[focusId]) return '';
+export function getFocusPathSegments(nodes: Record<string, Node>, focusId?: string): FocusPathSegment[] {
+  if (!focusId || !nodes[focusId]) return [];
 
-  const chain: string[] = [];
+  const chain: FocusPathSegment[] = [];
   const visited = new Set<string>();
   let currentId: string | null | undefined = focusId;
 
   while (currentId && !visited.has(currentId) && nodes[currentId]) {
     visited.add(currentId);
     const current = nodes[currentId];
-    chain.push(nodeLabel(current));
+    chain.push({ id: current.id, label: nodeLabel(current) });
     currentId = current.parentId;
   }
 
-  return chain.reverse().join(' / ');
+  return chain.reverse();
+}
+
+export function formatFocusPath(nodes: Record<string, Node>, focusId?: string): string {
+  return getFocusPathSegments(nodes, focusId)
+    .map(segment => segment.label)
+    .join(' / ');
 }

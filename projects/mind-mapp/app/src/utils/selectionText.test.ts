@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Node } from '../store/useMindMapStore';
-import { formatFocusPath, formatSelectionText, formatSubtreeOutline } from './selectionText';
+import { formatFocusPath, formatSelectionText, formatSubtreeOutline, getFocusPathSegments } from './selectionText';
 
 const nodes: Record<string, Node> = {
   n_root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['a', 'b'] },
@@ -31,6 +31,24 @@ describe('formatSubtreeOutline', () => {
 
   it('returns empty string when root does not exist', () => {
     expect(formatSubtreeOutline(nodes, 'missing')).toBe('');
+  });
+});
+
+describe('getFocusPathSegments', () => {
+  it('returns focus ancestry as ordered path segments', () => {
+    expect(getFocusPathSegments(nodes, 'a1')).toEqual([
+      { id: 'n_root', label: 'Root' },
+      { id: 'a', label: 'Alpha' },
+      { id: 'a1', label: 'Alpha Child' },
+    ]);
+  });
+
+  it('guards against parent cycles', () => {
+    const cyclic: Record<string, Node> = {
+      ...nodes,
+      c: { ...nodes.c, parentId: 'c' },
+    };
+    expect(getFocusPathSegments(cyclic, 'c')).toEqual([{ id: 'c', label: '(untitled)' }]);
   });
 });
 

@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, formatFocusPath, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -181,7 +181,8 @@ export default function App() {
   useAutosave(() => saveState(), 600);
 
   const selectedBounds = computeSelectionBounds(nodes, selectedIds);
-  const focusedPath = formatFocusPath(nodes, focusId);
+  const focusPathSegments = getFocusPathSegments(nodes, focusId);
+  const focusedPath = focusPathSegments.map(segment => segment.label).join(' / ');
 
   const exportJson = () => exportJsonData(nodes);
 
@@ -277,7 +278,25 @@ export default function App() {
         <span style={{ color: '#666' }}>{selectedIds.length} selected</span>
         {selectedBounds ? <span style={{ color: '#666' }}>sel box {selectedBounds.width}×{selectedBounds.height}</span> : null}
         <span style={{ color: '#666' }}>zoom {Math.round(viewScale * 100)}%</span>
-        {focusedPath ? <span className="toolbar-path" title={focusedPath}>{focusedPath}</span> : null}
+        {focusPathSegments.length ? (
+          <span className="toolbar-path" title={focusedPath}>
+            {focusPathSegments.map((segment, index) => (
+              <span key={segment.id}>
+                <button
+                  className="toolbar-path-segment"
+                  title={`Focus ${segment.label}`}
+                  onClick={() => {
+                    setFocus(segment.id);
+                    centerOnNode(segment.id);
+                  }}
+                >
+                  {segment.label}
+                </button>
+                {index < focusPathSegments.length - 1 ? <span className="toolbar-path-sep">/</span> : null}
+              </span>
+            ))}
+          </span>
+        ) : null}
         <span style={{ color: '#666' }}>Press ? for shortcuts</span>
         {importNotice ? (
           <span className={`toolbar-notice ${importNotice.kind === 'error' ? 'is-error' : 'is-success'}`}>
