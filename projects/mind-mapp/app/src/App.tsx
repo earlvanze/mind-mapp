@@ -316,6 +316,12 @@ export default function App() {
   const selectedBounds = computeSelectionBounds(nodes, selectedIds);
   const focusPathSegments = getFocusPathSegments(nodes, focusId);
   const focusedPath = focusPathSegments.map(segment => segment.label).join(' / ');
+  const parentFocusId = getParentFocusId(nodes, focusId);
+  const childFocusId = getFirstChildId(nodes, focusId);
+  const prevSiblingId = getWrappedSiblingId(nodes, focusId, -1);
+  const nextSiblingId = getWrappedSiblingId(nodes, focusId, 1);
+  const firstLeafId = getFirstLeafId(nodes, focusId);
+  const lastLeafId = getLastLeafId(nodes, focusId);
   const leafCycleRootId = getLeafCycleRootId(nodes, focusId);
   const leafCycleLeaves = leafCycleRootId ? getLeafIdsInSubtree(nodes, leafCycleRootId) : [];
   const leafCycleEnabled = leafCycleLeaves.length > 1;
@@ -457,12 +463,48 @@ export default function App() {
           <button title="Center selected nodes (Alt+Shift+C)" onClick={centerSelection}>Center Sel</button>
           <button title="Center focused subtree (Alt+Shift+B)" onClick={centerSubtree}>Center Sub</button>
           <button title="Center root node (Shift+C)" onClick={centerRoot}>Center Root</button>
-          <button title="Jump focus to parent node (Shift+P)" onClick={focusParentNode}>Parent Focus</button>
-          <button title="Jump focus to first child node (Shift+N)" onClick={focusChildNode}>Child Focus</button>
-          <button title="Jump focus to previous sibling (Shift+H)" onClick={() => focusSibling(-1)}>Prev Sib</button>
-          <button title="Jump focus to next sibling (Shift+J)" onClick={() => focusSibling(1)}>Next Sib</button>
-          <button title="Jump focus to first leaf in focused subtree (Shift+L)" onClick={focusSubtreeFirstLeaf}>Leaf Focus</button>
-          <button title="Jump focus to last leaf in focused subtree (Shift+K)" onClick={focusSubtreeLastLeaf}>Last Leaf</button>
+          <button
+            title={parentFocusId ? 'Jump focus to parent node (Shift+P)' : 'No parent node available'}
+            onClick={focusParentNode}
+            disabled={!parentFocusId}
+          >
+            Parent Focus
+          </button>
+          <button
+            title={childFocusId ? 'Jump focus to first child node (Shift+N)' : 'No child node available'}
+            onClick={focusChildNode}
+            disabled={!childFocusId}
+          >
+            Child Focus
+          </button>
+          <button
+            title={prevSiblingId ? 'Jump focus to previous sibling (Shift+H)' : 'No sibling available'}
+            onClick={() => focusSibling(-1)}
+            disabled={!prevSiblingId}
+          >
+            Prev Sib
+          </button>
+          <button
+            title={nextSiblingId ? 'Jump focus to next sibling (Shift+J)' : 'No sibling available'}
+            onClick={() => focusSibling(1)}
+            disabled={!nextSiblingId}
+          >
+            Next Sib
+          </button>
+          <button
+            title={firstLeafId ? 'Jump focus to first leaf in focused subtree (Shift+L)' : 'No leaf node available'}
+            onClick={focusSubtreeFirstLeaf}
+            disabled={!firstLeafId}
+          >
+            Leaf Focus
+          </button>
+          <button
+            title={lastLeafId ? 'Jump focus to last leaf in focused subtree (Shift+K)' : 'No leaf node available'}
+            onClick={focusSubtreeLastLeaf}
+            disabled={!lastLeafId}
+          >
+            Last Leaf
+          </button>
           <button
             title={leafCycleEnabled ? 'Jump focus to previous leaf in focused subtree (Shift+,)' : 'Leaf cycle unavailable (need multiple leaves in focus chain)'}
             onClick={() => focusSubtreeLeafCycle(-1)}
