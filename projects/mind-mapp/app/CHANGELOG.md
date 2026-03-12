@@ -94,6 +94,7 @@
 - Added Shift+N + toolbar action to focus and center first child node
 - Added Shift+H/Shift+J + toolbar actions to focus previous/next siblings
 - Updated sibling focus navigation to wrap at ends
+- Added Shift+L + toolbar action to jump focus to first leaf in focused subtree
 - Enabled mini-map viewport box dragging for pan navigation
 
 ## 0.1.1

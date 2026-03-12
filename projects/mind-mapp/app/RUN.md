@@ -72,6 +72,7 @@ npm test
 - Shift+N: focus + center first child node
 - Shift+H: focus + center previous sibling (wraps)
 - Shift+J: focus + center next sibling (wraps)
+- Shift+L: focus + center first leaf in focused subtree
 - R: focus + center root node
 - Alt+R: jump back to previous focus
 - L: auto-layout children
