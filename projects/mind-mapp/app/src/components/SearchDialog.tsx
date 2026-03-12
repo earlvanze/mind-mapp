@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { centerPointInView } from '../utils';
+import { centerPointInView, searchNodes } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -32,28 +32,30 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     }
   }, [open]);
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
-    return Object.values(nodes)
-      .filter(n => n.text.toLowerCase().includes(q))
-      .slice(0, 20)
-      .sort((a, b) => a.text.localeCompare(b.text));
-  }, [nodes, query]);
+  const results = useMemo(() => searchNodes(nodes, query, 20), [nodes, query]);
+
+  useEffect(() => {
+    if (!results.length) {
+      setSelected(0);
+      return;
+    }
+
+    setSelected((index) => Math.max(0, Math.min(index, results.length - 1)));
+  }, [results]);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowDown') {
+      if (e.key === 'ArrowDown' && results.length) {
         e.preventDefault();
         setSelected(s => Math.min(results.length - 1, s + 1));
       }
-      if (e.key === 'ArrowUp') {
+      if (e.key === 'ArrowUp' && results.length) {
         e.preventDefault();
         setSelected(s => Math.max(0, s - 1));
       }
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' && results.length) {
         const item = results[selected];
         if (item) {
           setFocus(item.id);
@@ -64,7 +66,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose, results, selected, setFocus, nodes]);
+  }, [open, onClose, results, selected, setFocus]);
 
   if (!open) return null;
 
