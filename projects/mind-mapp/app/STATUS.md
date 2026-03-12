@@ -24,7 +24,7 @@
 - Markdown export (Cmd/Ctrl+Shift+M)
 - Copy selected/focused node text (Cmd/Ctrl+Shift+C)
 - PNG export (Cmd/Ctrl+Shift+S)
-- Pan/zoom + fit-to-view + fit-selection + keyboard +/- zoom + 0 reset shortcut + toolbar zoom indicator + root-focus shortcut + grid/mini-map toggles + reset view (mouse + touch, state-synced)
+- Pan/zoom + fit-to-view + fit-selection + fit-focused-subtree + keyboard +/- zoom + 0 reset shortcut + toolbar zoom indicator + root-focus shortcut + grid/mini-map toggles + reset view (mouse + touch, state-synced)
 - Help dialog + shortcuts
 - Auto-dismissing toolbar notices for copy/import feedback (with manual dismiss)
 - Sample map loader

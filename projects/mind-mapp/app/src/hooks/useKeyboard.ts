@@ -5,6 +5,7 @@ type Props = {
   onSearch: () => void;
   onFit: () => void;
   onFitSelection: () => void;
+  onFitSubtree: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onResetView: () => void;
@@ -20,7 +21,7 @@ type Props = {
   onCopySelection: () => void;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onZoomIn, onZoomOut, onResetView, onCenterFocus, onFocusRoot, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView, onCenterFocus, onFocusRoot, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
@@ -137,7 +138,11 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onZoomIn, onZoomO
         e.preventDefault();
         selectParent();
       }
-      if (e.altKey && e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey) {
+      if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        onFitSubtree();
+      }
+      if (e.altKey && !e.shiftKey && e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         onFitSelection();
       }
@@ -283,6 +288,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onZoomIn, onZoomO
     onSearch,
     onFit,
     onFitSelection,
+    onFitSubtree,
     onZoomIn,
     onZoomOut,
     onResetView,

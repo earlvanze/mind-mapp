@@ -44,6 +44,7 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Shift+Alt+Arrow: nudge selected node(s) by 40px
 - F: fit to view
 - Alt+F: fit selected nodes
+- Alt+Shift+F: fit focused subtree
 - Shift+G: toggle grid overlay
 - Shift+M: toggle mini-map visibility
 - Shift+A: toggle advanced toolbar actions

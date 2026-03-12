@@ -41,6 +41,7 @@ export const SHORTCUTS = [
   { key: 'Shift+Alt+Arrow', desc: 'nudge selected node(s) by 40px' },
   { key: 'F', desc: 'fit to view' },
   { key: 'Alt+F', desc: 'fit selected nodes' },
+  { key: 'Alt+Shift+F', desc: 'fit focused subtree' },
   { key: 'Shift+G', desc: 'toggle grid overlay' },
   { key: 'Shift+M', desc: 'toggle mini-map visibility' },
   { key: 'Shift+A', desc: 'toggle advanced toolbar actions' },

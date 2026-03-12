@@ -29,6 +29,7 @@
 - Alt + Shift + V: distribute selected nodes vertically
 - Alt + Shift + R: layout selected nodes into a row
 - Alt + Shift + D: layout selected nodes into a column
+- Alt + Shift + F: fit focused subtree
 - Alt + Shift + G: snap selected nodes to 20px grid
 - Alt + Shift + M: mirror selected nodes across focused X axis
 - Alt + Shift + W: mirror selected nodes across focused Y axis

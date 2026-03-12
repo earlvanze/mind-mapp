@@ -84,18 +84,15 @@ export default function App() {
     centerOnNode('n_root');
   };
 
-  const fitSelection = () => {
-    const selected = selectedIds
-      .map(id => nodes[id])
-      .filter(Boolean);
-    if (!selected.length) return;
+  const fitNodesInView = (targetNodes: Array<{ x: number; y: number }>) => {
+    if (!targetNodes.length) return;
 
     const el = document.querySelector('.canvas') as HTMLElement | null;
     if (!el) return;
 
     const panZoom = (window as any).__mindmappPanZoom;
     const rect = el.getBoundingClientRect();
-    const view = computeFitView(selected, { width: rect.width, height: rect.height }, { padding: 140, maxScale: 2 });
+    const view = computeFitView(targetNodes, { width: rect.width, height: rect.height }, { padding: 140, maxScale: 2 });
 
     if (panZoom?.setView) {
       panZoom.setView(view);
@@ -103,6 +100,35 @@ export default function App() {
     }
 
     el.style.transform = `translate(${view.originX}px, ${view.originY}px) scale(${view.scale})`;
+  };
+
+  const fitSelection = () => {
+    const selected = selectedIds
+      .map(id => nodes[id])
+      .filter(Boolean);
+    fitNodesInView(selected);
+  };
+
+  const fitFocusedSubtree = () => {
+    const root = nodes[focusId];
+    if (!root) return;
+
+    const stack = [focusId];
+    const visited = new Set<string>();
+    const subtree: Array<{ x: number; y: number }> = [];
+
+    while (stack.length) {
+      const id = stack.pop();
+      if (!id || visited.has(id)) continue;
+      visited.add(id);
+
+      const node = nodes[id];
+      if (!node) continue;
+      subtree.push(node);
+      stack.push(...node.children);
+    }
+
+    fitNodesInView(subtree);
   };
 
   const zoomBy = (factor: number) => {
@@ -134,6 +160,7 @@ export default function App() {
     onSearch: () => setSearchOpen(true),
     onFit: () => fitToView(),
     onFitSelection: () => fitSelection(),
+    onFitSubtree: () => fitFocusedSubtree(),
     onZoomIn: () => zoomBy(1.15),
     onZoomOut: () => zoomBy(1 / 1.15),
     onResetView: () => (window as any).__mindmappResetView?.(),
@@ -230,6 +257,7 @@ export default function App() {
           <button title="Redo (Cmd/Ctrl+Shift+Z)" onClick={redo} disabled={!canRedo}>Redo</button>
           <button title="Fit to view" onClick={() => fitToView()}>Fit</button>
           <button title="Fit selected nodes (Alt+F)" onClick={fitSelection}>Fit Sel</button>
+          <button title="Fit focused subtree (Alt+Shift+F)" onClick={fitFocusedSubtree}>Fit Sub</button>
           <button title="Center focused node (C)" onClick={() => centerOnNode(focusId)}>Center</button>
           <button title="Jump focus to root node (R)" onClick={focusRoot}>Root</button>
           <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>

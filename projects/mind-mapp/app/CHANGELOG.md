@@ -73,6 +73,7 @@
 - Added R shortcut + toolbar button to focus and center root node
 - Added Cmd/Ctrl+Shift+C + toolbar action to copy selected/focused node text
 - Added auto-dismissing toolbar notices with manual close control
+- Added Alt+Shift+F + toolbar action to fit the focused subtree in view
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
