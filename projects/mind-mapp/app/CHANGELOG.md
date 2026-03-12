@@ -83,6 +83,7 @@
 - Improved search ranking + ID matching with bounded selection index handling
 - Added path-aware multi-term search matching (label/id/path)
 - Added search-result metadata rows (node id + path context)
+- Added highlighted query terms + result count in Search dialog
 - Enabled mini-map viewport box dragging for pan navigation
 
 ## 0.1.1

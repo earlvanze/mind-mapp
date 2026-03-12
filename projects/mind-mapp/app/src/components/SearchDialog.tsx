@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 import { centerPointInView, formatFocusPath, searchNodes } from '../utils';
 
@@ -24,6 +24,47 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   };
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(0);
+  const terms = useMemo(() => query.trim().toLowerCase().split(/\s+/).filter(Boolean), [query]);
+
+  const highlight = (text: string): ReactNode => {
+    if (!terms.length) return text;
+
+    const source = text || '(empty)';
+    const lower = source.toLowerCase();
+    const ranges: Array<{ start: number; end: number }> = [];
+
+    for (const term of [...new Set(terms)]) {
+      if (!term) continue;
+      let cursor = 0;
+      while (cursor < lower.length) {
+        const at = lower.indexOf(term, cursor);
+        if (at === -1) break;
+        ranges.push({ start: at, end: at + term.length });
+        cursor = at + term.length;
+      }
+    }
+
+    if (!ranges.length) return source;
+
+    ranges.sort((a, b) => a.start - b.start || b.end - a.end);
+    const merged: Array<{ start: number; end: number }> = [];
+    for (const r of ranges) {
+      const last = merged[merged.length - 1];
+      if (!last || r.start > last.end) merged.push({ ...r });
+      else if (r.end > last.end) last.end = r.end;
+    }
+
+    const parts: ReactNode[] = [];
+    let cursor = 0;
+    merged.forEach((r, i) => {
+      if (r.start > cursor) parts.push(source.slice(cursor, r.start));
+      parts.push(<mark key={`m-${i}-${r.start}`}>{source.slice(r.start, r.end)}</mark>);
+      cursor = r.end;
+    });
+    if (cursor < source.length) parts.push(source.slice(cursor));
+
+    return parts;
+  };
 
   useEffect(() => {
     if (open) {
@@ -82,23 +123,28 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
+        <div className="search-summary">{results.length} / {Object.keys(nodes).length} matches</div>
         <div className="search-results">
-          {results.map((r, i) => (
-            <div
-              key={r.node.id}
-              className={`search-item ${i === selected ? 'active' : ''}`}
-              onClick={() => {
-                setFocus(r.node.id);
-                centerOnNode(r.node.id);
-                onClose();
-              }}
-            >
-              <div className="search-item-title">{r.node.text || '(empty)'}</div>
-              <div className="search-item-meta" title={`${r.node.id} • ${r.path}`}>
-                {r.node.id} • {r.path || '(no path)'}
+          {results.map((r, i) => {
+            const title = r.node.text || '(empty)';
+            const meta = `${r.node.id} • ${r.path || '(no path)'}`;
+            return (
+              <div
+                key={r.node.id}
+                className={`search-item ${i === selected ? 'active' : ''}`}
+                onClick={() => {
+                  setFocus(r.node.id);
+                  centerOnNode(r.node.id);
+                  onClose();
+                }}
+              >
+                <div className="search-item-title">{highlight(title)}</div>
+                <div className="search-item-meta" title={meta}>
+                  {highlight(meta)}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {!results.length && query && <div className="search-empty">No results</div>}
         </div>
       </div>

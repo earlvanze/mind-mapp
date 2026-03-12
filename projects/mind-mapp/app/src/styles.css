@@ -248,8 +248,14 @@ body, html, #root {
   border-radius: 8px;
 }
 
+.search-summary {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #667085;
+}
+
 .search-results {
-  margin-top: 10px;
+  margin-top: 8px;
   max-height: 240px;
   overflow: auto;
 }
@@ -272,6 +278,13 @@ body, html, #root {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.search-item mark {
+  background: #fde68a;
+  color: inherit;
+  padding: 0 1px;
+  border-radius: 2px;
 }
 
 .search-item:hover,
