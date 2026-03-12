@@ -96,6 +96,7 @@
 - Updated sibling focus navigation to wrap at ends
 - Added Shift+L + toolbar action to jump focus to first leaf in focused subtree
 - Added Shift+K + toolbar action to jump focus to last leaf in focused subtree
+- Added Shift+, / Shift+. + toolbar actions to cycle focused subtree leaves
 - Extracted focus-navigation helpers into tested utility functions
 - Enabled mini-map viewport box dragging for pan navigation
 

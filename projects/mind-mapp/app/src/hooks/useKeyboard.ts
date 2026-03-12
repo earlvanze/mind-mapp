@@ -18,6 +18,8 @@ type Props = {
   onFocusNextSibling: () => void;
   onFocusSubtreeFirstLeaf: () => void;
   onFocusSubtreeLastLeaf: () => void;
+  onFocusPrevLeaf: () => void;
+  onFocusNextLeaf: () => void;
   onFocusRoot: () => void;
   onFocusPrevious: () => void;
   onToggleGrid: () => void;
@@ -33,7 +35,7 @@ type Props = {
   onCenterRoot: () => void;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusRoot, onFocusPrevious, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
@@ -236,6 +238,14 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
         e.preventDefault();
         onFocusSubtreeLastLeaf();
       }
+      if (e.shiftKey && (e.key === '<' || e.key === ',') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        onFocusPrevLeaf();
+      }
+      if (e.shiftKey && (e.key === '>' || e.key === '.') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        onFocusNextLeaf();
+      }
       if (e.key.toLowerCase() === 'l' && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
         autoLayoutChildren(focusId);
       }
@@ -361,6 +371,8 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
     onFocusNextSibling,
     onFocusSubtreeFirstLeaf,
     onFocusSubtreeLastLeaf,
+    onFocusPrevLeaf,
+    onFocusNextLeaf,
     onFocusRoot,
     onFocusPrevious,
     onToggleGrid,

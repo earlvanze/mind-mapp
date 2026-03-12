@@ -55,11 +55,19 @@ export function getLastLeafId(
   nodes: Record<string, Node>,
   rootId: string,
 ): string | null {
-  if (!nodes[rootId]) return null;
+  const leaves = getLeafIdsInSubtree(nodes, rootId);
+  return leaves.length ? leaves[leaves.length - 1] : null;
+}
+
+export function getLeafIdsInSubtree(
+  nodes: Record<string, Node>,
+  rootId: string,
+): string[] {
+  if (!nodes[rootId]) return [];
 
   const stack = [rootId];
   const visited = new Set<string>();
-  let lastLeafId: string | null = null;
+  const leaves: string[] = [];
 
   while (stack.length) {
     const id = stack.pop();
@@ -71,7 +79,7 @@ export function getLastLeafId(
 
     const children = node.children.filter(childId => !!nodes[childId]);
     if (!children.length) {
-      lastLeafId = id;
+      leaves.push(id);
       continue;
     }
 
@@ -80,5 +88,27 @@ export function getLastLeafId(
     }
   }
 
-  return lastLeafId;
+  return leaves;
+}
+
+export function getCycledLeafId(
+  nodes: Record<string, Node>,
+  rootId: string,
+  currentId: string,
+  direction: -1 | 1,
+): string | null {
+  const leaves = getLeafIdsInSubtree(nodes, rootId);
+  if (!leaves.length) return null;
+
+  const index = leaves.indexOf(currentId);
+  if (index < 0) {
+    return direction === 1 ? leaves[0] : leaves[leaves.length - 1];
+  }
+
+  if (leaves.length < 2) return null;
+
+  const nextIndex = (index + direction + leaves.length) % leaves.length;
+  if (nextIndex === index) return null;
+
+  return leaves[nextIndex] ?? null;
 }

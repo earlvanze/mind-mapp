@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Node } from '../store/useMindMapStore';
-import { getFirstLeafId, getLastLeafId, getWrappedSiblingId } from './focusNav';
+import { getCycledLeafId, getFirstLeafId, getLastLeafId, getLeafIdsInSubtree, getWrappedSiblingId } from './focusNav';
 
 const nodes: Record<string, Node> = {
   n_root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['a', 'b', 'c'] },
@@ -61,5 +61,32 @@ describe('getLastLeafId', () => {
       y: { id: 'y', text: 'Y', x: 0, y: 0, parentId: 'x', children: ['x'] },
     };
     expect(getLastLeafId(cyclic, 'x')).toBeNull();
+  });
+});
+
+describe('getLeafIdsInSubtree', () => {
+  it('returns leaves in depth-first order', () => {
+    expect(getLeafIdsInSubtree(nodes, 'n_root')).toEqual(['a1', 'b', 'c']);
+  });
+
+  it('returns empty list for missing root', () => {
+    expect(getLeafIdsInSubtree(nodes, 'missing')).toEqual([]);
+  });
+});
+
+describe('getCycledLeafId', () => {
+  it('moves to next/prev leaf and wraps', () => {
+    expect(getCycledLeafId(nodes, 'n_root', 'a1', 1)).toBe('b');
+    expect(getCycledLeafId(nodes, 'n_root', 'c', 1)).toBe('a1');
+    expect(getCycledLeafId(nodes, 'n_root', 'a1', -1)).toBe('c');
+  });
+
+  it('falls back to first/last leaf when current focus is not a leaf', () => {
+    expect(getCycledLeafId(nodes, 'n_root', 'a', 1)).toBe('a1');
+    expect(getCycledLeafId(nodes, 'n_root', 'a', -1)).toBe('c');
+  });
+
+  it('returns null when subtree has fewer than two leaves and current is already that leaf', () => {
+    expect(getCycledLeafId(nodes, 'b', 'b', 1)).toBeNull();
   });
 });
