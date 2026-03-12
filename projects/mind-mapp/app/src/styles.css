@@ -214,12 +214,38 @@ body, html, #root {
   padding: 14px;
 }
 
+.help-quick-section {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.help-quick-section h4 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: #334155;
+}
+
+.help-box .help-quick-list {
+  margin: 0;
+  padding-left: 16px;
+  max-height: 120px;
+  overflow: auto;
+  font-size: 12px;
+}
+
+.help-box .help-quick-list li {
+  margin: 2px 0;
+}
+
 .help-filter {
   width: 100%;
   padding: 8px 10px;
   border: 1px solid #cfd6e4;
   border-radius: 8px;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .help-meta {

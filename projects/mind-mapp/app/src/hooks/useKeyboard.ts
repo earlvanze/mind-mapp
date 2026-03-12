@@ -164,11 +164,11 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
         e.preventDefault();
         onFocusPrevious();
       }
-      if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'w' && !e.metaKey && !e.ctrlKey) {
+      if (e.altKey && e.shiftKey && e.key === 'Home' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         onFocusHistoryStart();
       }
-      if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'e' && !e.metaKey && !e.ctrlKey) {
+      if (e.altKey && e.shiftKey && e.key === 'End' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         onFocusHistoryEnd();
       }

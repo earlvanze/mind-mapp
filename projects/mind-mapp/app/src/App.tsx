@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -326,6 +326,8 @@ export default function App() {
     onFocusRoot: () => focusRoot(),
     onFocusPrevious: () => focusPrevious(),
     onFocusForward: () => focusForward(),
+    onFocusHistoryStart: () => focusHistoryStart(),
+    onFocusHistoryEnd: () => focusHistoryEnd(),
     onResetFocusHistory: () => resetFocusHistoryNow(),
     onToggleGrid: () => setShowGrid(v => !v),
     onToggleMiniMap: () => setShowMiniMap(v => !v),
@@ -355,22 +357,39 @@ export default function App() {
   const leafCycleLeaves = leafCycleRootId ? getLeafIdsInSubtree(nodes, leafCycleRootId) : [];
   const leafCycleEnabled = leafCycleLeaves.length > 1;
   const leafCycleIndex = leafCycleLeaves.indexOf(focusId);
+  const focusHistoryState = focusHistoryRef.current;
   const historyBackTargetId = findStepFocus(
-    { entries: focusHistoryRef.current.entries, index: focusHistoryRef.current.index },
+    { entries: focusHistoryState.entries, index: focusHistoryState.index },
     -1,
     (id) => !!nodes[id],
   ).focusId;
   const historyForwardTargetId = findStepFocus(
-    { entries: focusHistoryRef.current.entries, index: focusHistoryRef.current.index },
+    { entries: focusHistoryState.entries, index: focusHistoryState.index },
     1,
     (id) => !!nodes[id],
   ).focusId;
+  const historyStartStep = findEdgeFocus(
+    { entries: focusHistoryState.entries, index: focusHistoryState.index },
+    'start',
+    (id) => !!nodes[id],
+  );
+  const historyEndStep = findEdgeFocus(
+    { entries: focusHistoryState.entries, index: focusHistoryState.index },
+    'end',
+    (id) => !!nodes[id],
+  );
+  const historyStartTargetId = historyStartStep.focusId;
+  const historyEndTargetId = historyEndStep.focusId;
   const historyBackLabel = historyBackTargetId ? (nodes[historyBackTargetId]?.text.trim() || historyBackTargetId) : null;
   const historyForwardLabel = historyForwardTargetId ? (nodes[historyForwardTargetId]?.text.trim() || historyForwardTargetId) : null;
+  const historyStartLabel = historyStartTargetId ? (nodes[historyStartTargetId]?.text.trim() || historyStartTargetId) : null;
+  const historyEndLabel = historyEndTargetId ? (nodes[historyEndTargetId]?.text.trim() || historyEndTargetId) : null;
   const canFocusBack = !!historyBackTargetId;
   const canFocusForward = !!historyForwardTargetId;
-  const focusHistoryCount = focusHistoryRef.current.entries.length;
-  const focusHistoryPosition = focusHistoryRef.current.index + 1;
+  const canFocusHistoryStart = !!historyStartTargetId && historyStartStep.state.index !== focusHistoryState.index;
+  const canFocusHistoryEnd = !!historyEndTargetId && historyEndStep.state.index !== focusHistoryState.index;
+  const focusHistoryCount = focusHistoryState.entries.length;
+  const focusHistoryPosition = focusHistoryState.index + 1;
 
   const exportJson = () => exportJsonData(nodes);
 
@@ -568,6 +587,8 @@ export default function App() {
           <button title="Jump focus to root node (R)" onClick={focusRoot}>Root</button>
           <button title={canFocusBack ? `Jump back to previous focus (Alt+R): ${historyBackLabel}` : 'No previous focus in history'} onClick={focusPrevious} disabled={!canFocusBack}>Back</button>
           <button title={canFocusForward ? `Jump forward in focus history (Shift+R): ${historyForwardLabel}` : 'No forward focus history'} onClick={focusForward} disabled={!canFocusForward}>Forward</button>
+          <button title={canFocusHistoryStart ? `Jump to oldest focus in history (Alt+Shift+Home): ${historyStartLabel}` : 'Already at oldest focus history entry'} onClick={focusHistoryStart} disabled={!canFocusHistoryStart}>Hist Start</button>
+          <button title={canFocusHistoryEnd ? `Jump to newest focus in history (Alt+Shift+End): ${historyEndLabel}` : 'Already at newest focus history entry'} onClick={focusHistoryEnd} disabled={!canFocusHistoryEnd}>Hist End</button>
           <button title={focusHistoryCount > 1 ? 'Reset focus history to current node (Alt+Shift+Q)' : 'Focus history already reset'} onClick={resetFocusHistoryNow} disabled={focusHistoryCount <= 1}>Reset Hist</button>
           <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
           <button title="Toggle mini-map (Shift+M)" onClick={() => setShowMiniMap(v => !v)}>{showMiniMap ? 'Mini-map On' : 'Mini-map Off'}</button>

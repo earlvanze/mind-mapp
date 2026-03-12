@@ -27,8 +27,8 @@
 - Copy focused node path (Alt+Shift+P)
 - Clickable focused-path breadcrumbs for fast ancestor focus jumps
 - PNG export (Cmd/Ctrl+Shift+S)
-- Pan/zoom + fit-to-view + fit-selection + fit-focused-subtree + keyboard +/- zoom + 0 reset shortcut + toolbar zoom indicator + leaf-cycle index indicator + focus history index + focus/selection/subtree/root centering + parent/child/sibling-wrap/leaf-cycle(root-aware)/root/back+forward+reset focus history shortcuts + context-aware disabled focus controls + auto-pruned history after node removals + grid/mini-map toggles + reset view (mouse + touch, state-synced, helper-tested incl. parent/child)
-- Help dialog + live shortcut filtering
+- Pan/zoom + fit-to-view + fit-selection + fit-focused-subtree + keyboard +/- zoom + 0 reset shortcut + toolbar zoom indicator + leaf-cycle index indicator + focus history index + focus/selection/subtree/root centering + parent/child/sibling-wrap/leaf-cycle(root-aware)/root/back+forward/oldest+newest+reset focus history shortcuts + context-aware disabled focus controls + auto-pruned history after node removals + grid/mini-map toggles + reset view (mouse + touch, state-synced, helper-tested incl. parent/child)
+- Help dialog + compact Focus Navigation & History section + live shortcut filtering
 - Auto-dismissing toolbar notices for copy/import feedback (with manual dismiss)
 - Sample map loader
 - Curved edge rendering with arrowheads

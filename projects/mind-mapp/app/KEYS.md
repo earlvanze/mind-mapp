@@ -65,6 +65,8 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - R: focus + center root node
 - Shift+R: jump forward in focus history
 - Alt+R: jump back to previous focus
+- Alt+Shift+Home: jump to oldest focus history entry
+- Alt+Shift+End: jump to newest focus history entry
 - Alt+Shift+Q: reset focus history to current node
 - L: auto‑layout children
 - Shift+drag: pan
