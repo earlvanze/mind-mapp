@@ -17,9 +17,10 @@ type Props = {
   onUndo: () => void;
   onRedo: () => void;
   onExportMarkdown: () => void;
+  onCopySelection: () => void;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onZoomIn, onZoomOut, onResetView, onCenterFocus, onFocusRoot, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onZoomIn, onZoomOut, onResetView, onCenterFocus, onFocusRoot, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
@@ -209,6 +210,10 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onZoomIn, onZoomO
         e.preventDefault();
         onExportMarkdown();
       }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        onCopySelection();
+      }
       if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
         deleteSelected();
@@ -290,5 +295,6 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onZoomIn, onZoomO
     onUndo,
     onRedo,
     onExportMarkdown,
+    onCopySelection,
   ]);
 }

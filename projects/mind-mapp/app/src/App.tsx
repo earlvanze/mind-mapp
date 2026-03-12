@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -140,6 +140,7 @@ export default function App() {
     onUndo: () => undo(),
     onRedo: () => redo(),
     onExportMarkdown: () => exportMarkdownData(nodes),
+    onCopySelection: () => copySelectionText(),
   });
   usePanZoom({ selector: '.canvas' });
   useAutosave(() => saveState(), 600);
@@ -152,6 +153,36 @@ export default function App() {
     const el = document.querySelector('.canvas') as HTMLElement | null;
     if (!el) return;
     await exportPng(el);
+  };
+
+  const copySelectionText = async () => {
+    const text = formatSelectionText(nodes, selectedIds, focusId);
+    if (!text) {
+      setImportNotice({ text: 'No node text available to copy.', kind: 'error' });
+      return;
+    }
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const area = document.createElement('textarea');
+        area.value = text;
+        area.setAttribute('readonly', 'true');
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.focus();
+        area.select();
+        document.execCommand('copy');
+        document.body.removeChild(area);
+      }
+
+      const lineCount = text.split('\n').length;
+      setImportNotice({ text: `Copied ${lineCount} line${lineCount === 1 ? '' : 's'} to clipboard.`, kind: 'success' });
+    } catch {
+      setImportNotice({ text: 'Clipboard copy failed. Use Export MD as fallback.', kind: 'error' });
+    }
   };
 
   const importJson = async (file: File) => {
@@ -217,6 +248,7 @@ export default function App() {
           </label>
           <button title="Export JSON" data-export="json" onClick={exportJson}>Export JSON</button>
           <button title="Export Markdown" data-export="markdown" onClick={() => exportMarkdownData(nodes)}>Export MD</button>
+          <button title="Copy selected/focused node text (Cmd/Ctrl+Shift+C)" onClick={copySelectionText}>Copy Sel</button>
           <button title="Export PNG" data-export="png" onClick={exportPngClick}>Export PNG</button>
           <button title="Reset pan/zoom" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
 

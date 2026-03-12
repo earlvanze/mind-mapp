@@ -17,6 +17,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Collapsible Advanced actions panel in toolbar (Shift+A, state persists)
 - Autosave + JSON import/export
 - Markdown export (Cmd/Ctrl+Shift+M)
+- Copy selected/focused node text to clipboard (Cmd/Ctrl+Shift+C)
 - PNG export (Cmd/Ctrl+Shift+S)
 - Curved edge rendering with arrowheads
 - Mini-map navigator (Shift+M toggle; click node to focus + center, click background to recenter) with live viewport indicator

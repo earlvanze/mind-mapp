@@ -49,6 +49,7 @@ npm test
 - Cmd/Ctrl+K: search
 - Cmd/Ctrl+S: export JSON
 - Cmd/Ctrl+Shift+M: export Markdown
+- Cmd/Ctrl+Shift+C: copy selected/focused node text
 - Cmd/Ctrl+Shift+S: export PNG
 - E / double‑click: edit node
 - Arrow keys: move focus

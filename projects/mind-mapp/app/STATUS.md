@@ -22,6 +22,7 @@
 - Undo/redo (Cmd/Ctrl+Z, Cmd/Ctrl+Shift+Z/Cmd/Ctrl+Y)
 - Autosave + JSON import/export (validated)
 - Markdown export (Cmd/Ctrl+Shift+M)
+- Copy selected/focused node text (Cmd/Ctrl+Shift+C)
 - PNG export (Cmd/Ctrl+Shift+S)
 - Pan/zoom + fit-to-view + fit-selection + keyboard +/- zoom + 0 reset shortcut + toolbar zoom indicator + root-focus shortcut + grid/mini-map toggles + reset view (mouse + touch, state-synced)
 - Help dialog + shortcuts

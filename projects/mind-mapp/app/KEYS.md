@@ -37,6 +37,7 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Cmd/Ctrl+K: search
 - Cmd/Ctrl+S: export JSON
 - Cmd/Ctrl+Shift+M: export Markdown
+- Cmd/Ctrl+Shift+C: copy selected/focused node text
 - Cmd/Ctrl+Shift+S: export PNG
 - Arrow keys: move focus
 - Alt+Arrow: nudge selected node(s) by 10px
