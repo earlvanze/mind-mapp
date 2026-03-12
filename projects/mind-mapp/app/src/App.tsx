@@ -227,9 +227,15 @@ export default function App() {
   const focusHistoryStart = () => jumpFocusHistoryEdge('start');
   const focusHistoryEnd = () => jumpFocusHistoryEdge('end');
 
+  const resetFocusHistoryTo = (nextFocusId: string, noticeText?: string) => {
+    focusHistoryRef.current = resetFocusHistory(focusHistoryRef.current, nextFocusId);
+    if (noticeText) {
+      setImportNotice({ text: noticeText, kind: 'success' });
+    }
+  };
+
   const resetFocusHistoryNow = () => {
-    focusHistoryRef.current = resetFocusHistory(focusHistoryRef.current, focusId);
-    setImportNotice({ text: 'Focus history reset to current node.', kind: 'success' });
+    resetFocusHistoryTo(focusId, 'Focus history reset to current node.');
   };
 
   const fitNodesInView = (targetNodes: Array<{ x: number; y: number }>) => {
@@ -469,7 +475,8 @@ export default function App() {
       const parsed = JSON.parse(text);
       const nodes = parseImportPayload(parsed);
       importState(nodes);
-      setImportNotice({ text: `Imported ${Object.keys(nodes).length} nodes.`, kind: 'success' });
+      resetFocusHistoryTo('n_root');
+      setImportNotice({ text: `Imported ${Object.keys(nodes).length} nodes and reset focus history.`, kind: 'success' });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Invalid JSON file.';
       setImportNotice({ text: message, kind: 'error' });
@@ -600,12 +607,22 @@ export default function App() {
           <button
             title="Clear map"
             onClick={() => {
-              if (confirmAction('Clear the entire map?')) resetMap();
+              if (!confirmAction('Clear the entire map?')) return;
+              resetMap();
+              resetFocusHistoryTo('n_root', 'Cleared map and reset focus history.');
             }}
           >
             Clear
           </button>
-          <button title="Load sample map" onClick={() => importState(sampleMap())}>Sample</button>
+          <button
+            title="Load sample map"
+            onClick={() => {
+              importState(sampleMap());
+              resetFocusHistoryTo('n_root', 'Loaded sample map and reset focus history.');
+            }}
+          >
+            Sample
+          </button>
           <label className="import-btn">
             Import JSON
             <input

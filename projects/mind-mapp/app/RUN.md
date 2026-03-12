@@ -92,5 +92,7 @@ npm test
 - -: zoom out (center‑preserving)
 - 0: reset pan/zoom view
 - Double‑click background: reset view
-- Sample: load demo map (button)
+- Sample: load demo map and reset focus history (button)
+- Import JSON: replace map and reset focus history (button)
+- Clear: clear map and reset focus history (button)
 - Reset View: reset pan/zoom (button)

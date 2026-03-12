@@ -17,7 +17,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Auto‑layout children (L)
 - Help dialog (?) with a compact Focus Navigation & History section + live shortcut filter
 - Collapsible Advanced actions panel in toolbar (Shift+A, state persists)
-- Autosave + JSON import/export
+- Autosave + JSON import/export (import clears stale trails by resetting focus history)
 - Markdown export (Cmd/Ctrl+Shift+M)
 - Copy selected/focused node text to clipboard (Cmd/Ctrl+Shift+C)
 - Copy focused subtree outline to clipboard (Cmd/Ctrl+Shift+L)
