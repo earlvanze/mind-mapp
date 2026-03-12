@@ -13,7 +13,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Pan/zoom (Shift+drag, Ctrl/Cmd+wheel, +/- keys, 0 reset, touch pan/pinch) + toolbar zoom % indicator
 - Fit to view (F) + Fit selection (Alt+F) + Fit focused subtree (Alt+Shift+F) + Center focused node (C) + Focus root (R) + Grid overlay toggle (Shift+G) + Reset View button
 - Auto‑layout children (L)
-- Help dialog (?)
+- Help dialog (?) with live shortcut filter
 - Collapsible Advanced actions panel in toolbar (Shift+A, state persists)
 - Autosave + JSON import/export
 - Markdown export (Cmd/Ctrl+Shift+M)

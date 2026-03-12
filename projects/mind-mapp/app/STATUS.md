@@ -26,7 +26,7 @@
 - Copy focused subtree outline (Cmd/Ctrl+Shift+L)
 - PNG export (Cmd/Ctrl+Shift+S)
 - Pan/zoom + fit-to-view + fit-selection + fit-focused-subtree + keyboard +/- zoom + 0 reset shortcut + toolbar zoom indicator + root-focus shortcut + grid/mini-map toggles + reset view (mouse + touch, state-synced)
-- Help dialog + shortcuts
+- Help dialog + live shortcut filtering
 - Auto-dismissing toolbar notices for copy/import feedback (with manual dismiss)
 - Sample map loader
 - Curved edge rendering with arrowheads
