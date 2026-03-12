@@ -22,6 +22,7 @@
 - R: focus + center root node
 - Shift + R: jump forward in focus history
 - Alt + R: jump back to previous focus
+- Alt + Shift + Q: reset focus history to current node
 - Cmd/Ctrl + click: add/remove node in multi-selection
 - Cmd/Ctrl + A: select all nodes
 - Alt + I: invert selection

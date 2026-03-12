@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, stepFocus, canStepFocus, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, stepFocus, canStepFocus, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -213,6 +213,11 @@ export default function App() {
   const focusPrevious = () => jumpFocusHistory(-1);
   const focusForward = () => jumpFocusHistory(1);
 
+  const resetFocusHistoryNow = () => {
+    focusHistoryRef.current = resetFocusHistory(focusHistoryRef.current, focusId);
+    setImportNotice({ text: 'Focus history reset to current node.', kind: 'success' });
+  };
+
   const fitNodesInView = (targetNodes: Array<{ x: number; y: number }>) => {
     if (!targetNodes.length) return;
 
@@ -307,6 +312,7 @@ export default function App() {
     onFocusRoot: () => focusRoot(),
     onFocusPrevious: () => focusPrevious(),
     onFocusForward: () => focusForward(),
+    onResetFocusHistory: () => resetFocusHistoryNow(),
     onToggleGrid: () => setShowGrid(v => !v),
     onToggleMiniMap: () => setShowMiniMap(v => !v),
     onToggleAdvanced: () => setShowAdvancedActions(v => !v),
@@ -337,6 +343,8 @@ export default function App() {
   const leafCycleIndex = leafCycleLeaves.indexOf(focusId);
   const canFocusBack = canStepFocus(focusHistoryRef.current, -1);
   const canFocusForward = canStepFocus(focusHistoryRef.current, 1);
+  const focusHistoryCount = focusHistoryRef.current.entries.length;
+  const focusHistoryPosition = focusHistoryRef.current.index + 1;
 
   const exportJson = () => exportJsonData(nodes);
 
@@ -433,6 +441,7 @@ export default function App() {
         {selectedBounds ? <span style={{ color: '#666' }}>sel box {selectedBounds.width}×{selectedBounds.height}</span> : null}
         <span style={{ color: '#666' }}>zoom {Math.round(viewScale * 100)}%</span>
         {leafCycleEnabled ? <span style={{ color: '#666' }}>leaf {leafCycleIndex >= 0 ? leafCycleIndex + 1 : '•'}/{leafCycleLeaves.length}</span> : null}
+        <span style={{ color: '#666' }}>hist {focusHistoryPosition}/{focusHistoryCount}</span>
         {focusPathSegments.length ? (
           <span className="toolbar-path" title={focusedPath}>
             {focusPathSegments.map((segment, index) => (
@@ -533,6 +542,7 @@ export default function App() {
           <button title="Jump focus to root node (R)" onClick={focusRoot}>Root</button>
           <button title={canFocusBack ? 'Jump back to previous focus (Alt+R)' : 'No previous focus in history'} onClick={focusPrevious} disabled={!canFocusBack}>Back</button>
           <button title={canFocusForward ? 'Jump forward in focus history (Shift+R)' : 'No forward focus history'} onClick={focusForward} disabled={!canFocusForward}>Forward</button>
+          <button title={focusHistoryCount > 1 ? 'Reset focus history to current node (Alt+Shift+Q)' : 'Focus history already reset'} onClick={resetFocusHistoryNow} disabled={focusHistoryCount <= 1}>Reset Hist</button>
           <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
           <button title="Toggle mini-map (Shift+M)" onClick={() => setShowMiniMap(v => !v)}>{showMiniMap ? 'Mini-map On' : 'Mini-map Off'}</button>
           <button title="Show/Hide advanced actions (Shift+A)" onClick={() => setShowAdvancedActions(v => !v)}>

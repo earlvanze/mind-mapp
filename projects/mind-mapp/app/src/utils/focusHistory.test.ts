@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canStepFocus, createFocusHistory, recordFocus, stepFocus } from './focusHistory';
+import { canStepFocus, createFocusHistory, recordFocus, resetFocusHistory, stepFocus } from './focusHistory';
 
 describe('focusHistory', () => {
   it('creates initial history from focused id', () => {
@@ -44,5 +44,13 @@ describe('focusHistory', () => {
     state = recordFocus(state, 'b', 2);
     state = recordFocus(state, 'c', 2);
     expect(state).toEqual({ entries: ['b', 'c'], index: 1 });
+  });
+
+  it('resets history to current focus id', () => {
+    let state = createFocusHistory('a');
+    state = recordFocus(state, 'b');
+    state = recordFocus(state, 'c');
+
+    expect(resetFocusHistory(state, 'b')).toEqual({ entries: ['b'], index: 0 });
   });
 });

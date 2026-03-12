@@ -35,6 +35,17 @@ export function recordFocus(
   };
 }
 
+export function resetFocusHistory(
+  state: FocusHistoryState,
+  focusId: string,
+): FocusHistoryState {
+  if (!focusId) return state;
+  return {
+    entries: [focusId],
+    index: 0,
+  };
+}
+
 export function canStepFocus(state: FocusHistoryState, direction: -1 | 1): boolean {
   if (!state.entries.length) return false;
   const nextIndex = state.index + direction;

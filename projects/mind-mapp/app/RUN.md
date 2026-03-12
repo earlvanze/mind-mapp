@@ -79,6 +79,7 @@ npm test
 - R: focus + center root node
 - Shift+R: jump forward in focus history
 - Alt+R: jump back to previous focus
+- Alt+Shift+Q: reset focus history to current node
 - L: auto-layout children
 - Shift+drag: pan
 - Drag mini-map viewport box: pan from mini-map

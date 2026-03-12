@@ -101,6 +101,7 @@
 - Added leaf-cycle toolbar indicator and disabled cycle controls when unavailable
 - Added context-aware disabling for parent/child/sibling/leaf focus actions
 - Added Shift+R + toolbar Forward action for focus-history forward navigation
+- Added Alt+Shift+Q + toolbar action to reset focus history to current node
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation
