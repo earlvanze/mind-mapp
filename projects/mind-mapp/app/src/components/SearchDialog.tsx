@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { centerPointInView, formatFocusPath, searchNodes } from '../utils';
+import { centerPointInView, formatFocusPath, searchNodesWithTotal } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -89,10 +89,13 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     }
   }, [open]);
 
-  const results = useMemo(
-    () => searchNodes(nodes, query, 20).map(node => ({ node, path: formatFocusPath(nodes, node.id) })),
-    [nodes, query],
-  );
+  const { results, totalMatches } = useMemo(() => {
+    const { results, total } = searchNodesWithTotal(nodes, query, 20);
+    return {
+      totalMatches: total,
+      results: results.map(node => ({ node, path: formatFocusPath(nodes, node.id) })),
+    };
+  }, [nodes, query]);
 
   useEffect(() => {
     if (!results.length) {
@@ -158,7 +161,9 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <div className="search-summary">{results.length} / {Object.keys(nodes).length} matches</div>
+        <div className="search-summary">
+          {results.length} shown / {totalMatches} matches{totalMatches > results.length ? ' (refine to narrow)' : ''}
+        </div>
         <div className="search-results">
           {results.map((r, i) => {
             const title = r.node.text || '(empty)';

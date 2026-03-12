@@ -86,6 +86,7 @@
 - Added highlighted query terms + result count in Search dialog
 - Added quoted phrase and negated term support in search queries
 - Added search keyboard quality-of-life controls (Tab cycle + Cmd/Ctrl+F focus hint)
+- Added accurate total-match reporting alongside capped search results
 - Enabled mini-map viewport box dragging for pan navigation
 
 ## 0.1.1

@@ -42,11 +42,10 @@ function nodePathLabels(nodes: Record<string, Node>, startId: string): string {
   return labels.reverse().join(' ');
 }
 
-export function searchNodes(
+function rankSearchMatches(
   nodes: Record<string, Node>,
   query: string,
-  limit = 20,
-): Node[] {
+): Array<{ node: Node; rank: number }> {
   const tokens = tokenizeSearchQuery(query);
   if (!tokens.length) return [];
 
@@ -81,8 +80,25 @@ export function searchNodes(
     })
     .filter(Boolean) as Array<{ node: Node; rank: number }>;
 
-  return scored
-    .sort((a, b) => a.rank - b.rank || a.node.text.localeCompare(b.node.text) || a.node.id.localeCompare(b.node.id))
-    .slice(0, limit)
-    .map(item => item.node);
+  return scored.sort((a, b) => a.rank - b.rank || a.node.text.localeCompare(b.node.text) || a.node.id.localeCompare(b.node.id));
+}
+
+export function searchNodesWithTotal(
+  nodes: Record<string, Node>,
+  query: string,
+  limit = 20,
+): { results: Node[]; total: number } {
+  const scored = rankSearchMatches(nodes, query);
+  return {
+    results: scored.slice(0, limit).map(item => item.node),
+    total: scored.length,
+  };
+}
+
+export function searchNodes(
+  nodes: Record<string, Node>,
+  query: string,
+  limit = 20,
+): Node[] {
+  return searchNodesWithTotal(nodes, query, limit).results;
 }

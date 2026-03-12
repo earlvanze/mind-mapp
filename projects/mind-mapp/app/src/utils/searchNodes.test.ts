@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Node } from '../store/useMindMapStore';
-import { searchNodes } from './searchNodes';
+import { searchNodes, searchNodesWithTotal } from './searchNodes';
 
 const nodes: Record<string, Node> = {
   n_root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n_alpha', 'n_beta', 'n_alpine'] },
@@ -55,5 +55,11 @@ describe('searchNodes', () => {
   it('applies result limit after ranking', () => {
     const results = searchNodes(nodes, 'a', 2);
     expect(results).toHaveLength(2);
+  });
+
+  it('reports total matches separately from capped results', () => {
+    const { results, total } = searchNodesWithTotal(nodes, 'a', 2);
+    expect(results).toHaveLength(2);
+    expect(total).toBeGreaterThan(results.length);
   });
 });
