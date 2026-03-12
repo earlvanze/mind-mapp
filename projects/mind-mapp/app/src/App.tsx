@@ -49,6 +49,12 @@ export default function App() {
     return () => window.removeEventListener('mindmapp:viewchange', handler);
   }, []);
 
+  useEffect(() => {
+    if (!importNotice) return;
+    const timeout = window.setTimeout(() => setImportNotice(null), 3200);
+    return () => window.clearTimeout(timeout);
+  }, [importNotice]);
+
   const centerOnWorld = (x: number, y: number) => {
     const el = document.querySelector('.canvas') as HTMLElement | null;
     if (!el) return;
@@ -209,8 +215,14 @@ export default function App() {
         <span style={{ color: '#666' }}>zoom {Math.round(viewScale * 100)}%</span>
         <span style={{ color: '#666' }}>Press ? for shortcuts</span>
         {importNotice ? (
-          <span style={{ color: importNotice.kind === 'error' ? '#ff7b7b' : '#9ad67a' }}>
+          <span className={`toolbar-notice ${importNotice.kind === 'error' ? 'is-error' : 'is-success'}`}>
             {importNotice.text}
+            <button
+              title="Dismiss notice"
+              onClick={() => setImportNotice(null)}
+            >
+              ×
+            </button>
           </span>
         ) : null}
         <div className="toolbar-actions">
