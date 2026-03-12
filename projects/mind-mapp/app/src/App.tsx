@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getWrappedSiblingId, getFirstLeafId, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getWrappedSiblingId, getFirstLeafId, getLastLeafId, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -174,6 +174,14 @@ export default function App() {
     centerOnNode(leafId);
   };
 
+  const focusSubtreeLastLeaf = () => {
+    const leafId = getLastLeafId(nodes, focusId);
+    if (!leafId) return;
+
+    setFocus(leafId);
+    centerOnNode(leafId);
+  };
+
   const focusPrevious = () => {
     const previousId = previousFocusRef.current;
     if (!previousId || previousId === focusId || !nodes[previousId]) return;
@@ -273,6 +281,7 @@ export default function App() {
     onFocusPrevSibling: () => focusSibling(-1),
     onFocusNextSibling: () => focusSibling(1),
     onFocusSubtreeFirstLeaf: () => focusSubtreeFirstLeaf(),
+    onFocusSubtreeLastLeaf: () => focusSubtreeLastLeaf(),
     onFocusRoot: () => focusRoot(),
     onFocusPrevious: () => focusPrevious(),
     onToggleGrid: () => setShowGrid(v => !v),
@@ -434,6 +443,7 @@ export default function App() {
           <button title="Jump focus to previous sibling (Shift+H)" onClick={() => focusSibling(-1)}>Prev Sib</button>
           <button title="Jump focus to next sibling (Shift+J)" onClick={() => focusSibling(1)}>Next Sib</button>
           <button title="Jump focus to first leaf in focused subtree (Shift+L)" onClick={focusSubtreeFirstLeaf}>Leaf Focus</button>
+          <button title="Jump focus to last leaf in focused subtree (Shift+K)" onClick={focusSubtreeLastLeaf}>Last Leaf</button>
           <button title="Jump focus to root node (R)" onClick={focusRoot}>Root</button>
           <button title="Jump back to previous focus (Alt+R)" onClick={focusPrevious}>Back</button>
           <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>

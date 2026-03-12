@@ -16,6 +16,7 @@
 - Shift + H: focus + center previous sibling (wraps)
 - Shift + J: focus + center next sibling (wraps)
 - Shift + L: focus + center first leaf in focused subtree
+- Shift + K: focus + center last leaf in focused subtree
 - R: focus + center root node
 - Alt + R: jump back to previous focus
 - Cmd/Ctrl + click: add/remove node in multi-selection

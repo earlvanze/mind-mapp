@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Node } from '../store/useMindMapStore';
-import { getFirstLeafId, getWrappedSiblingId } from './focusNav';
+import { getFirstLeafId, getLastLeafId, getWrappedSiblingId } from './focusNav';
 
 const nodes: Record<string, Node> = {
   n_root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['a', 'b', 'c'] },
@@ -43,5 +43,23 @@ describe('getFirstLeafId', () => {
       y: { id: 'y', text: 'Y', x: 0, y: 0, parentId: 'x', children: ['x'] },
     };
     expect(getFirstLeafId(cyclic, 'x')).toBeNull();
+  });
+});
+
+describe('getLastLeafId', () => {
+  it('returns last leaf in focused subtree (depth-first)', () => {
+    expect(getLastLeafId(nodes, 'n_root')).toBe('c');
+  });
+
+  it('returns root when root is already a leaf', () => {
+    expect(getLastLeafId(nodes, 'b')).toBe('b');
+  });
+
+  it('returns null when no leaf is reachable (cycle guard)', () => {
+    const cyclic: Record<string, Node> = {
+      x: { id: 'x', text: 'X', x: 0, y: 0, parentId: null, children: ['y'] },
+      y: { id: 'y', text: 'Y', x: 0, y: 0, parentId: 'x', children: ['x'] },
+    };
+    expect(getLastLeafId(cyclic, 'x')).toBeNull();
   });
 });

@@ -50,3 +50,35 @@ export function getFirstLeafId(
 
   return null;
 }
+
+export function getLastLeafId(
+  nodes: Record<string, Node>,
+  rootId: string,
+): string | null {
+  if (!nodes[rootId]) return null;
+
+  const stack = [rootId];
+  const visited = new Set<string>();
+  let lastLeafId: string | null = null;
+
+  while (stack.length) {
+    const id = stack.pop();
+    if (!id || visited.has(id)) continue;
+    visited.add(id);
+
+    const node = nodes[id];
+    if (!node) continue;
+
+    const children = node.children.filter(childId => !!nodes[childId]);
+    if (!children.length) {
+      lastLeafId = id;
+      continue;
+    }
+
+    for (let i = children.length - 1; i >= 0; i -= 1) {
+      stack.push(children[i]);
+    }
+  }
+
+  return lastLeafId;
+}
