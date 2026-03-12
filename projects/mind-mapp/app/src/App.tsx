@@ -114,6 +114,35 @@ export default function App() {
     centerOnWorld(sum.x / selected.length, sum.y / selected.length);
   };
 
+  const centerSubtree = () => {
+    const root = nodes[focusId];
+    if (!root) return;
+
+    const stack = [focusId];
+    const visited = new Set<string>();
+    const subtree: Array<{ x: number; y: number }> = [];
+
+    while (stack.length) {
+      const id = stack.pop();
+      if (!id || visited.has(id)) continue;
+      visited.add(id);
+
+      const node = nodes[id];
+      if (!node) continue;
+      subtree.push(node);
+      stack.push(...node.children);
+    }
+
+    if (!subtree.length) return;
+
+    const sum = subtree.reduce(
+      (acc, node) => ({ x: acc.x + node.x + 30, y: acc.y + node.y + 16 }),
+      { x: 0, y: 0 },
+    );
+
+    centerOnWorld(sum.x / subtree.length, sum.y / subtree.length);
+  };
+
   const focusPrevious = () => {
     const previousId = previousFocusRef.current;
     if (!previousId || previousId === focusId || !nodes[previousId]) return;
@@ -207,6 +236,7 @@ export default function App() {
     onResetView: () => (window as any).__mindmappResetView?.(),
     onCenterFocus: () => centerOnNode(focusId),
     onCenterSelection: () => centerSelection(),
+    onCenterSubtree: () => centerSubtree(),
     onFocusRoot: () => focusRoot(),
     onFocusPrevious: () => focusPrevious(),
     onToggleGrid: () => setShowGrid(v => !v),
@@ -361,6 +391,7 @@ export default function App() {
           <button title="Fit focused subtree (Alt+Shift+F)" onClick={fitFocusedSubtree}>Fit Sub</button>
           <button title="Center focused node (C)" onClick={() => centerOnNode(focusId)}>Center</button>
           <button title="Center selected nodes (Alt+Shift+C)" onClick={centerSelection}>Center Sel</button>
+          <button title="Center focused subtree (Alt+Shift+B)" onClick={centerSubtree}>Center Sub</button>
           <button title="Center root node (Shift+C)" onClick={centerRoot}>Center Root</button>
           <button title="Jump focus to root node (R)" onClick={focusRoot}>Root</button>
           <button title="Jump back to previous focus (Alt+R)" onClick={focusPrevious}>Back</button>

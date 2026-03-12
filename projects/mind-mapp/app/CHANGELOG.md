@@ -89,6 +89,7 @@
 - Added accurate total-match reporting alongside capped search results
 - Unified search token parsing between matching and highlighting
 - Added Alt+Shift+C + toolbar action to center selected nodes in viewport
+- Added Alt+Shift+B + toolbar action to center focused subtree in viewport
 - Enabled mini-map viewport box dragging for pan navigation
 
 ## 0.1.1

@@ -11,6 +11,7 @@ type Props = {
   onResetView: () => void;
   onCenterFocus: () => void;
   onCenterSelection: () => void;
+  onCenterSubtree: () => void;
   onFocusRoot: () => void;
   onFocusPrevious: () => void;
   onToggleGrid: () => void;
@@ -26,7 +27,7 @@ type Props = {
   onCenterRoot: () => void;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onFocusRoot, onFocusPrevious, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusRoot, onFocusPrevious, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
@@ -158,6 +159,10 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
       if (e.altKey && !e.shiftKey && e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
         onFitSelection();
+      }
+      if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'b' && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        onCenterSubtree();
       }
       if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'c' && !e.metaKey && !e.ctrlKey) {
         e.preventDefault();
@@ -319,6 +324,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
     onResetView,
     onCenterFocus,
     onCenterSelection,
+    onCenterSubtree,
     onFocusRoot,
     onFocusPrevious,
     onToggleGrid,

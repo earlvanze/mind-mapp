@@ -30,6 +30,7 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Alt+[: stack selected nodes along X from focus
 - Alt+]: stack selected nodes along Y from focus
 - Alt+B: select focused subtree
+- Alt+Shift+B: center focused subtree
 - Alt+P: select parent of focused node
 - Alt+Shift+P: copy focused node path
 - Cmd/Ctrl+Z: undo

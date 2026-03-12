@@ -35,6 +35,7 @@ export const SHORTCUTS = [
   { key: 'Alt+[', desc: 'stack selected nodes along X from focus' },
   { key: 'Alt+]', desc: 'stack selected nodes along Y from focus' },
   { key: 'Alt+B', desc: 'select focused subtree' },
+  { key: 'Alt+Shift+B', desc: 'center focused subtree' },
   { key: 'Alt+P', desc: 'select parent of focused node' },
   { key: 'Alt+Shift+P', desc: 'copy focused node path' },
   { key: 'E / double‑click', desc: 'edit node' },
