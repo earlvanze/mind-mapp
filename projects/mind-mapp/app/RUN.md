@@ -70,8 +70,8 @@ npm test
 - Shift+C: center root node
 - Shift+P: focus + center parent node
 - Shift+N: focus + center first child node
-- Shift+H: focus + center previous sibling
-- Shift+J: focus + center next sibling
+- Shift+H: focus + center previous sibling (wraps)
+- Shift+J: focus + center next sibling (wraps)
 - R: focus + center root node
 - Alt+R: jump back to previous focus
 - L: auto-layout children

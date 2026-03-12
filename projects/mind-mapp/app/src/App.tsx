@@ -166,11 +166,13 @@ export default function App() {
     if (!parent) return;
 
     const siblings = parent.children.filter(id => !!nodes[id]);
+    if (!siblings.length) return;
+
     const index = siblings.indexOf(focusId);
     if (index < 0) return;
 
-    const nextIndex = index + direction;
-    if (nextIndex < 0 || nextIndex >= siblings.length) return;
+    const nextIndex = (index + direction + siblings.length) % siblings.length;
+    if (nextIndex === index) return;
 
     const siblingId = siblings[nextIndex];
     setFocus(siblingId);
