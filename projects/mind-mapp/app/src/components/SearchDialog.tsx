@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { centerPointInView, formatFocusPath, searchNodesWithTotal } from '../utils';
+import { centerPointInView, formatFocusPath, searchNodesWithTotal, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -25,21 +25,10 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const terms = useMemo(() => {
-    const out: string[] = [];
-    const pattern = /(-?)"([^"]+)"|(-?)(\S+)/g;
-    const normalized = query.trim().toLowerCase();
-    let match: RegExpExecArray | null;
-
-    while ((match = pattern.exec(normalized)) !== null) {
-      const prefix = match[1] || match[3] || '';
-      const raw = (match[2] || match[4] || '').trim();
-      if (!raw || prefix === '-') continue;
-      out.push(raw);
-    }
-
-    return out;
-  }, [query]);
+  const terms = useMemo(
+    () => tokenizeSearchQuery(query).filter(token => !token.negated).map(token => token.value),
+    [query],
+  );
 
   const highlight = (text: string): ReactNode => {
     if (!terms.length) return text;

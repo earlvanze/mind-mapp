@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Node } from '../store/useMindMapStore';
-import { searchNodes, searchNodesWithTotal } from './searchNodes';
+import { searchNodes, searchNodesWithTotal, tokenizeSearchQuery } from './searchNodes';
 
 const nodes: Record<string, Node> = {
   n_root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n_alpha', 'n_beta', 'n_alpine'] },
@@ -10,6 +10,20 @@ const nodes: Record<string, Node> = {
   n_review: { id: 'n_review', text: 'Review', x: 0, y: 0, parentId: 'n_alpha', children: [] },
   node_x1: { id: 'node_x1', text: 'Gamma', x: 0, y: 0, parentId: 'n_root', children: [] },
 };
+
+describe('tokenizeSearchQuery', () => {
+  it('parses quoted and negated terms', () => {
+    expect(tokenizeSearchQuery('"alpha review" -beta id:foo')).toEqual([
+      { value: 'alpha review', negated: false },
+      { value: 'beta', negated: true },
+      { value: 'id:foo', negated: false },
+    ]);
+  });
+
+  it('ignores empty tokens', () => {
+    expect(tokenizeSearchQuery('   ""   ')).toEqual([]);
+  });
+});
 
 describe('searchNodes', () => {
   it('returns empty array for blank query', () => {

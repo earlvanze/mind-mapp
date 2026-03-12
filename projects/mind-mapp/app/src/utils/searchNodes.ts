@@ -1,16 +1,16 @@
 import type { Node } from '../store/useMindMapStore';
 
-type SearchToken = {
+export type SearchToken = {
   value: string;
   negated: boolean;
 };
 
-function tokenizeSearchQuery(query: string): SearchToken[] {
+export function tokenizeSearchQuery(query: string): SearchToken[] {
   const tokens: SearchToken[] = [];
   const normalized = query.trim().toLowerCase();
   if (!normalized) return tokens;
 
-  const pattern = /(-?)"([^"]+)"|(-?)(\S+)/g;
+  const pattern = /(-?)"([^"]*)"|(-?)(\S+)/g;
   let match: RegExpExecArray | null;
 
   while ((match = pattern.exec(normalized)) !== null) {
