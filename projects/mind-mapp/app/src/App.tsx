@@ -158,6 +158,25 @@ export default function App() {
     centerOnNode(childId);
   };
 
+  const focusSibling = (direction: -1 | 1) => {
+    const current = nodes[focusId];
+    if (!current?.parentId) return;
+
+    const parent = nodes[current.parentId];
+    if (!parent) return;
+
+    const siblings = parent.children.filter(id => !!nodes[id]);
+    const index = siblings.indexOf(focusId);
+    if (index < 0) return;
+
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= siblings.length) return;
+
+    const siblingId = siblings[nextIndex];
+    setFocus(siblingId);
+    centerOnNode(siblingId);
+  };
+
   const focusPrevious = () => {
     const previousId = previousFocusRef.current;
     if (!previousId || previousId === focusId || !nodes[previousId]) return;
@@ -254,6 +273,8 @@ export default function App() {
     onCenterSubtree: () => centerSubtree(),
     onFocusParent: () => focusParentNode(),
     onFocusChild: () => focusChildNode(),
+    onFocusPrevSibling: () => focusSibling(-1),
+    onFocusNextSibling: () => focusSibling(1),
     onFocusRoot: () => focusRoot(),
     onFocusPrevious: () => focusPrevious(),
     onToggleGrid: () => setShowGrid(v => !v),
@@ -412,6 +433,8 @@ export default function App() {
           <button title="Center root node (Shift+C)" onClick={centerRoot}>Center Root</button>
           <button title="Jump focus to parent node (Shift+P)" onClick={focusParentNode}>Parent Focus</button>
           <button title="Jump focus to first child node (Shift+N)" onClick={focusChildNode}>Child Focus</button>
+          <button title="Jump focus to previous sibling (Shift+H)" onClick={() => focusSibling(-1)}>Prev Sib</button>
+          <button title="Jump focus to next sibling (Shift+J)" onClick={() => focusSibling(1)}>Next Sib</button>
           <button title="Jump focus to root node (R)" onClick={focusRoot}>Root</button>
           <button title="Jump back to previous focus (Alt+R)" onClick={focusPrevious}>Back</button>
           <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>

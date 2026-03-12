@@ -56,6 +56,8 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Shift+C: center root node
 - Shift+P: focus + center parent node
 - Shift+N: focus + center first child node
+- Shift+H: focus + center previous sibling
+- Shift+J: focus + center next sibling
 - R: focus + center root node
 - Alt+R: jump back to previous focus
 - L: auto‑layout children

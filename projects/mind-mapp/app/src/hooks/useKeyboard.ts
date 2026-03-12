@@ -14,6 +14,8 @@ type Props = {
   onCenterSubtree: () => void;
   onFocusParent: () => void;
   onFocusChild: () => void;
+  onFocusPrevSibling: () => void;
+  onFocusNextSibling: () => void;
   onFocusRoot: () => void;
   onFocusPrevious: () => void;
   onToggleGrid: () => void;
@@ -29,7 +31,7 @@ type Props = {
   onCenterRoot: () => void;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusRoot, onFocusPrevious, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusRoot, onFocusPrevious, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing } = useMindMapStore();
 
   useEffect(() => {
@@ -216,6 +218,14 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
         e.preventDefault();
         onFocusChild();
       }
+      if (e.shiftKey && e.key.toLowerCase() === 'h' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        onFocusPrevSibling();
+      }
+      if (e.shiftKey && e.key.toLowerCase() === 'j' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        onFocusNextSibling();
+      }
       if (e.key.toLowerCase() === 'l' && !e.metaKey && !e.ctrlKey) {
         autoLayoutChildren(focusId);
       }
@@ -337,6 +347,8 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
     onCenterSubtree,
     onFocusParent,
     onFocusChild,
+    onFocusPrevSibling,
+    onFocusNextSibling,
     onFocusRoot,
     onFocusPrevious,
     onToggleGrid,
