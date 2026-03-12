@@ -84,6 +84,7 @@
 - Added path-aware multi-term search matching (label/id/path)
 - Added search-result metadata rows (node id + path context)
 - Added highlighted query terms + result count in Search dialog
+- Added quoted phrase and negated term support in search queries
 - Enabled mini-map viewport box dragging for pan navigation
 
 ## 0.1.1

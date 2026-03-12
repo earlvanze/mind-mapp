@@ -24,7 +24,21 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   };
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(0);
-  const terms = useMemo(() => query.trim().toLowerCase().split(/\s+/).filter(Boolean), [query]);
+  const terms = useMemo(() => {
+    const out: string[] = [];
+    const pattern = /(-?)"([^"]+)"|(-?)(\S+)/g;
+    const normalized = query.trim().toLowerCase();
+    let match: RegExpExecArray | null;
+
+    while ((match = pattern.exec(normalized)) !== null) {
+      const prefix = match[1] || match[3] || '';
+      const raw = (match[2] || match[4] || '').trim();
+      if (!raw || prefix === '-') continue;
+      out.push(raw);
+    }
+
+    return out;
+  }, [query]);
 
   const highlight = (text: string): ReactNode => {
     if (!terms.length) return text;
@@ -119,7 +133,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
       <div className="search-box" onClick={(e) => e.stopPropagation()}>
         <input
           autoFocus
-          placeholder="Search nodes..."
+          placeholder='Search nodes… (use "phrase" or -exclude)'
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />

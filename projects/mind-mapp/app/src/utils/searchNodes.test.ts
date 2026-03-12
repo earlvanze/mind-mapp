@@ -31,6 +31,22 @@ describe('searchNodes', () => {
     expect(results.map(node => node.id)).toEqual(['n_review']);
   });
 
+  it('supports quoted phrase queries', () => {
+    const results = searchNodes(nodes, '"alpha review"');
+    expect(results.map(node => node.id)).toEqual(['n_review']);
+  });
+
+  it('supports negative terms for exclusion', () => {
+    const results = searchNodes(nodes, 'alpha -review');
+    expect(results.map(node => node.id)).toEqual(['n_alpha']);
+  });
+
+  it('supports pure negative filtering', () => {
+    const results = searchNodes(nodes, '-review');
+    expect(results.some(node => node.id === 'n_review')).toBe(false);
+    expect(results.length).toBe(Object.keys(nodes).length - 1);
+  });
+
   it('can match descendants by ancestor path terms', () => {
     const results = searchNodes(nodes, 'alpha');
     expect(results.map(node => node.id)).toEqual(['n_alpha', 'n_review']);

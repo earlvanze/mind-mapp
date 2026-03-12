@@ -47,7 +47,7 @@ npm test
 - Alt+Shift+P: copy focused node path
 - Cmd/Ctrl+Z: undo
 - Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
-- Cmd/Ctrl+K: search (matches node text + id + path terms)
+- Cmd/Ctrl+K: search (matches node text + id + path terms; supports "quoted phrases" and -exclude terms)
 - Cmd/Ctrl+S: export JSON
 - Cmd/Ctrl+Shift+M: export Markdown
 - Cmd/Ctrl+Shift+C: copy selected/focused node text
