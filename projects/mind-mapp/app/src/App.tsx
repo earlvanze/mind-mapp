@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useMindMapStore, saveState } from './store/useMindMapStore';
 import Node from './components/Node';
 import Edges from './components/Edges';
@@ -20,6 +20,8 @@ export default function App() {
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
   const [viewScale, setViewScale] = useState(1);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
+  const previousFocusRef = useRef('n_root');
+  const currentFocusRef = useRef(focusId);
 
   useEffect(() => {
     const prefs = loadUiPrefs();
@@ -55,6 +57,12 @@ export default function App() {
     return () => window.clearTimeout(timeout);
   }, [importNotice]);
 
+  useEffect(() => {
+    if (focusId === currentFocusRef.current) return;
+    previousFocusRef.current = currentFocusRef.current;
+    currentFocusRef.current = focusId;
+  }, [focusId]);
+
   const centerOnWorld = (x: number, y: number) => {
     const el = document.querySelector('.canvas') as HTMLElement | null;
     if (!el) return;
@@ -82,6 +90,17 @@ export default function App() {
   const focusRoot = () => {
     setFocus('n_root');
     centerOnNode('n_root');
+  };
+
+  const focusPrevious = () => {
+    const previousId = previousFocusRef.current;
+    if (!previousId || previousId === focusId || !nodes[previousId]) return;
+
+    const currentId = focusId;
+    setFocus(previousId);
+    centerOnNode(previousId);
+    previousFocusRef.current = currentId;
+    currentFocusRef.current = previousId;
   };
 
   const fitNodesInView = (targetNodes: Array<{ x: number; y: number }>) => {
@@ -166,6 +185,7 @@ export default function App() {
     onResetView: () => (window as any).__mindmappResetView?.(),
     onCenterFocus: () => centerOnNode(focusId),
     onFocusRoot: () => focusRoot(),
+    onFocusPrevious: () => focusPrevious(),
     onToggleGrid: () => setShowGrid(v => !v),
     onToggleMiniMap: () => setShowMiniMap(v => !v),
     onToggleAdvanced: () => setShowAdvancedActions(v => !v),
@@ -317,6 +337,7 @@ export default function App() {
           <button title="Fit focused subtree (Alt+Shift+F)" onClick={fitFocusedSubtree}>Fit Sub</button>
           <button title="Center focused node (C)" onClick={() => centerOnNode(focusId)}>Center</button>
           <button title="Jump focus to root node (R)" onClick={focusRoot}>Root</button>
+          <button title="Jump back to previous focus (Alt+R)" onClick={focusPrevious}>Back</button>
           <button title="Toggle grid overlay (Shift+G)" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
           <button title="Toggle mini-map (Shift+M)" onClick={() => setShowMiniMap(v => !v)}>{showMiniMap ? 'Mini-map On' : 'Mini-map Off'}</button>
           <button title="Show/Hide advanced actions (Shift+A)" onClick={() => setShowAdvancedActions(v => !v)}>

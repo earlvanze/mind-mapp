@@ -49,6 +49,7 @@ export const SHORTCUTS = [
   { key: 'Shift+A', desc: 'toggle advanced toolbar actions' },
   { key: 'C', desc: 'center focused node' },
   { key: 'R', desc: 'focus + center root node' },
+  { key: 'Alt+R', desc: 'jump back to previous focus' },
   { key: 'L', desc: 'auto‑layout children' },
   { key: 'Shift+drag', desc: 'pan' },
   { key: 'Ctrl/Cmd+wheel', desc: 'zoom' },

@@ -52,6 +52,7 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Shift+A: toggle advanced toolbar actions
 - C: center focused node
 - R: focus + center root node
+- Alt+R: jump back to previous focus
 - L: auto‑layout children
 - Shift+drag: pan
 - Ctrl/Cmd+wheel: zoom

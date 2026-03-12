@@ -10,6 +10,7 @@
 - -: zoom out (center‑preserving)
 - 0: reset pan/zoom view
 - R: focus + center root node
+- Alt + R: jump back to previous focus
 - Cmd/Ctrl + click: add/remove node in multi-selection
 - Cmd/Ctrl + A: select all nodes
 - Alt + I: invert selection

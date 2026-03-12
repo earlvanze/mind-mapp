@@ -78,6 +78,7 @@
 - Added live filter/search inside Help shortcuts dialog
 - Added Alt+Shift+P + toolbar action to copy focused node path
 - Made focused-path breadcrumb segments clickable for ancestor navigation
+- Added Alt+R + toolbar Back action to jump to previous focus node
 
 ## 0.1.1
 - Added toolbar actions (Fit/Help/Clear)
