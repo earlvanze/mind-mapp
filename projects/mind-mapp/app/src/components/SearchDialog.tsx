@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { centerPointInView, clampSearchSelection, cycleSearchSelection, edgeSearchSelection, formatFocusPath, moveSearchSelection, searchNodesWithTotal, tokenizeSearchQuery } from '../utils';
+import { centerPointInView, clampSearchSelection, cycleSearchSelection, edgeSearchSelection, formatFocusPath, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -173,7 +173,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         e.preventDefault();
         const item = results[selected]?.node;
         if (item) {
-          const closeAfter = !(e.metaKey || e.ctrlKey || e.shiftKey);
+          const closeAfter = !shouldKeepSearchOpen(e);
           jumpToNode(item.id, closeAfter);
         }
       }
@@ -224,8 +224,9 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
                 }}
                 className={`search-item ${i === selected ? 'active' : ''}`}
                 onMouseEnter={() => setSelected(i)}
-                onClick={() => {
-                  jumpToNode(r.node.id);
+                onClick={(event) => {
+                  const closeAfter = !shouldKeepSearchOpen(event);
+                  jumpToNode(r.node.id, closeAfter);
                 }}
               >
                 <div className="search-item-title">{highlight(title)}</div>
@@ -236,7 +237,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
             );
           })}
           {!results.length && query && <div className="search-empty" role="status">No results</div>}
-          <div className="search-hint">Tab/Shift+Tab: cycle selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter: jump + close • Shift/Cmd/Ctrl+Enter: jump + keep open • Esc: clear query (or close when empty) • Cmd/Ctrl+F: focus search</div>
+          <div className="search-hint">Tab/Shift+Tab: cycle selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter/click: jump + close • Shift/Cmd/Ctrl+Enter/click: jump + keep open • Esc: clear query (or close when empty) • Cmd/Ctrl+F: focus search</div>
         </div>
       </div>
     </div>

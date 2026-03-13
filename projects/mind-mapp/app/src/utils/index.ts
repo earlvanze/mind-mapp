@@ -12,6 +12,7 @@ export * from './importValidation';
 export * from './sampleMap';
 export * from './searchNodes';
 export * from './searchSelection';
+export * from './searchJump';
 export * from './selectionBounds';
 export * from './selectionText';
 export * from './shortcuts';
