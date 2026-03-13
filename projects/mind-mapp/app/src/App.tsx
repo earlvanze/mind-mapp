@@ -328,7 +328,7 @@ export default function App() {
   };
 
   useKeyboard({
-    onSearch: () => setSearchOpen(true),
+    onSearch: () => setSearchOpen(v => !v),
     onFit: () => fitToView(),
     onFitSelection: () => fitSelection(),
     onFitSubtree: () => fitFocusedSubtree(),

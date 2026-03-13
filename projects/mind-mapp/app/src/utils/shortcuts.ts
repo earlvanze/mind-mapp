@@ -5,7 +5,7 @@ export const SHORTCUTS = [
   { key: 'Delete', desc: 'delete selected node(s)' },
   { key: 'Cmd/Ctrl+Z', desc: 'undo' },
   { key: 'Cmd/Ctrl+Shift+Z / Cmd/Ctrl+Y', desc: 'redo' },
-  { key: 'Cmd/Ctrl+K', desc: 'search' },
+  { key: 'Cmd/Ctrl+K', desc: 'toggle search dialog' },
   { key: 'Search: Tab / Shift+Tab', desc: 'cycle active result selection' },
   { key: 'Search: PageUp / PageDown', desc: 'jump active result by 5 items' },
   { key: 'Search: Home / End', desc: 'jump to first/last search result' },

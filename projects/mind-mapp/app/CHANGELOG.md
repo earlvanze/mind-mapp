@@ -121,6 +121,7 @@
 - Added diacritic-insensitive search normalization for labels/paths and query tokens
 - Added Search modifier-click parity with modifier-Enter (including Alt) so result jumps can keep the dialog open
 - Improved Help dialog accessibility + keyboard flow (dialog semantics, Esc clear-then-close, Cmd/Ctrl+F focus)
+- Made Cmd/Ctrl+K a true Search toggle (open/close) including close support while Search dialog is active
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation

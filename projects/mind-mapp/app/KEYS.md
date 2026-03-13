@@ -36,7 +36,7 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Cmd/Ctrl+Z: undo
 - Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
 - E / double‑click: edit node
-- Cmd/Ctrl+K: search
+- Cmd/Ctrl+K: toggle search dialog
 - Search dialog: Tab/Shift+Tab cycle result selection
 - Search dialog: PageUp/PageDown jump result selection by 5
 - Search dialog: Home/End jump to first/last result
