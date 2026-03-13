@@ -37,6 +37,9 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Cmd/Ctrl+Shift+Z or Cmd/Ctrl+Y: redo
 - E / double‑click: edit node
 - Cmd/Ctrl+K: search
+- Search dialog: Tab/Shift+Tab move result selection
+- Search dialog: PageUp/PageDown jump result selection by 5
+- Search dialog: Home/End jump to first/last result
 - Cmd/Ctrl+S: export JSON
 - Cmd/Ctrl+Shift+M: export Markdown
 - Cmd/Ctrl+Shift+C: copy selected/focused node text

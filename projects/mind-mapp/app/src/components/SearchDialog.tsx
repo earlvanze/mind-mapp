@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { centerPointInView, formatFocusPath, searchNodesWithTotal, tokenizeSearchQuery } from '../utils';
+import { centerPointInView, clampSearchSelection, edgeSearchSelection, formatFocusPath, moveSearchSelection, searchNodesWithTotal, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -87,12 +87,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   }, [nodes, query]);
 
   useEffect(() => {
-    if (!results.length) {
-      setSelected(0);
-      return;
-    }
-
-    setSelected((index) => Math.max(0, Math.min(index, results.length - 1)));
+    setSelected((index) => clampSearchSelection(index, results.length));
   }, [results]);
 
   useEffect(() => {
@@ -112,17 +107,33 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
       }
       if (e.key === 'ArrowDown' && results.length) {
         e.preventDefault();
-        setSelected(s => Math.min(results.length - 1, s + 1));
+        setSelected(s => moveSearchSelection(s, results.length, 1));
       }
       if (e.key === 'ArrowUp' && results.length) {
         e.preventDefault();
-        setSelected(s => Math.max(0, s - 1));
+        setSelected(s => moveSearchSelection(s, results.length, -1));
+      }
+      if (e.key === 'PageDown' && results.length) {
+        e.preventDefault();
+        setSelected(s => moveSearchSelection(s, results.length, 5));
+      }
+      if (e.key === 'PageUp' && results.length) {
+        e.preventDefault();
+        setSelected(s => moveSearchSelection(s, results.length, -5));
+      }
+      if (e.key === 'Home' && results.length) {
+        e.preventDefault();
+        setSelected(edgeSearchSelection(results.length, 'start'));
+      }
+      if (e.key === 'End' && results.length) {
+        e.preventDefault();
+        setSelected(edgeSearchSelection(results.length, 'end'));
       }
       if (e.key === 'Tab' && results.length) {
         e.preventDefault();
         setSelected(s => {
-          if (e.shiftKey) return Math.max(0, s - 1);
-          return Math.min(results.length - 1, s + 1);
+          if (e.shiftKey) return moveSearchSelection(s, results.length, -1);
+          return moveSearchSelection(s, results.length, 1);
         });
       }
       if (e.key === 'Enter' && results.length) {
@@ -175,7 +186,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
             );
           })}
           {!results.length && query && <div className="search-empty">No results</div>}
-          <div className="search-hint">Tab/Shift+Tab: move selection • Enter: jump • Cmd/Ctrl+F: focus search</div>
+          <div className="search-hint">Tab/Shift+Tab: move selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter: jump • Cmd/Ctrl+F: focus search</div>
         </div>
       </div>
     </div>

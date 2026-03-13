@@ -10,6 +10,7 @@ export * from './id';
 export * from './importValidation';
 export * from './sampleMap';
 export * from './searchNodes';
+export * from './searchSelection';
 export * from './selectionBounds';
 export * from './selectionText';
 export * from './shortcuts';
