@@ -267,6 +267,12 @@ body, html, #root {
   color: #777;
 }
 
+.search-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #1f2937;
+}
+
 .search-box input {
   width: 100%;
   padding: 8px 10px;

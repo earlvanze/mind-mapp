@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 import { centerPointInView, clampSearchSelection, cycleSearchSelection, edgeSearchSelection, formatFocusPath, moveSearchSelection, searchNodesWithTotal, tokenizeSearchQuery } from '../utils';
 
@@ -25,6 +25,10 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const resultRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const dialogTitleId = useId();
+  const summaryId = useId();
+  const listboxId = useId();
   const terms = useMemo(
     () => tokenizeSearchQuery(query).filter(token => !token.negated).map(token => token.value),
     [query],
@@ -85,10 +89,24 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
       results: results.map(node => ({ node, path: formatFocusPath(nodes, node.id) })),
     };
   }, [nodes, query]);
+  const selectedNodeId = results[selected]?.node.id;
+  const selectedOptionId = selectedNodeId ? `${listboxId}-${selectedNodeId}` : undefined;
 
   useEffect(() => {
     setSelected((index) => clampSearchSelection(index, results.length));
+
+    const validIds = new Set(results.map(result => result.node.id));
+    Object.keys(resultRefs.current).forEach((id) => {
+      if (!validIds.has(id)) {
+        delete resultRefs.current[id];
+      }
+    });
   }, [results]);
+
+  useEffect(() => {
+    if (!open || !selectedNodeId) return;
+    resultRefs.current[selectedNodeId]?.scrollIntoView({ block: 'nearest' });
+  }, [open, selectedNodeId, results.length]);
 
   useEffect(() => {
     if (!open) return;
@@ -153,25 +171,44 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
 
   return (
     <div className="search-overlay" onClick={onClose}>
-      <div className="search-box" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="search-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={dialogTitleId}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 id={dialogTitleId} className="search-title">Search</h3>
         <input
           ref={inputRef}
           autoFocus
+          role="combobox"
+          aria-label="Search nodes"
+          aria-controls={listboxId}
+          aria-expanded={results.length > 0}
+          aria-activedescendant={selectedOptionId}
           placeholder='Search nodes… (use "phrase" or -exclude)'
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <div className="search-summary">
+        <div id={summaryId} className="search-summary" aria-live="polite">
           {results.length} shown / {totalMatches} matches{totalMatches > results.length ? ' (refine to narrow)' : ''}
         </div>
-        <div className="search-results">
+        <div id={listboxId} className="search-results" role="listbox" aria-describedby={summaryId}>
           {results.map((r, i) => {
             const title = r.node.text || '(empty)';
             const meta = `${r.node.id} • ${r.path || '(no path)'}`;
             return (
               <div
                 key={r.node.id}
+                id={`${listboxId}-${r.node.id}`}
+                role="option"
+                aria-selected={i === selected}
+                ref={(element) => {
+                  resultRefs.current[r.node.id] = element;
+                }}
                 className={`search-item ${i === selected ? 'active' : ''}`}
+                onMouseEnter={() => setSelected(i)}
                 onClick={() => {
                   setFocus(r.node.id);
                   centerOnNode(r.node.id);
@@ -185,7 +222,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
               </div>
             );
           })}
-          {!results.length && query && <div className="search-empty">No results</div>}
+          {!results.length && query && <div className="search-empty" role="status">No results</div>}
           <div className="search-hint">Tab/Shift+Tab: cycle selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter: jump • Cmd/Ctrl+F: focus search</div>
         </div>
       </div>
