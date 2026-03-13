@@ -363,6 +363,7 @@ export default function App() {
     onCopySubtree: () => copySubtreeText(),
     onCopyPath: () => copyFocusPath(),
     onCenterRoot: () => centerRoot(),
+    suspended: searchOpen || helpOpen,
   });
   usePanZoom({ selector: '.canvas' });
   useAutosave(() => saveState(), 600);
