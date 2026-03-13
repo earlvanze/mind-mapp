@@ -115,6 +115,7 @@
 - Restored Search dialog Tab/Shift+Tab wrap-around cycling while keeping Arrow/Page/Home-End navigation
 - Improved Search dialog accessibility semantics (dialog/listbox/option roles, active-descendant wiring, live summary, keyboard-selected option auto-scroll)
 - Normalized search whitespace so quoted phrases still match labels/paths with irregular spacing
+- Added Search dialog Shift/Cmd/Ctrl+Enter to jump to selected result without closing the dialog
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation

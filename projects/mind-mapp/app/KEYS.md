@@ -40,6 +40,7 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - Search dialog: Tab/Shift+Tab cycle result selection
 - Search dialog: PageUp/PageDown jump result selection by 5
 - Search dialog: Home/End jump to first/last result
+- Search dialog: Shift/Cmd/Ctrl+Enter jump to result and keep dialog open
 - Cmd/Ctrl+S: export JSON
 - Cmd/Ctrl+Shift+M: export Markdown
 - Cmd/Ctrl+Shift+C: copy selected/focused node text
