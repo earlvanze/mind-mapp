@@ -120,6 +120,7 @@
 - Added Search dialog Esc behavior to clear query first and only close when already empty
 - Added diacritic-insensitive search normalization for labels/paths and query tokens
 - Added Search modifier-click parity with modifier-Enter (including Alt) so result jumps can keep the dialog open
+- Improved Help dialog accessibility + keyboard flow (dialog semantics, Esc clear-then-close, Cmd/Ctrl+F focus)
 - Extracted focus-navigation helpers into tested utility functions
 - Moved parent/child focus resolution into shared focusNav helpers
 - Enabled mini-map viewport box dragging for pan navigation

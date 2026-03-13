@@ -255,6 +255,12 @@ body, html, #root {
   color: #667085;
 }
 
+.help-hint {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #98a2b3;
+}
+
 .help-box ul {
   padding-left: 18px;
   margin-top: 8px;

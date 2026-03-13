@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { SHORTCUTS } from '../utils';
 
 const FOCUS_NAV_HISTORY_KEYS = [
@@ -20,19 +20,44 @@ const FOCUS_NAV_HISTORY_KEYS = [
 
 export default function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState('');
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const titleId = useId();
+  const summaryId = useId();
+  const quickSectionId = useId();
 
   useEffect(() => {
-    if (open) setQuery('');
+    if (!open) return;
+    setQuery('');
+    setTimeout(() => inputRef.current?.focus(), 0);
   }, [open]);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (query.trim()) {
+          e.preventDefault();
+          setQuery('');
+          inputRef.current?.focus();
+          return;
+        }
+        onClose();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
+        const target = e.target as HTMLElement | null;
+        if (target?.tagName === 'INPUT') return;
+        e.preventDefault();
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  }, [open, onClose, query]);
 
   const normalized = query.trim().toLowerCase();
   const filtered = useMemo(
@@ -50,10 +75,16 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
 
   return (
     <div className="search-overlay" onClick={onClose}>
-      <div className="help-box" onClick={(e) => e.stopPropagation()}>
-        <h3>Shortcuts</h3>
-        <div className="help-quick-section">
-          <h4>Focus Navigation &amp; History</h4>
+      <div
+        className="help-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 id={titleId}>Shortcuts</h3>
+        <div className="help-quick-section" role="region" aria-labelledby={quickSectionId}>
+          <h4 id={quickSectionId}>Focus Navigation &amp; History</h4>
           <ul className="help-quick-list">
             {focusNavHistory.map(shortcut => (
               <li key={shortcut.key}><b>{shortcut.key}</b>: {shortcut.desc}</li>
@@ -61,13 +92,17 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
           </ul>
         </div>
         <input
+          ref={inputRef}
           className="help-filter"
+          aria-label="Filter shortcuts"
+          aria-describedby={summaryId}
           placeholder="Filter shortcuts…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           autoFocus
         />
-        <div className="help-meta">{filtered.length} / {SHORTCUTS.length} shown</div>
+        <div id={summaryId} className="help-meta" aria-live="polite">{filtered.length} / {SHORTCUTS.length} shown</div>
+        <div className="help-hint">Esc: clear filter (or close when empty) • Cmd/Ctrl+F: focus filter</div>
         {filtered.length ? (
           <ul>
             {filtered.map(s => (
