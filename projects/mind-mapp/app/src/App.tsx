@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -21,6 +21,7 @@ export default function App() {
   const [viewScale, setViewScale] = useState(1);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
   const focusHistoryRef = useRef(createFocusHistory(focusId));
+  const focusHistoryHydratedRef = useRef(false);
 
   useEffect(() => {
     const prefs = loadUiPrefs();
@@ -57,9 +58,20 @@ export default function App() {
   }, [importNotice]);
 
   useEffect(() => {
+    if (focusHistoryHydratedRef.current) return;
+    focusHistoryHydratedRef.current = true;
+
+    const saved = loadFocusHistory();
+    if (!saved) return;
+
+    focusHistoryRef.current = pruneFocusHistory(saved, (id) => !!nodes[id], focusId);
+  }, [focusId, nodes]);
+
+  useEffect(() => {
     let next = recordFocus(focusHistoryRef.current, focusId);
     next = pruneFocusHistory(next, (id) => !!nodes[id], focusId);
     focusHistoryRef.current = next;
+    saveFocusHistory(next);
   }, [focusId, nodes]);
 
   const centerOnWorld = (x: number, y: number) => {
@@ -201,6 +213,7 @@ export default function App() {
     );
 
     focusHistoryRef.current = stepped.state;
+    saveFocusHistory(stepped.state);
 
     if (!stepped.focusId) return;
     setFocus(stepped.focusId);
@@ -218,6 +231,7 @@ export default function App() {
     );
 
     focusHistoryRef.current = stepped.state;
+    saveFocusHistory(stepped.state);
 
     if (!stepped.focusId) return;
     setFocus(stepped.focusId);
@@ -228,7 +242,10 @@ export default function App() {
   const focusHistoryEnd = () => jumpFocusHistoryEdge('end');
 
   const resetFocusHistoryTo = (nextFocusId: string, noticeText?: string) => {
-    focusHistoryRef.current = resetFocusHistory(focusHistoryRef.current, nextFocusId);
+    const next = resetFocusHistory(focusHistoryRef.current, nextFocusId);
+    focusHistoryRef.current = next;
+    saveFocusHistory(next);
+
     if (noticeText) {
       setImportNotice({ text: noticeText, kind: 'success' });
     }

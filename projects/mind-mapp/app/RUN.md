@@ -85,6 +85,7 @@ npm test
 - Alt+Shift+Home: jump to oldest focus history entry
 - Alt+Shift+End: jump to newest focus history entry
 - Alt+Shift+Q: reset focus history to current node
+- Focus history is persisted across reloads (invalid/deleted entries are pruned)
 - L: auto-layout children
 - Shift+drag: pan
 - Drag mini-map viewport box: pan from mini-map

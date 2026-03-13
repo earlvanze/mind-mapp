@@ -5,6 +5,7 @@ export * from './exportPng';
 export * from './fitToView';
 export * from './fitViewMath';
 export * from './focusHistory';
+export * from './focusHistoryStorage';
 export * from './focusNav';
 export * from './id';
 export * from './importValidation';
