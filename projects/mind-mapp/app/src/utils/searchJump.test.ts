@@ -6,9 +6,10 @@ describe('shouldKeepSearchOpen', () => {
     expect(shouldKeepSearchOpen({})).toBe(false);
   });
 
-  it('returns true for shift/cmd/ctrl modifiers', () => {
+  it('returns true for shift/cmd/ctrl/alt modifiers', () => {
     expect(shouldKeepSearchOpen({ shiftKey: true })).toBe(true);
     expect(shouldKeepSearchOpen({ metaKey: true })).toBe(true);
     expect(shouldKeepSearchOpen({ ctrlKey: true })).toBe(true);
+    expect(shouldKeepSearchOpen({ altKey: true })).toBe(true);
   });
 });

@@ -9,7 +9,7 @@ export const SHORTCUTS = [
   { key: 'Search: Tab / Shift+Tab', desc: 'cycle active result selection' },
   { key: 'Search: PageUp / PageDown', desc: 'jump active result by 5 items' },
   { key: 'Search: Home / End', desc: 'jump to first/last search result' },
-  { key: 'Search: Shift/Cmd/Ctrl+Enter or click', desc: 'jump to result and keep search dialog open' },
+  { key: 'Search: Shift/Cmd/Ctrl/Alt+Enter or click', desc: 'jump to result and keep search dialog open' },
   { key: 'Search: Esc', desc: 'clear query (or close dialog when query is empty)' },
   { key: 'Cmd/Ctrl+S', desc: 'export JSON' },
   { key: 'Cmd/Ctrl+Shift+S', desc: 'export PNG' },
