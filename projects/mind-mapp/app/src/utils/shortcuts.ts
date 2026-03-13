@@ -85,7 +85,7 @@ export const SHORTCUTS: Shortcut[] = [
   { key: '=/+', desc: 'zoom in' },
   { key: '-', desc: 'zoom out' },
   { key: '0', desc: 'reset pan/zoom view' },
-  { key: '?', desc: 'help' }
+  { key: '?', desc: 'toggle help dialog' }
 ];
 
 export const FOCUS_NAV_HISTORY_SHORTCUT_KEYS: string[] = [

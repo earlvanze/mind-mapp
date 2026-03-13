@@ -84,4 +84,4 @@ Most selection/layout commands are also available in toolbar `Advanced ▾`.
 - -: zoom out (center‑preserving)
 - 0: reset pan/zoom view
 - Double‑click background: reset view (also toolbar button)
-- ?: help
+- ?: toggle help dialog

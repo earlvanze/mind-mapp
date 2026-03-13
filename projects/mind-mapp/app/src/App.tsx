@@ -327,8 +327,24 @@ export default function App() {
     });
   };
 
+  const toggleSearchDialog = () => {
+    setSearchOpen((current) => {
+      const next = !current;
+      if (next) setHelpOpen(false);
+      return next;
+    });
+  };
+
+  const toggleHelpDialog = () => {
+    setHelpOpen((current) => {
+      const next = !current;
+      if (next) setSearchOpen(false);
+      return next;
+    });
+  };
+
   useKeyboard({
-    onSearch: () => setSearchOpen(v => !v),
+    onSearch: () => toggleSearchDialog(),
     onFit: () => fitToView(),
     onFitSelection: () => fitSelection(),
     onFitSubtree: () => fitFocusedSubtree(),
@@ -355,7 +371,7 @@ export default function App() {
     onToggleGrid: () => setShowGrid(v => !v),
     onToggleMiniMap: () => setShowMiniMap(v => !v),
     onToggleAdvanced: () => setShowAdvancedActions(v => !v),
-    onHelp: () => setHelpOpen(true),
+    onHelp: () => toggleHelpDialog(),
     onUndo: () => undo(),
     onRedo: () => redo(),
     onExportMarkdown: () => exportMarkdownData(nodes),
@@ -621,7 +637,7 @@ export default function App() {
           <button title="Show/Hide advanced actions (Shift+A)" onClick={() => setShowAdvancedActions(v => !v)}>
             {showAdvancedActions ? 'Advanced ▴' : 'Advanced ▾'}
           </button>
-          <button title="Show shortcuts" onClick={() => setHelpOpen(true)}>Help</button>
+          <button title={helpOpen ? 'Hide shortcuts (?)' : 'Show shortcuts (?)'} onClick={toggleHelpDialog}>Help</button>
           <button
             title="Clear map"
             onClick={() => {

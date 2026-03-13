@@ -46,9 +46,22 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (suspended) return;
+      const typingTarget = isTypingTarget(e.target);
+
+      if (suspended) {
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          onSearch();
+        }
+        if (e.key === '?' && !typingTarget) {
+          e.preventDefault();
+          onHelp();
+        }
+        return;
+      }
+
       if (editingId) return;
-      if (isTypingTarget(e.target)) return;
+      if (typingTarget) return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
         e.preventDefault();
         onUndo();
