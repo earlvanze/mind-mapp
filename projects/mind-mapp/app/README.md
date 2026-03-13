@@ -37,6 +37,11 @@ npm install
 npm run dev
 ```
 
+Optional host allowlist override:
+```bash
+MINDMAPP_ALLOWED_HOSTS="cyber.earlco.in,cyber.talpa-stargazer.ts.net,example.com" npm run dev
+```
+
 ## Files
 - `src/` — app source
 - `RUN.md` — quick start + shortcuts

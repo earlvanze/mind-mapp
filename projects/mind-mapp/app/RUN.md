@@ -8,6 +8,11 @@ npm run dev
 
 Then open the URL shown (usually http://localhost:5173).
 
+Optional host allowlist override (for remote/dev tunnel access):
+```bash
+MINDMAPP_ALLOWED_HOSTS="cyber.earlco.in,cyber.talpa-stargazer.ts.net,example.com" npm run dev
+```
+
 Tip: click `Advanced ▾` in the toolbar to reveal selection/layout actions (your grid/mini-map/advanced visibility preferences persist between reloads).
 
 ## Tests

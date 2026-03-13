@@ -1,3 +1,4 @@
+export * from './allowedHosts';
 export * from './confirm';
 export * from './exportJson';
 export * from './exportMarkdown';
