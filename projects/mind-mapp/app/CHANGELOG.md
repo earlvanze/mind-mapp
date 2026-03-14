@@ -139,6 +139,7 @@
 - Centralized Search/Help dialog close handlers in App to keep keyboard and overlay close paths consistent
 - Kept Cmd/Ctrl+K search toggle available while typing in non-editing inputs for faster command access
 - Improved Help shortcut filtering with punctuation-agnostic multi-term matching + symbol/alias terms (e.g., ctrl slash, command slash, forward slash, question mark, shift plus pageup)
+- Fixed Help shortcut alias normalization so forward slash/question mark queries avoid Cmd/Ctrl+F false positives while still matching Cmd/Ctrl+/
 - Unified search normalization logic in shared helper to keep search matching and highlighting behavior in lockstep
 - Marked current breadcrumb segment as aria-current/disabled to prevent redundant refocus clicks
 - Added mini-map Home/End keyboard edge-jump + PageUp/PageDown vertical and Shift+PageUp/PageDown horizontal large-step navigation when mini-map canvas is focused

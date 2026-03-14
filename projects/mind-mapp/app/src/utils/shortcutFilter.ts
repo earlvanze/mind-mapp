@@ -3,11 +3,13 @@ import type { Shortcut } from './shortcuts';
 function normalizeShortcutText(value: string): string {
   return value
     .toLowerCase()
+    .replace(/\bforward\s+slash\b/g, 'slash')
+    .replace(/\bquestion\s+mark\b/g, 'slash')
     .replace(/\bcmd\/ctrl\b/g, 'cmd ctrl')
     .replace(/\bctrl\/cmd\b/g, 'cmd ctrl')
-    .replace(/\//g, ' slash forward slash ')
+    .replace(/\//g, ' slash ')
     .replace(/\+/g, ' plus ')
-    .replace(/\?/g, ' question mark ')
+    .replace(/\?/g, ' question ')
     .replace(/</g, ' less ')
     .replace(/>/g, ' greater ')
     .replace(/,/g, ' comma ')
