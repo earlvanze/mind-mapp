@@ -1,46 +1,10 @@
 import type { Node } from '../store/useMindMapStore';
+import { normalizeSearchText } from './searchNormalize';
 
 export type SearchToken = {
   value: string;
   negated: boolean;
 };
-
-function normalizeSearchText(value: string): string {
-  const pieces: string[] = [];
-
-  for (let i = 0; i < value.length; i += 1) {
-    const current = value[i];
-    const previous = i > 0 ? value[i - 1] : '';
-
-    const prevIsLower = /[a-z]/.test(previous);
-    const prevIsLetter = /[A-Za-z]/.test(previous);
-    const prevIsDigit = /\d/.test(previous);
-    const currentIsUpper = /[A-Z]/.test(current);
-    const currentIsLetter = /[A-Za-z]/.test(current);
-    const currentIsDigit = /\d/.test(current);
-
-    if (
-      (prevIsLower && currentIsUpper)
-      || (prevIsLetter && currentIsDigit)
-      || (prevIsDigit && currentIsLetter)
-    ) {
-      pieces.push(' ');
-    }
-
-    pieces.push(
-      current
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .replace(/[-_./:]+/g, ' '),
-    );
-  }
-
-  return pieces
-    .join('')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
 
 export function tokenizeSearchQuery(query: string): SearchToken[] {
   const tokens: SearchToken[] = [];

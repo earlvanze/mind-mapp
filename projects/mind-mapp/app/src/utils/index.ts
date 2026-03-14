@@ -13,6 +13,7 @@ export * from './id';
 export * from './importValidation';
 export * from './sampleMap';
 export * from './searchNodes';
+export * from './searchNormalize';
 export * from './shortcutFilter';
 export * from './searchSelection';
 export * from './searchJump';

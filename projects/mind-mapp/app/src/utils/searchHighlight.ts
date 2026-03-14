@@ -1,9 +1,9 @@
+import { foldSearchCharacter, shouldInsertSearchBoundary } from './searchNormalize';
+
 export type HighlightRange = {
   start: number;
   end: number;
 };
-
-const DIACRITIC_RE = /[\u0300-\u036f]/g;
 
 export function foldSearchText(source: string): { text: string; map: number[] } {
   const rawChars: string[] = [];
@@ -13,27 +13,12 @@ export function foldSearchText(source: string): { text: string; map: number[] } 
     const current = source[i];
     const previous = i > 0 ? source[i - 1] : '';
 
-    const prevIsLower = /[a-z]/.test(previous);
-    const prevIsLetter = /[A-Za-z]/.test(previous);
-    const prevIsDigit = /\d/.test(previous);
-    const currentIsUpper = /[A-Z]/.test(current);
-    const currentIsLetter = /[A-Za-z]/.test(current);
-    const currentIsDigit = /\d/.test(current);
-
-    if (
-      (prevIsLower && currentIsUpper)
-      || (prevIsLetter && currentIsDigit)
-      || (prevIsDigit && currentIsLetter)
-    ) {
+    if (shouldInsertSearchBoundary(previous, current)) {
       rawChars.push(' ');
       rawMap.push(i);
     }
 
-    const folded = current
-      .normalize('NFD')
-      .replace(DIACRITIC_RE, '')
-      .toLowerCase()
-      .replace(/[-_./:]+/g, ' ');
+    const folded = foldSearchCharacter(current);
 
     for (let j = 0; j < folded.length; j += 1) {
       rawChars.push(folded[j]);
