@@ -68,6 +68,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-keyshortcuts="Escape Shift+Slash Control+Slash Meta+Slash Control+F Meta+F Control+Shift+K Meta+Shift+K"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="dialog-header">

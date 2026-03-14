@@ -143,6 +143,7 @@
 - Improved Search dialog accessibility wiring by linking keyboard-hint + summary text to combobox/listbox via aria-describedby
 - Improved Help dialog accessibility wiring by linking filter summary + hint text to the filter input via aria-describedby
 - Added explicit Close buttons to Search/Help dialog headers with accessible labels/titles + aria-keyshortcuts metadata for non-keyboard dismissal discoverability
+- Added dialog-level aria-keyshortcuts maps on Search/Help containers to expose in-dialog keyboard affordances to assistive tech
 - Added Help dialog Cmd/Ctrl+Shift+K shortcut to clear filter while keeping dialog open
 - Improved toolbar import/copy notices with status/alert live-region semantics and explicit dismiss button labels for screen-reader clarity
 - Centralized Search/Help dialog close handlers in App to keep keyboard and overlay close paths consistent

@@ -183,6 +183,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         role="dialog"
         aria-modal="true"
         aria-labelledby={dialogTitleId}
+        aria-keyshortcuts="Escape Control+K Meta+K Control+F Meta+F Control+Shift+K Meta+Shift+K Enter Tab Shift+Tab PageUp PageDown Home End"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="dialog-header">
