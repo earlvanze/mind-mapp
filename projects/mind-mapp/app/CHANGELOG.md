@@ -146,6 +146,7 @@
 - Extended Help dialog aria-describedby wiring to the dialog container and marked no-match copy as role=status
 - Added explicit Close buttons to Search/Help dialog headers with accessible labels/titles + aria-keyshortcuts metadata for non-keyboard dismissal discoverability
 - Added dialog-level aria-keyshortcuts maps on Search/Help containers to expose in-dialog keyboard affordances to assistive tech
+- Centralized Search/Help aria-keyshortcuts strings in shared dialogKeyshortcuts constants with regression tests
 - Added Help dialog Cmd/Ctrl+Shift+K shortcut to clear filter while keeping dialog open
 - Added shortcut-registry regression check ensuring Search/Help clear shortcuts remain listed
 - Improved toolbar import/copy notices with status/alert live-region semantics and explicit dismiss button labels for screen-reader clarity

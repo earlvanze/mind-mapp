@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { centerPointInView, clampSearchSelection, computeHighlightRanges, cycleSearchSelection, edgeSearchSelection, formatFocusPath, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, tokenizeSearchQuery } from '../utils';
+import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, centerPointInView, clampSearchSelection, computeHighlightRanges, cycleSearchSelection, edgeSearchSelection, formatFocusPath, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -184,7 +184,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         aria-modal="true"
         aria-labelledby={dialogTitleId}
         aria-describedby={`${summaryId} ${hintId}`}
-        aria-keyshortcuts="Escape Control+K Meta+K Control+F Meta+F Control+Shift+K Meta+Shift+K Enter Tab Shift+Tab PageUp PageDown Home End"
+        aria-keyshortcuts={SEARCH_DIALOG_ARIA_KEYSHORTCUTS}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="dialog-header">
@@ -194,7 +194,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
             className="dialog-close-btn"
             title="Close search (Esc or Cmd/Ctrl+K)"
             aria-label="Close search dialog"
-            aria-keyshortcuts="Escape Control+K Meta+K"
+            aria-keyshortcuts={SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS}
             onClick={onClose}
           >
             ×

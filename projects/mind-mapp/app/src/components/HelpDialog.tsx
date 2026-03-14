@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { filterShortcuts, FOCUS_NAV_HISTORY_SHORTCUT_KEYS, pickShortcutsByKeys, SHORTCUTS } from '../utils';
+import { HELP_DIALOG_ARIA_KEYSHORTCUTS, HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, filterShortcuts, FOCUS_NAV_HISTORY_SHORTCUT_KEYS, pickShortcutsByKeys, SHORTCUTS } from '../utils';
 
 export default function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState('');
@@ -69,7 +69,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={`${summaryId} ${hintId}`}
-        aria-keyshortcuts="Escape Shift+Slash Control+Slash Meta+Slash Control+F Meta+F Control+Shift+K Meta+Shift+K"
+        aria-keyshortcuts={HELP_DIALOG_ARIA_KEYSHORTCUTS}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="dialog-header">
@@ -79,7 +79,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
             className="dialog-close-btn"
             title="Close shortcuts (Esc, ? or Cmd/Ctrl+/)"
             aria-label="Close shortcuts dialog"
-            aria-keyshortcuts="Escape Shift+Slash Control+Slash Meta+Slash"
+            aria-keyshortcuts={HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS}
             onClick={onClose}
           >
             ×

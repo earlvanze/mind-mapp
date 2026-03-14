@@ -5,7 +5,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, APP_VERSION } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, APP_VERSION, HELP_TOGGLE_ARIA_KEYSHORTCUTS, SEARCH_TOGGLE_ARIA_KEYSHORTCUTS } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -687,7 +687,7 @@ export default function App() {
             aria-expanded={searchOpen}
             aria-controls="mindmapp-search-dialog"
             aria-haspopup="dialog"
-            aria-keyshortcuts="Control+K Meta+K"
+            aria-keyshortcuts={SEARCH_TOGGLE_ARIA_KEYSHORTCUTS}
             onClick={toggleSearchDialog}
           >
             {searchOpen ? 'Search On' : 'Search Off'}
@@ -698,7 +698,7 @@ export default function App() {
             aria-expanded={helpOpen}
             aria-controls="mindmapp-help-dialog"
             aria-haspopup="dialog"
-            aria-keyshortcuts="Shift+Slash Control+Slash Meta+Slash"
+            aria-keyshortcuts={HELP_TOGGLE_ARIA_KEYSHORTCUTS}
             onClick={toggleHelpDialog}
           >
             {helpOpen ? 'Help On' : 'Help Off'}
