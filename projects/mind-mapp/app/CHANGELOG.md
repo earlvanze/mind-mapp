@@ -137,7 +137,7 @@
 - Added explicit toolbar horizontal orientation and named primary action group id for stronger structural semantics
 - Added Search dialog Cmd/Ctrl+Shift+K shortcut to clear query while keeping dialog open
 - Added aria-keyshortcuts metadata to toolbar root/back/forward/history-start/history-end/reset-history buttons
-- Added aria-keyshortcuts metadata to toolbar undo/redo, fit/center, and focus traversal buttons (parent/child/sibling/leaf jumps)
+- Added aria-keyshortcuts metadata to toolbar undo/redo, fit/center, and focus traversal buttons (parent/child/sibling/leaf jumps), including redo Cmd/Ctrl+Y alias and Fit (F)
 - Added aria-keyshortcuts metadata to toolbar export/copy/reset-view buttons (JSON/Markdown/PNG, copy text/tree/path, reset pan+zoom)
 - Added aria-keyshortcuts metadata to Advanced toolbar action buttons (selection tools, transforms, stack/mirror, duplicate)
 - Improved Search dialog accessibility wiring by linking keyboard-hint + summary text to combobox/listbox via aria-describedby

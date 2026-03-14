@@ -582,8 +582,8 @@ export default function App() {
         ) : null}
         <div id="mindmapp-primary-actions" className="toolbar-actions" role="group" aria-label="Primary actions">
           <button title="Undo (Cmd/Ctrl+Z)" aria-keyshortcuts="Control+Z Meta+Z" onClick={undo} disabled={!canUndo}>Undo</button>
-          <button title="Redo (Cmd/Ctrl+Shift+Z)" aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z" onClick={redo} disabled={!canRedo}>Redo</button>
-          <button title="Fit to view" onClick={() => fitToView()}>Fit</button>
+          <button title="Redo (Cmd/Ctrl+Shift+Z / Cmd/Ctrl+Y)" aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z Control+Y Meta+Y" onClick={redo} disabled={!canRedo}>Redo</button>
+          <button title="Fit to view (F)" aria-keyshortcuts="F" onClick={() => fitToView()}>Fit</button>
           <button title="Fit selected nodes (Alt+F)" aria-keyshortcuts="Alt+F" onClick={fitSelection}>Fit Sel</button>
           <button title="Fit focused subtree (Alt+Shift+F)" aria-keyshortcuts="Alt+Shift+F" onClick={fitFocusedSubtree}>Fit Sub</button>
           <button title="Center focused node (C)" aria-keyshortcuts="C" onClick={() => centerOnNode(focusId)}>Center</button>
