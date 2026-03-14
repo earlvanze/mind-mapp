@@ -8,8 +8,8 @@
 - CI: GitHub Actions workflow runs `npm test` + `npm run build` on app changes
 - Vite server/preview `allowedHosts` is configurable via `MINDMAPP_ALLOWED_HOSTS` (comma/space-separated; hostnames or URLs)
 - Search/Help dialogs are lazy-loaded for faster initial paint and use mutually exclusive open-state toggles
-- Advanced toolbar actions are collapsible to reduce UI clutter (Shift+A toggle, visibility persisted)
-- Grid/mini-map visibility prefs persist across reloads
+- Advanced toolbar actions are collapsible to reduce UI clutter (Shift+A toggle, visibility persisted; toggle wired with aria-expanded/aria-controls to grouped advanced actions)
+- Grid/mini-map visibility prefs persist across reloads (mini-map toggle wired with aria-expanded/aria-controls)
 - Docs inventory + migration notes maintained
 - FAQ + glossary + exports/imports + architecture + gestures + style docs available
 

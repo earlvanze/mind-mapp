@@ -639,8 +639,22 @@ export default function App() {
           <button title={canFocusHistoryEnd ? `Jump to newest focus in history (Alt+Shift+End): ${historyEndLabel}` : 'Already at newest focus history entry'} onClick={focusHistoryEnd} disabled={!canFocusHistoryEnd}>Hist End</button>
           <button title={focusHistoryCount > 1 ? 'Reset focus history to current node (Alt+Shift+Q)' : 'Focus history already reset'} onClick={resetFocusHistoryNow} disabled={focusHistoryCount <= 1}>Reset Hist</button>
           <button title="Toggle grid overlay (Shift+G)" aria-pressed={showGrid} onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
-          <button title="Toggle mini-map (Shift+M)" aria-pressed={showMiniMap} onClick={() => setShowMiniMap(v => !v)}>{showMiniMap ? 'Mini-map On' : 'Mini-map Off'}</button>
-          <button title="Show/Hide advanced actions (Shift+A)" aria-pressed={showAdvancedActions} onClick={() => setShowAdvancedActions(v => !v)}>
+          <button
+            title="Toggle mini-map (Shift+M)"
+            aria-pressed={showMiniMap}
+            aria-expanded={showMiniMap}
+            aria-controls="mindmapp-mini-map"
+            onClick={() => setShowMiniMap(v => !v)}
+          >
+            {showMiniMap ? 'Mini-map On' : 'Mini-map Off'}
+          </button>
+          <button
+            title="Show/Hide advanced actions (Shift+A)"
+            aria-pressed={showAdvancedActions}
+            aria-expanded={showAdvancedActions}
+            aria-controls="mindmapp-advanced-actions"
+            onClick={() => setShowAdvancedActions(v => !v)}
+          >
             {showAdvancedActions ? 'Advanced ▴' : 'Advanced ▾'}
           </button>
           <button
@@ -700,7 +714,7 @@ export default function App() {
           <button title="Reset pan/zoom" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
 
           {showAdvancedActions ? (
-            <>
+            <div id="mindmapp-advanced-actions" role="group" aria-label="Advanced toolbar actions">
               <button title="Select all nodes (Cmd/Ctrl+A)" onClick={selectAll}>Select All</button>
               <button title="Invert selection (Alt+I)" onClick={invertSelection}>Invert</button>
               <button title="Select siblings of focused node (Alt+S)" onClick={selectSiblings}>Siblings</button>
@@ -725,7 +739,7 @@ export default function App() {
               <button title="Select focused subtree (Alt+B)" onClick={selectSubtree}>Subtree</button>
               <button title="Select parent of focused node (Alt+P)" onClick={selectParent}>Parent</button>
               <button title="Duplicate selected nodes (Cmd/Ctrl+D)" onClick={duplicateSelected}>Duplicate</button>
-            </>
+            </div>
           ) : null}
         </div>
       </div>

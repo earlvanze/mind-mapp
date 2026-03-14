@@ -131,6 +131,7 @@
 - Allowed Cmd/Ctrl+/ help toggle while typing in dialog inputs (keeping plain ? typing-safe)
 - Added toolbar Help On/Off label and aria-pressed states for toolbar toggle buttons (Search/Help/Grid/Mini-map/Advanced)
 - Added aria-expanded/aria-controls wiring between toolbar Search/Help toggles and their dialogs
+- Added aria-expanded/aria-controls wiring for toolbar Mini-map and Advanced toggles
 - Added Search result aria-posinset/aria-setsize metadata for clearer listbox announcements
 - Kept Cmd/Ctrl+K search toggle available while typing in non-editing inputs for faster command access
 - Improved Help shortcut filtering with punctuation-agnostic multi-term matching + symbol/alias terms (e.g., ctrl slash, command slash, shift plus pageup)

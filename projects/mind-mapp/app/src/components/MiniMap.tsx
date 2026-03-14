@@ -136,7 +136,7 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
   };
 
   return (
-    <div className="minimap" role="region" aria-label="Mini map navigator">
+    <div id="mindmapp-mini-map" className="minimap" role="region" aria-label="Mini map navigator">
       <div className="minimap-title">Mini‑map (click/drag viewport)</div>
       <svg
         ref={miniRef}
