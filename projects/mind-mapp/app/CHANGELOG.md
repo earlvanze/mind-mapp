@@ -134,6 +134,7 @@
 - Added aria-expanded/aria-controls wiring for toolbar Mini-map and Advanced toggles
 - Added Search result aria-posinset/aria-setsize metadata for clearer listbox announcements
 - Added toolbar role/labeled group semantics to improve assistive-tech navigation of action controls
+- Added explicit toolbar horizontal orientation and named primary action group id for stronger structural semantics
 - Kept Cmd/Ctrl+K search toggle available while typing in non-editing inputs for faster command access
 - Improved Help shortcut filtering with punctuation-agnostic multi-term matching + symbol/alias terms (e.g., ctrl slash, command slash, shift plus pageup)
 - Unified search normalization logic in shared helper to keep search matching and highlighting behavior in lockstep
