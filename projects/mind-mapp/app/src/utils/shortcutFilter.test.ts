@@ -32,6 +32,8 @@ describe('filterShortcuts', () => {
   it('matches symbol/alias words in query text', () => {
     expect(filterShortcuts(SAMPLE, 'ctrl slash').map(shortcut => shortcut.key)).toEqual(['Cmd/Ctrl+/']);
     expect(filterShortcuts(SAMPLE, 'command slash').map(shortcut => shortcut.key)).toEqual(['Cmd/Ctrl+/']);
+    expect(filterShortcuts(SAMPLE, 'forward slash').map(shortcut => shortcut.key)).toEqual(['Cmd/Ctrl+/']);
+    expect(filterShortcuts(SAMPLE, 'question mark').map(shortcut => shortcut.key)).toEqual(['Cmd/Ctrl+/']);
   });
 
   it('matches plus-separated key names as words', () => {
