@@ -741,30 +741,30 @@ export default function App() {
 
           {showAdvancedActions ? (
             <div id="mindmapp-advanced-actions" role="group" aria-label="Advanced toolbar actions">
-              <button title="Select all nodes (Cmd/Ctrl+A)" onClick={selectAll}>Select All</button>
-              <button title="Invert selection (Alt+I)" onClick={invertSelection}>Invert</button>
-              <button title="Select siblings of focused node (Alt+S)" onClick={selectSiblings}>Siblings</button>
-              <button title="Select children of focused node (Alt+C)" onClick={selectChildren}>Children</button>
-              <button title="Select leaves under focused subtree (Alt+L)" onClick={selectLeaves}>Leaves</button>
-              <button title="Select focused node ancestors (Alt+U)" onClick={selectAncestors}>Ancestors</button>
-              <button title="Keep top-level nodes from selection (Alt+T)" onClick={selectTopLevel}>Top-level</button>
-              <button title="Select nodes at same depth (Alt+G)" onClick={selectGeneration}>Generation</button>
-              <button title="Clear selection extras (Alt+X)" onClick={clearSelectionSet}>Clear Sel</button>
-              <button title="Expand selection to neighbors (Alt+N)" onClick={expandSelectionToNeighbors}>Neighbors</button>
-              <button title="Align selected X to focus (Alt+Shift+X)" onClick={() => alignSelection('x')}>Align X</button>
-              <button title="Align selected Y to focus (Alt+Shift+Y)" onClick={() => alignSelection('y')}>Align Y</button>
-              <button title="Distribute selected horizontally (Alt+Shift+H)" onClick={() => distributeSelection('x')}>Dist X</button>
-              <button title="Distribute selected vertically (Alt+Shift+V)" onClick={() => distributeSelection('y')}>Dist Y</button>
-              <button title="Layout selected as row from focus (Alt+Shift+R)" onClick={() => layoutSelection('row')}>Layout Row</button>
-              <button title="Layout selected as column from focus (Alt+Shift+D)" onClick={() => layoutSelection('column')}>Layout Col</button>
-              <button title="Snap selected to 20px grid (Alt+Shift+G)" onClick={() => snapSelectionToGrid(20)}>Snap 20</button>
-              <button title="Mirror selected across focused X axis (Alt+Shift+M)" onClick={() => mirrorSelection('x')}>Mirror X</button>
-              <button title="Mirror selected across focused Y axis (Alt+Shift+W)" onClick={() => mirrorSelection('y')}>Mirror Y</button>
-              <button title="Stack selected on X from focus (Alt+[)" onClick={() => stackSelection('x')}>Stack X</button>
-              <button title="Stack selected on Y from focus (Alt+])" onClick={() => stackSelection('y')}>Stack Y</button>
-              <button title="Select focused subtree (Alt+B)" onClick={selectSubtree}>Subtree</button>
-              <button title="Select parent of focused node (Alt+P)" onClick={selectParent}>Parent</button>
-              <button title="Duplicate selected nodes (Cmd/Ctrl+D)" onClick={duplicateSelected}>Duplicate</button>
+              <button title="Select all nodes (Cmd/Ctrl+A)" aria-keyshortcuts="Control+A Meta+A" onClick={selectAll}>Select All</button>
+              <button title="Invert selection (Alt+I)" aria-keyshortcuts="Alt+I" onClick={invertSelection}>Invert</button>
+              <button title="Select siblings of focused node (Alt+S)" aria-keyshortcuts="Alt+S" onClick={selectSiblings}>Siblings</button>
+              <button title="Select children of focused node (Alt+C)" aria-keyshortcuts="Alt+C" onClick={selectChildren}>Children</button>
+              <button title="Select leaves under focused subtree (Alt+L)" aria-keyshortcuts="Alt+L" onClick={selectLeaves}>Leaves</button>
+              <button title="Select focused node ancestors (Alt+U)" aria-keyshortcuts="Alt+U" onClick={selectAncestors}>Ancestors</button>
+              <button title="Keep top-level nodes from selection (Alt+T)" aria-keyshortcuts="Alt+T" onClick={selectTopLevel}>Top-level</button>
+              <button title="Select nodes at same depth (Alt+G)" aria-keyshortcuts="Alt+G" onClick={selectGeneration}>Generation</button>
+              <button title="Clear selection extras (Alt+X)" aria-keyshortcuts="Alt+X" onClick={clearSelectionSet}>Clear Sel</button>
+              <button title="Expand selection to neighbors (Alt+N)" aria-keyshortcuts="Alt+N" onClick={expandSelectionToNeighbors}>Neighbors</button>
+              <button title="Align selected X to focus (Alt+Shift+X)" aria-keyshortcuts="Alt+Shift+X" onClick={() => alignSelection('x')}>Align X</button>
+              <button title="Align selected Y to focus (Alt+Shift+Y)" aria-keyshortcuts="Alt+Shift+Y" onClick={() => alignSelection('y')}>Align Y</button>
+              <button title="Distribute selected horizontally (Alt+Shift+H)" aria-keyshortcuts="Alt+Shift+H" onClick={() => distributeSelection('x')}>Dist X</button>
+              <button title="Distribute selected vertically (Alt+Shift+V)" aria-keyshortcuts="Alt+Shift+V" onClick={() => distributeSelection('y')}>Dist Y</button>
+              <button title="Layout selected as row from focus (Alt+Shift+R)" aria-keyshortcuts="Alt+Shift+R" onClick={() => layoutSelection('row')}>Layout Row</button>
+              <button title="Layout selected as column from focus (Alt+Shift+D)" aria-keyshortcuts="Alt+Shift+D" onClick={() => layoutSelection('column')}>Layout Col</button>
+              <button title="Snap selected to 20px grid (Alt+Shift+G)" aria-keyshortcuts="Alt+Shift+G" onClick={() => snapSelectionToGrid(20)}>Snap 20</button>
+              <button title="Mirror selected across focused X axis (Alt+Shift+M)" aria-keyshortcuts="Alt+Shift+M" onClick={() => mirrorSelection('x')}>Mirror X</button>
+              <button title="Mirror selected across focused Y axis (Alt+Shift+W)" aria-keyshortcuts="Alt+Shift+W" onClick={() => mirrorSelection('y')}>Mirror Y</button>
+              <button title="Stack selected on X from focus (Alt+[)" aria-keyshortcuts="Alt+BracketLeft" onClick={() => stackSelection('x')}>Stack X</button>
+              <button title="Stack selected on Y from focus (Alt+])" aria-keyshortcuts="Alt+BracketRight" onClick={() => stackSelection('y')}>Stack Y</button>
+              <button title="Select focused subtree (Alt+B)" aria-keyshortcuts="Alt+B" onClick={selectSubtree}>Subtree</button>
+              <button title="Select parent of focused node (Alt+P)" aria-keyshortcuts="Alt+P" onClick={selectParent}>Parent</button>
+              <button title="Duplicate selected nodes (Cmd/Ctrl+D)" aria-keyshortcuts="Control+D Meta+D" onClick={duplicateSelected}>Duplicate</button>
             </div>
           ) : null}
         </div>
