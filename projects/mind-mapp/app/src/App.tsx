@@ -686,6 +686,7 @@ export default function App() {
             aria-pressed={searchOpen}
             aria-expanded={searchOpen}
             aria-controls="mindmapp-search-dialog"
+            aria-haspopup="dialog"
             aria-keyshortcuts="Control+K Meta+K"
             onClick={toggleSearchDialog}
           >
@@ -696,6 +697,7 @@ export default function App() {
             aria-pressed={helpOpen}
             aria-expanded={helpOpen}
             aria-controls="mindmapp-help-dialog"
+            aria-haspopup="dialog"
             aria-keyshortcuts="Shift+Slash Control+Slash Meta+Slash"
             onClick={toggleHelpDialog}
           >
