@@ -60,6 +60,43 @@ function buildSearchPathCache(nodes: Record<string, Node>): Record<string, strin
   return cache;
 }
 
+type SearchIndexEntry = {
+  node: Node;
+  label: string;
+  id: string;
+  path: string;
+  searchable: string;
+};
+
+const searchIndexCache = new WeakMap<Record<string, Node>, SearchIndexEntry[]>();
+
+function buildSearchIndex(nodes: Record<string, Node>): SearchIndexEntry[] {
+  const pathCache = buildSearchPathCache(nodes);
+
+  return Object.values(nodes).map((node) => {
+    const label = normalizeSearchText(node.text);
+    const id = normalizeSearchText(node.id);
+    const path = pathCache[node.id] ?? label;
+
+    return {
+      node,
+      label,
+      id,
+      path,
+      searchable: `${label} ${id} ${path}`,
+    };
+  });
+}
+
+function getSearchIndex(nodes: Record<string, Node>): SearchIndexEntry[] {
+  const cached = searchIndexCache.get(nodes);
+  if (cached) return cached;
+
+  const index = buildSearchIndex(nodes);
+  searchIndexCache.set(nodes, index);
+  return index;
+}
+
 function rankSearchMatches(
   nodes: Record<string, Node>,
   query: string,
@@ -70,15 +107,10 @@ function rankSearchMatches(
   const positiveTerms = tokens.filter(token => !token.negated).map(token => token.value);
   const negativeTerms = tokens.filter(token => token.negated).map(token => token.value);
   const phrase = positiveTerms.join(' ');
-  const pathCache = buildSearchPathCache(nodes);
+  const searchIndex = getSearchIndex(nodes);
 
-  const scored = Object.values(nodes)
-    .map((node) => {
-      const label = normalizeSearchText(node.text);
-      const id = normalizeSearchText(node.id);
-      const path = pathCache[node.id] ?? label;
-      const searchable = `${label} ${id} ${path}`;
-
+  const scored = searchIndex
+    .map(({ node, label, id, path, searchable }) => {
       if (positiveTerms.length && !positiveTerms.every(term => searchable.includes(term))) {
         return null;
       }
