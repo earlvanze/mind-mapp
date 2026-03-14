@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, centerPointInView, clampSearchSelection, computeHighlightRanges, cycleSearchSelection, edgeSearchSelection, formatFocusPath, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, tokenizeSearchQuery } from '../utils';
+import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, centerPointInView, clampSearchSelection, computeHighlightRanges, cycleSearchSelection, edgeSearchSelection, formatFocusPath, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -111,20 +111,19 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         e.preventDefault();
         onClose();
       }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'k') {
+      if (isDialogClearInputEvent(e)) {
         e.preventDefault();
         setQuery('');
         setSelected(0);
         inputRef.current?.focus();
         inputRef.current?.select();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
+      if (isDialogFocusInputEvent(e)) {
         e.preventDefault();
         inputRef.current?.focus();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
-        const target = e.target as HTMLElement | null;
-        if (target?.tagName === 'INPUT') return;
+      if (isDialogSelectInputEvent(e)) {
+        if (shouldSkipDialogSelectShortcut(e)) return;
         e.preventDefault();
         inputRef.current?.focus();
         inputRef.current?.select();

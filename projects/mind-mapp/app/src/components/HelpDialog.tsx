@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { HELP_DIALOG_ARIA_KEYSHORTCUTS, HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, HELP_INPUT_ARIA_KEYSHORTCUTS, filterShortcuts, FOCUS_NAV_HISTORY_SHORTCUT_KEYS, pickShortcutsByKeys, SHORTCUTS } from '../utils';
+import { HELP_DIALOG_ARIA_KEYSHORTCUTS, HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, HELP_INPUT_ARIA_KEYSHORTCUTS, filterShortcuts, FOCUS_NAV_HISTORY_SHORTCUT_KEYS, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, pickShortcutsByKeys, SHORTCUTS, shouldSkipDialogSelectShortcut } from '../utils';
 
 export default function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState('');
@@ -27,19 +27,18 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
         }
         onClose();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
+      if (isDialogFocusInputEvent(e)) {
         e.preventDefault();
         inputRef.current?.focus();
       }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'k') {
+      if (isDialogClearInputEvent(e)) {
         e.preventDefault();
         setQuery('');
         inputRef.current?.focus();
         inputRef.current?.select();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a') {
-        const target = e.target as HTMLElement | null;
-        if (target?.tagName === 'INPUT') return;
+      if (isDialogSelectInputEvent(e)) {
+        if (shouldSkipDialogSelectShortcut(e)) return;
         e.preventDefault();
         inputRef.current?.focus();
         inputRef.current?.select();

@@ -1,5 +1,6 @@
 export * from './allowedHosts';
 export * from './confirm';
+export * from './dialogInputKeys';
 export * from './dialogKeyshortcuts';
 export * from './exportJson';
 export * from './exportMarkdown';
