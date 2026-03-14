@@ -327,12 +327,20 @@ export default function App() {
     });
   };
 
+  const closeSearchDialog = () => {
+    setSearchOpen(false);
+  };
+
   const toggleSearchDialog = () => {
     setSearchOpen((current) => {
       const next = !current;
       if (next) setHelpOpen(false);
       return next;
     });
+  };
+
+  const closeHelpDialog = () => {
+    setHelpOpen(false);
   };
 
   const toggleHelpDialog = () => {
@@ -762,8 +770,8 @@ export default function App() {
         ) : null}
       </div>
       <Suspense fallback={null}>
-        <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
-        <HelpDialog open={helpOpen} onClose={() => setHelpOpen(false)} />
+        <SearchDialog open={searchOpen} onClose={closeSearchDialog} />
+        <HelpDialog open={helpOpen} onClose={closeHelpDialog} />
       </Suspense>
     </div>
   );
