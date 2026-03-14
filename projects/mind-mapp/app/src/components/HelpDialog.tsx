@@ -7,6 +7,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
   const titleId = useId();
   const summaryId = useId();
   const quickSectionId = useId();
+  const hintId = useId();
 
   useEffect(() => {
     if (!open) return;
@@ -76,14 +77,14 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
           ref={inputRef}
           className="help-filter"
           aria-label="Filter shortcuts"
-          aria-describedby={summaryId}
+          aria-describedby={`${summaryId} ${hintId}`}
           placeholder="Filter shortcuts…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           autoFocus
         />
         <div id={summaryId} className="help-meta" aria-live="polite">{filtered.length} / {SHORTCUTS.length} shown</div>
-        <div className="help-hint">Esc: clear filter (or close when empty) • Cmd/Ctrl+F: focus filter</div>
+        <div id={hintId} className="help-hint">Esc: clear filter (or close when empty) • Cmd/Ctrl+F: focus filter</div>
         {filtered.length ? (
           <ul>
             {filtered.map(s => (
