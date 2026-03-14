@@ -32,7 +32,7 @@
 - PNG export (Cmd/Ctrl+Shift+S)
 - Pan/zoom + fit-to-view + fit-selection + fit-focused-subtree + keyboard +/- zoom + 0 reset shortcut + toolbar zoom indicator + leaf-cycle index indicator + focus history index + focus/selection/subtree/root centering + parent/child/sibling-wrap/leaf-cycle(root-aware)/root/back+forward/oldest+newest+reset focus history shortcuts + context-aware disabled focus controls + auto-pruned history after node removals + clear/sample/import map actions reset history to root + focus-history persistence across reloads + grid/mini-map toggles + reset view (mouse + touch, state-synced, helper-tested incl. parent/child) + toolbar navigation/history actions expose aria-keyshortcuts metadata for assistive shortcut discovery
 - Help dialog + compact Focus Navigation & History section + live shortcut filtering (punctuation-agnostic + symbol/alias term matching, e.g. "forward slash", "question mark") + Esc clear-then-close / Cmd/Ctrl+F filter focus (? / Cmd/Ctrl+/ + toolbar Help On/Off toggle, including while typing; section keys sourced from shared shortcuts registry)
-- Auto-dismissing toolbar notices for copy/import feedback (with manual dismiss)
+- Auto-dismissing toolbar notices for copy/import feedback (with manual dismiss + status/alert live-region semantics)
 - Sample map loader
 - Curved edge rendering with arrowheads
 - Mini-map navigator (focus + center + background recenter + viewport drag pan + focusable viewport handle + focused mini-map Arrow/Shift+Arrow panning + PageUp/PageDown vertical large-step panning + Shift+PageUp/PageDown horizontal large-step panning + Home/End edge-jumps) with live viewport indicator (event-synced)

@@ -25,7 +25,7 @@ A lightweight, keyboard‑first mind map app focused on speed and clarity.
 - Copy focused node path to clipboard (Alt+Shift+P)
 - Clickable focused-path breadcrumbs in toolbar for ancestor jump navigation (current node segment is marked/disabled)
 - PNG export (Cmd/Ctrl+Shift+S)
-- Transient toolbar notices for copy/import outcomes (auto-dismiss + manual dismiss)
+- Transient toolbar notices for copy/import outcomes (auto-dismiss + manual dismiss) with live status/error announcements for assistive tech
 - Curved edge rendering with arrowheads
 - Mini-map navigator (Shift+M toggle; click node to focus + center, click background to recenter, drag viewport box to pan, focusable viewport handle, Arrow/Shift+Arrow pan + PageUp/PageDown vertical large pan + Shift+PageUp/PageDown horizontal large pan + Home/End edge-jump when mini-map is focused) with live viewport indicator
 - Sample map loader

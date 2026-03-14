@@ -564,10 +564,16 @@ export default function App() {
         ) : null}
         <span style={{ color: '#666' }}>Press ? for shortcuts</span>
         {importNotice ? (
-          <span className={`toolbar-notice ${importNotice.kind === 'error' ? 'is-error' : 'is-success'}`}>
+          <span
+            className={`toolbar-notice ${importNotice.kind === 'error' ? 'is-error' : 'is-success'}`}
+            role={importNotice.kind === 'error' ? 'alert' : 'status'}
+            aria-live={importNotice.kind === 'error' ? 'assertive' : 'polite'}
+            aria-atomic="true"
+          >
             {importNotice.text}
             <button
               title="Dismiss notice"
+              aria-label={`Dismiss ${importNotice.kind === 'error' ? 'error' : 'success'} notice`}
               onClick={() => setImportNotice(null)}
             >
               ×
