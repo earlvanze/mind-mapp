@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { FOCUS_NAV_HISTORY_SHORTCUT_KEYS, pickShortcutsByKeys, SHORTCUTS } from '../utils';
+import { filterShortcuts, FOCUS_NAV_HISTORY_SHORTCUT_KEYS, pickShortcutsByKeys, SHORTCUTS } from '../utils';
 
 export default function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState('');
@@ -42,10 +42,9 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose, query]);
 
-  const normalized = query.trim().toLowerCase();
   const filtered = useMemo(
-    () => SHORTCUTS.filter(s => `${s.key} ${s.desc}`.toLowerCase().includes(normalized)),
-    [normalized],
+    () => filterShortcuts(SHORTCUTS, query),
+    [query],
   );
   const focusNavHistory = useMemo(
     () => pickShortcutsByKeys(SHORTCUTS, FOCUS_NAV_HISTORY_SHORTCUT_KEYS),
