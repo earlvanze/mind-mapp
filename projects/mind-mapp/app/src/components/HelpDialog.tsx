@@ -68,6 +68,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-describedby={`${summaryId} ${hintId}`}
         aria-keyshortcuts="Escape Shift+Slash Control+Slash Meta+Slash Control+F Meta+F Control+Shift+K Meta+Shift+K"
         onClick={(e) => e.stopPropagation()}
       >
@@ -111,7 +112,7 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
             ))}
           </ul>
         ) : (
-          <div className="help-empty">No shortcuts match your filter.</div>
+          <div className="help-empty" role="status">No shortcuts match your filter.</div>
         )}
       </div>
     </div>

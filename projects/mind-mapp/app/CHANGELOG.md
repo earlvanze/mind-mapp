@@ -141,10 +141,13 @@
 - Added aria-keyshortcuts metadata to toolbar export/copy/reset-view buttons (JSON/Markdown/PNG, copy text/tree/path, reset pan+zoom)
 - Added aria-keyshortcuts metadata to Advanced toolbar action buttons (selection tools, transforms, stack/mirror, duplicate)
 - Improved Search dialog accessibility wiring by linking keyboard-hint + summary text to combobox/listbox via aria-describedby
+- Extended Search dialog aria-describedby wiring to the dialog container for clearer initial announcements
 - Improved Help dialog accessibility wiring by linking filter summary + hint text to the filter input via aria-describedby
+- Extended Help dialog aria-describedby wiring to the dialog container and marked no-match copy as role=status
 - Added explicit Close buttons to Search/Help dialog headers with accessible labels/titles + aria-keyshortcuts metadata for non-keyboard dismissal discoverability
 - Added dialog-level aria-keyshortcuts maps on Search/Help containers to expose in-dialog keyboard affordances to assistive tech
 - Added Help dialog Cmd/Ctrl+Shift+K shortcut to clear filter while keeping dialog open
+- Added shortcut-registry regression check ensuring Search/Help clear shortcuts remain listed
 - Improved toolbar import/copy notices with status/alert live-region semantics and explicit dismiss button labels for screen-reader clarity
 - Centralized Search/Help dialog close handlers in App to keep keyboard and overlay close paths consistent
 - Kept Cmd/Ctrl+K search toggle available while typing in non-editing inputs for faster command access
