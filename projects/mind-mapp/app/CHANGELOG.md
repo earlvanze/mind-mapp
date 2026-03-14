@@ -148,7 +148,8 @@
 - Added dialog-level aria-keyshortcuts maps on Search/Help containers to expose in-dialog keyboard affordances to assistive tech
 - Centralized Search/Help aria-keyshortcuts strings in shared dialogKeyshortcuts constants with regression tests
 - Added Help dialog Cmd/Ctrl+Shift+K shortcut to clear filter while keeping dialog open
-- Added shortcut-registry regression check ensuring Search/Help clear shortcuts remain listed
+- Added shortcut-registry regression check ensuring Search/Help clear + focus shortcuts remain listed
+- Added Search: Cmd/Ctrl+F entry to shared shortcut registry for Help filter discoverability parity
 - Improved toolbar import/copy notices with status/alert live-region semantics and explicit dismiss button labels for screen-reader clarity
 - Centralized Search/Help dialog close handlers in App to keep keyboard and overlay close paths consistent
 - Kept Cmd/Ctrl+K search toggle available while typing in non-editing inputs for faster command access
