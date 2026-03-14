@@ -89,7 +89,7 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
         height={MINI_H}
         viewBox={`0 0 ${MINI_W} ${MINI_H}`}
         tabIndex={0}
-        aria-label="Mini-map canvas. Click to recenter. Use Arrow keys to pan viewport, Shift+Arrow for larger steps, PageUp/PageDown for viewport paging, Home/End to jump viewport to map edges."
+        aria-label="Mini-map canvas. Click to recenter. Use Arrow keys to pan viewport, Shift+Arrow for larger steps, PageUp/PageDown for vertical paging, Shift+PageUp/PageDown for horizontal paging, Home/End to jump viewport to map edges."
         onClick={(e) => {
           navigateFromClient(e.clientX, e.clientY);
         }}
@@ -119,13 +119,21 @@ export default function MiniMap({ nodes, focusId, selectedIds, onFocus, onNaviga
             e.preventDefault();
             e.stopPropagation();
             if (!viewRect) return;
-            navigateViewByKeyboard(0, -miniViewportPageStep(viewRect, 'y'));
+            if (e.shiftKey) {
+              navigateViewByKeyboard(-miniViewportPageStep(viewRect, 'x'), 0);
+            } else {
+              navigateViewByKeyboard(0, -miniViewportPageStep(viewRect, 'y'));
+            }
           }
           if (e.key === 'PageDown') {
             e.preventDefault();
             e.stopPropagation();
             if (!viewRect) return;
-            navigateViewByKeyboard(0, miniViewportPageStep(viewRect, 'y'));
+            if (e.shiftKey) {
+              navigateViewByKeyboard(miniViewportPageStep(viewRect, 'x'), 0);
+            } else {
+              navigateViewByKeyboard(0, miniViewportPageStep(viewRect, 'y'));
+            }
           }
           if (e.key === 'Home') {
             e.preventDefault();

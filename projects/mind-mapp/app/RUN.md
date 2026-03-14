@@ -70,7 +70,8 @@ npm test
 - Arrow keys: move focus
 - Mini-map focused + Arrow keys: pan mini-map viewport
 - Mini-map focused + Shift+Arrow: pan mini-map viewport faster
-- Mini-map focused + PageUp/PageDown: pan mini-map viewport by large steps
+- Mini-map focused + PageUp/PageDown: pan mini-map viewport vertically by large steps
+- Mini-map focused + Shift+PageUp/Shift+PageDown: pan mini-map viewport horizontally by large steps
 - Mini-map focused + Home/End: jump mini-map viewport to map edges
 - Alt+Arrow: nudge selected node(s) by 10px
 - Shift+Alt+Arrow: nudge selected node(s) by 40px
