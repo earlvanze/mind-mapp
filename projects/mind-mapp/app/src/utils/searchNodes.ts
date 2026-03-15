@@ -1,4 +1,5 @@
 import type { Node } from '../store/useMindMapStore';
+import { normalizeNonNegativeIntOrDefault } from './countNormalize';
 import { normalizeSearchText } from './searchNormalize';
 
 export type SearchToken = {
@@ -252,8 +253,7 @@ function rankSearchMatches(
 export const DEFAULT_SEARCH_RESULT_LIMIT = 20;
 
 function normalizeSearchLimit(limit: number): number {
-  if (!Number.isFinite(limit)) return DEFAULT_SEARCH_RESULT_LIMIT;
-  return Math.max(0, Math.trunc(limit));
+  return normalizeNonNegativeIntOrDefault(limit, DEFAULT_SEARCH_RESULT_LIMIT);
 }
 
 export function searchNodesWithTotal(

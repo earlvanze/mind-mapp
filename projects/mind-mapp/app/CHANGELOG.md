@@ -191,6 +191,7 @@
 - Added shared getHelpEmptyMessage helper and wired Help dialog empty-state rendering to shared pending/no-match copy
 - Centralized Help count normalization in shared helper reused by help empty-state and summary formatting
 - Extracted reusable normalizeNonNegativeInt utility and reused it across Search/Help status helpers with dedicated regression tests
+- Added normalizeNonNegativeIntOrDefault helper and reused it for Search result-limit normalization fallback semantics
 - Added WeakMap-backed resolver caching in selectionText so repeated createFocusPathResolver calls for the same nodes object reuse the same memoized resolver
 - Added Search: Cmd/Ctrl+F entry to shared shortcut registry for Help filter discoverability parity
 - Improved toolbar import/copy notices with status/alert live-region semantics and explicit dismiss button labels for screen-reader clarity

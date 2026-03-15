@@ -138,9 +138,11 @@ describe('searchNodes', () => {
   });
 
   it('defaults non-finite result limits to 20', () => {
-    const finiteLimited = searchNodes(nodes, 'a', Number.NaN);
     const defaultLimited = searchNodes(nodes, 'a', DEFAULT_SEARCH_RESULT_LIMIT);
-    expect(finiteLimited).toEqual(defaultLimited);
+
+    expect(searchNodes(nodes, 'a', Number.NaN)).toEqual(defaultLimited);
+    expect(searchNodes(nodes, 'a', Number.POSITIVE_INFINITY)).toEqual(defaultLimited);
+    expect(searchNodes(nodes, 'a', Number.NEGATIVE_INFINITY)).toEqual(defaultLimited);
   });
 
   it('reports total matches separately from capped results', () => {
