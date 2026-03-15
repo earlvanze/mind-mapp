@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, canExecuteSearchJump, canNavigateSearchSelection, centerPointInView, clampSearchSelection, computeHighlightRanges, createFocusPathResolver, formatSearchSummary, getSearchEmptyMessage, getSearchPendingTooltip, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchSelectionNavigationKey, isSearchToggleEvent, navigateSearchSelectionByKey, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
+import { DEFAULT_SEARCH_RESULT_LIMIT, SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, canExecuteSearchJump, canNavigateSearchSelection, centerPointInView, clampSearchSelection, computeHighlightRanges, createFocusPathResolver, formatSearchSummary, getSearchEmptyMessage, getSearchPendingTooltip, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchSelectionNavigationKey, isSearchToggleEvent, navigateSearchSelectionByKey, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -77,7 +77,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   const resolveFocusPath = useMemo(() => createFocusPathResolver(nodes), [nodes]);
 
   const { results, totalMatches } = useMemo(() => {
-    const { results, total } = searchNodesWithTotal(nodes, searchTokens, 20);
+    const { results, total } = searchNodesWithTotal(nodes, searchTokens, DEFAULT_SEARCH_RESULT_LIMIT);
     return {
       totalMatches: total,
       results: results.map(node => ({ node, path: resolveFocusPath(node.id) })),

@@ -158,6 +158,7 @@
 - Replaced full-match sort with bucketed rank assembly for search rank levels (0-4)
 - Reused tokenized query output between search ranking and highlight-term extraction in Search dialog to remove duplicate parsing work
 - Added normalized search result-cap handling (non-finite → default, negative → zero, decimals truncated) with regression coverage
+- Centralized default search result cap in shared DEFAULT_SEARCH_RESULT_LIMIT constant and reused it in Search dialog/tests
 - Added deferred query evaluation in Search dialog with inline "updating…" status to keep typing responsive on larger maps
 - Added shared search summary formatter + listbox aria-busy wiring while deferred results are catching up
 - Gated Enter-to-jump while Search deferred results are still updating to prevent stale-result jumps

@@ -147,15 +147,17 @@ function rankSearchMatches(
   return scored.sort((a, b) => a.rank - b.rank || a.node.text.localeCompare(b.node.text) || a.node.id.localeCompare(b.node.id));
 }
 
+export const DEFAULT_SEARCH_RESULT_LIMIT = 20;
+
 function normalizeSearchLimit(limit: number): number {
-  if (!Number.isFinite(limit)) return 20;
+  if (!Number.isFinite(limit)) return DEFAULT_SEARCH_RESULT_LIMIT;
   return Math.max(0, Math.trunc(limit));
 }
 
 export function searchNodesWithTotal(
   nodes: Record<string, Node>,
   query: SearchQueryInput,
-  limit = 20,
+  limit = DEFAULT_SEARCH_RESULT_LIMIT,
 ): { results: Node[]; total: number } {
   const normalizedLimit = normalizeSearchLimit(limit);
   const scored = rankSearchMatches(nodes, query);
@@ -168,7 +170,7 @@ export function searchNodesWithTotal(
 export function searchNodes(
   nodes: Record<string, Node>,
   query: SearchQueryInput,
-  limit = 20,
+  limit = DEFAULT_SEARCH_RESULT_LIMIT,
 ): Node[] {
   return searchNodesWithTotal(nodes, query, limit).results;
 }

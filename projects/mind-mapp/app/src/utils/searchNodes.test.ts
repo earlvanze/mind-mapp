@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Node } from '../store/useMindMapStore';
-import { searchNodes, searchNodesWithTotal, tokenizeSearchQuery } from './searchNodes';
+import { DEFAULT_SEARCH_RESULT_LIMIT, searchNodes, searchNodesWithTotal, tokenizeSearchQuery } from './searchNodes';
 
 const nodes: Record<string, Node> = {
   n_root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n_alpha', 'n_beta', 'n_alpine'] },
@@ -97,7 +97,7 @@ describe('searchNodes', () => {
 
   it('defaults non-finite result limits to 20', () => {
     const finiteLimited = searchNodes(nodes, 'a', Number.NaN);
-    const defaultLimited = searchNodes(nodes, 'a', 20);
+    const defaultLimited = searchNodes(nodes, 'a', DEFAULT_SEARCH_RESULT_LIMIT);
     expect(finiteLimited).toEqual(defaultLimited);
   });
 
