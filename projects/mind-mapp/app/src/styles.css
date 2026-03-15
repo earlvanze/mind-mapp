@@ -350,6 +350,10 @@ body, html, #root {
   overflow: auto;
 }
 
+.search-results.is-pending {
+  cursor: progress;
+}
+
 .search-item {
   padding: 6px 8px;
   border-radius: 6px;
@@ -380,6 +384,16 @@ body, html, #root {
 .search-item:hover,
 .search-item.active {
   background: #f1f5ff;
+}
+
+.search-item.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.search-item.is-disabled:hover,
+.search-item.is-disabled.active {
+  background: #f8fafc;
 }
 
 .search-empty {

@@ -85,6 +85,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   }, [nodes, resolveFocusPath, searchTokens]);
   const selectedNodeId = results[selected]?.node.id;
   const selectedOptionId = selectedNodeId ? `${listboxId}-${selectedNodeId}` : undefined;
+  const canJumpToResult = canExecuteSearchJump(isSearchPending);
   const summaryText = useMemo(
     () => formatSearchSummary(results.length, totalMatches, isSearchPending),
     [isSearchPending, results.length, totalMatches],
@@ -173,7 +174,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
       }
       if (e.key === 'Enter' && results.length) {
         e.preventDefault();
-        if (!canExecuteSearchJump(isSearchPending)) return;
+        if (!canJumpToResult) return;
         const item = results[selected]?.node;
         if (item) {
           const closeAfter = !shouldKeepSearchOpen(e);
@@ -183,7 +184,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isSearchPending, onClose, open, query, results, selected, setFocus]);
+  }, [canJumpToResult, onClose, open, query, results, selected, setFocus]);
 
   if (!open) return null;
 
@@ -229,7 +230,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         <div id={summaryId} className="search-summary" aria-live="polite">
           {summaryText}
         </div>
-        <div id={listboxId} className="search-results" role="listbox" aria-describedby={`${summaryId} ${hintId}`} aria-busy={isSearchPending}>
+        <div id={listboxId} className={`search-results ${isSearchPending ? 'is-pending' : ''}`} role="listbox" aria-describedby={`${summaryId} ${hintId}`} aria-busy={isSearchPending}>
           {results.map((r, i) => {
             const title = r.node.text || '(empty)';
             const meta = `${r.node.id} • ${r.path || '(no path)'}`;
@@ -239,15 +240,16 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
                 id={`${listboxId}-${r.node.id}`}
                 role="option"
                 aria-selected={i === selected}
+                aria-disabled={!canJumpToResult}
                 aria-posinset={i + 1}
                 aria-setsize={results.length}
                 ref={(element) => {
                   resultRefs.current[r.node.id] = element;
                 }}
-                className={`search-item ${i === selected ? 'active' : ''}`}
+                className={`search-item ${i === selected ? 'active' : ''} ${canJumpToResult ? '' : 'is-disabled'}`}
                 onMouseEnter={() => setSelected(i)}
                 onClick={(event) => {
-                  if (!canExecuteSearchJump(isSearchPending)) return;
+                  if (!canJumpToResult) return;
                   const closeAfter = !shouldKeepSearchOpen(event);
                   jumpToNode(r.node.id, closeAfter);
                 }}
