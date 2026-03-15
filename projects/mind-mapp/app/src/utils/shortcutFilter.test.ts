@@ -39,4 +39,17 @@ describe('filterShortcuts', () => {
   it('matches plus-separated key names as words', () => {
     expect(filterShortcuts(SAMPLE, 'shift plus pageup').map(shortcut => shortcut.key)).toEqual(['Shift+PageUp']);
   });
+
+  it('refreshes cached haystack when shortcut text changes', () => {
+    const dynamic: Shortcut[] = [
+      { key: 'Cmd/Ctrl+F', desc: 'focus search input' },
+    ];
+
+    expect(filterShortcuts(dynamic, 'focus').map(shortcut => shortcut.key)).toEqual(['Cmd/Ctrl+F']);
+
+    dynamic[0].desc = 'toggle help dialog';
+
+    expect(filterShortcuts(dynamic, 'focus')).toEqual([]);
+    expect(filterShortcuts(dynamic, 'toggle').map(shortcut => shortcut.key)).toEqual(['Cmd/Ctrl+F']);
+  });
 });

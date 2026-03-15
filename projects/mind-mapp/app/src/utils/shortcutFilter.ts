@@ -1,5 +1,12 @@
 import type { Shortcut } from './shortcuts';
 
+type ShortcutHaystackCacheEntry = {
+  source: string;
+  haystack: string;
+};
+
+const shortcutHaystackCache = new WeakMap<Shortcut, ShortcutHaystackCacheEntry>();
+
 function normalizeShortcutText(value: string): string {
   return value
     .toLowerCase()
@@ -22,6 +29,18 @@ function normalizeShortcutText(value: string): string {
     .trim();
 }
 
+function getShortcutHaystack(shortcut: Shortcut): string {
+  const source = `${shortcut.key} ${shortcut.desc}`;
+  const cached = shortcutHaystackCache.get(shortcut);
+  if (cached && cached.source === source) {
+    return cached.haystack;
+  }
+
+  const haystack = normalizeShortcutText(source);
+  shortcutHaystackCache.set(shortcut, { source, haystack });
+  return haystack;
+}
+
 export function filterShortcuts(shortcuts: Shortcut[], query: string): Shortcut[] {
   const normalizedQuery = normalizeShortcutText(query);
   if (!normalizedQuery) return shortcuts;
@@ -29,7 +48,7 @@ export function filterShortcuts(shortcuts: Shortcut[], query: string): Shortcut[
   const terms = normalizedQuery.split(' ');
 
   return shortcuts.filter((shortcut) => {
-    const haystack = normalizeShortcutText(`${shortcut.key} ${shortcut.desc}`);
+    const haystack = getShortcutHaystack(shortcut);
     return terms.every(term => haystack.includes(term));
   });
 }
