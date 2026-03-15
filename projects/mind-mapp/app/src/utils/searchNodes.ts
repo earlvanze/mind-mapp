@@ -130,6 +130,10 @@ function includesAnyTerm(haystack: string, terms: string[]): boolean {
   return false;
 }
 
+function compareNodesByTextThenId(a: Node, b: Node): number {
+  return a.text.localeCompare(b.text) || a.id.localeCompare(b.id);
+}
+
 function rankSearchMatches(
   nodes: Record<string, Node>,
   query: SearchQueryInput,
@@ -171,9 +175,7 @@ function rankSearchMatches(
   }
 
   for (let i = 0; i < rankBuckets.length; i += 1) {
-    rankBuckets[i].sort(
-      (a, b) => a.text.localeCompare(b.text) || a.id.localeCompare(b.id),
-    );
+    rankBuckets[i].sort(compareNodesByTextThenId);
   }
 
   return rankBuckets.flat();

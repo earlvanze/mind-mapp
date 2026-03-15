@@ -159,4 +159,14 @@ describe('searchNodes', () => {
     expect(searchNodes(camel, 'auto scale v2').map(node => node.id)).toEqual(['autoScaleV2']);
     expect(searchNodes(camel, 'budget tracker v2').map(node => node.id)).toEqual(['autoScaleV2']);
   });
+
+  it('keeps same-rank results deterministic by text then id', () => {
+    const sameText: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['node_b', 'node_a'] },
+      node_b: { id: 'node_b', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+      node_a: { id: 'node_a', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    expect(searchNodes(sameText, 'alpha').map(node => node.id)).toEqual(['node_a', 'node_b']);
+  });
 });
