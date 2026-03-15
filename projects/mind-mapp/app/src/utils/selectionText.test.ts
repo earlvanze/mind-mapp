@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Node } from '../store/useMindMapStore';
-import { formatFocusPath, formatSelectionText, formatSubtreeOutline, getFocusPathSegments } from './selectionText';
+import { createFocusPathResolver, formatFocusPath, formatSelectionText, formatSubtreeOutline, getFocusPathSegments } from './selectionText';
 
 const nodes: Record<string, Node> = {
   n_root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['a', 'b'] },
@@ -49,6 +49,26 @@ describe('getFocusPathSegments', () => {
       c: { ...nodes.c, parentId: 'c' },
     };
     expect(getFocusPathSegments(cyclic, 'c')).toEqual([{ id: 'c', label: '(untitled)' }]);
+  });
+});
+
+describe('createFocusPathResolver', () => {
+  it('resolves and reuses focus ancestry labels', () => {
+    const resolvePath = createFocusPathResolver(nodes);
+
+    expect(resolvePath('a1')).toBe('Root / Alpha / Alpha Child');
+    expect(resolvePath('a')).toBe('Root / Alpha');
+    expect(resolvePath('a1')).toBe('Root / Alpha / Alpha Child');
+  });
+
+  it('guards against parent cycles and still returns labels', () => {
+    const cyclic: Record<string, Node> = {
+      ...nodes,
+      c: { ...nodes.c, parentId: 'c' },
+    };
+    const resolvePath = createFocusPathResolver(cyclic);
+
+    expect(resolvePath('c')).toBe('(untitled)');
   });
 });
 

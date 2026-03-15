@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, centerPointInView, clampSearchSelection, computeHighlightRanges, cycleSearchSelection, edgeSearchSelection, formatFocusPath, formatSearchSummary, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
+import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, centerPointInView, clampSearchSelection, computeHighlightRanges, createFocusPathResolver, cycleSearchSelection, edgeSearchSelection, formatSearchSummary, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -74,13 +74,15 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     }
   }, [open]);
 
+  const resolveFocusPath = useMemo(() => createFocusPathResolver(nodes), [nodes]);
+
   const { results, totalMatches } = useMemo(() => {
     const { results, total } = searchNodesWithTotal(nodes, searchTokens, 20);
     return {
       totalMatches: total,
-      results: results.map(node => ({ node, path: formatFocusPath(nodes, node.id) })),
+      results: results.map(node => ({ node, path: resolveFocusPath(node.id) })),
     };
-  }, [nodes, searchTokens]);
+  }, [nodes, resolveFocusPath, searchTokens]);
   const selectedNodeId = results[selected]?.node.id;
   const selectedOptionId = selectedNodeId ? `${listboxId}-${selectedNodeId}` : undefined;
   const summaryText = useMemo(

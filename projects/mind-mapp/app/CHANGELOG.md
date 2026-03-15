@@ -158,6 +158,7 @@
 - Reused tokenized query output between search ranking and highlight-term extraction in Search dialog to remove duplicate parsing work
 - Added deferred query evaluation in Search dialog with inline "updating…" status to keep typing responsive on larger maps
 - Added shared search summary formatter + listbox aria-busy wiring while deferred results are catching up
+- Added cached focus-path resolver for Search result metadata labels and wired SearchDialog to reuse it across result rows
 - Added Search: Cmd/Ctrl+F entry to shared shortcut registry for Help filter discoverability parity
 - Improved toolbar import/copy notices with status/alert live-region semantics and explicit dismiss button labels for screen-reader clarity
 - Centralized Search/Help dialog close handlers in App to keep keyboard and overlay close paths consistent

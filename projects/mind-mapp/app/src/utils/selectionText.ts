@@ -76,8 +76,32 @@ export function getFocusPathSegments(nodes: Record<string, Node>, focusId?: stri
   return chain.reverse();
 }
 
+export function createFocusPathResolver(nodes: Record<string, Node>): (focusId?: string) => string {
+  const cache: Record<string, string> = {};
+  const visiting = new Set<string>();
+
+  const resolve = (focusId?: string): string => {
+    if (!focusId || !nodes[focusId]) return '';
+    if (cache[focusId] !== undefined) return cache[focusId];
+
+    const node = nodes[focusId];
+    const label = nodeLabel(node);
+
+    if (visiting.has(focusId)) {
+      return '';
+    }
+
+    visiting.add(focusId);
+    const parentPath = node.parentId ? resolve(node.parentId) : '';
+    visiting.delete(focusId);
+
+    cache[focusId] = parentPath ? `${parentPath} / ${label}` : label;
+    return cache[focusId];
+  };
+
+  return resolve;
+}
+
 export function formatFocusPath(nodes: Record<string, Node>, focusId?: string): string {
-  return getFocusPathSegments(nodes, focusId)
-    .map(segment => segment.label)
-    .join(' / ');
+  return createFocusPathResolver(nodes)(focusId);
 }
