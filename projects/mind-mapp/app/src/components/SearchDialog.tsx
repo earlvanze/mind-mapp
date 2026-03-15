@@ -141,31 +141,31 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         inputRef.current?.focus();
         inputRef.current?.select();
       }
-      if (e.key === 'ArrowDown' && results.length) {
+      if (e.key === 'ArrowDown' && results.length && canJumpToResult) {
         e.preventDefault();
         setSelected(s => moveSearchSelection(s, results.length, 1));
       }
-      if (e.key === 'ArrowUp' && results.length) {
+      if (e.key === 'ArrowUp' && results.length && canJumpToResult) {
         e.preventDefault();
         setSelected(s => moveSearchSelection(s, results.length, -1));
       }
-      if (e.key === 'PageDown' && results.length) {
+      if (e.key === 'PageDown' && results.length && canJumpToResult) {
         e.preventDefault();
         setSelected(s => moveSearchSelection(s, results.length, 5));
       }
-      if (e.key === 'PageUp' && results.length) {
+      if (e.key === 'PageUp' && results.length && canJumpToResult) {
         e.preventDefault();
         setSelected(s => moveSearchSelection(s, results.length, -5));
       }
-      if (e.key === 'Home' && results.length) {
+      if (e.key === 'Home' && results.length && canJumpToResult) {
         e.preventDefault();
         setSelected(edgeSearchSelection(results.length, 'start'));
       }
-      if (e.key === 'End' && results.length) {
+      if (e.key === 'End' && results.length && canJumpToResult) {
         e.preventDefault();
         setSelected(edgeSearchSelection(results.length, 'end'));
       }
-      if (e.key === 'Tab' && results.length) {
+      if (e.key === 'Tab' && results.length && canJumpToResult) {
         e.preventDefault();
         setSelected(s => {
           if (e.shiftKey) return cycleSearchSelection(s, results.length, -1);
@@ -267,7 +267,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
             );
           })}
           {!results.length && query && <div className="search-empty" role="status">No results</div>}
-          <div id={hintId} className="search-hint">Tab/Shift+Tab: cycle selection • PageUp/PageDown: jump by 5 • Home/End: first/last • Enter/click: jump + close (when not updating) • Shift/Cmd/Ctrl/Alt+Enter/click: jump + keep open • Esc: clear query (or close when empty) • Cmd/Ctrl+Shift+K: clear query • Cmd/Ctrl+F: focus search • Cmd/Ctrl+A: select query • Cmd/Ctrl+K: close search</div>
+          <div id={hintId} className="search-hint">Tab/Shift+Tab: cycle selection (when not updating) • PageUp/PageDown: jump by 5 (when not updating) • Home/End: first/last (when not updating) • Enter/click: jump + close (when not updating) • Shift/Cmd/Ctrl/Alt+Enter/click: jump + keep open • Esc: clear query (or close when empty) • Cmd/Ctrl+Shift+K: clear query • Cmd/Ctrl+F: focus search • Cmd/Ctrl+A: select query • Cmd/Ctrl+K: close search</div>
         </div>
       </div>
     </div>
