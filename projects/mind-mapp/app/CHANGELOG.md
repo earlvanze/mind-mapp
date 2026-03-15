@@ -161,6 +161,7 @@
 - Added shared search summary formatter + listbox aria-busy wiring while deferred results are catching up
 - Gated Enter-to-jump while Search deferred results are still updating to prevent stale-result jumps
 - Added shared canExecuteSearchJump guard and applied it to both Enter + click result jumps during deferred updates
+- Added shared canNavigateSearchSelection guard and applied it to keyboard/hover selection movement during deferred updates
 - Added pending-result aria-disabled + disabled visual state in Search list while deferred results are catching up
 - Gated Search result hover-selection while deferred updates are pending and exposed listbox-level aria-disabled
 - Gated Search Tab/Page/Home/End selection navigation while deferred updates are pending

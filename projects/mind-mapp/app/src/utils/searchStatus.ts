@@ -2,6 +2,10 @@ export function canExecuteSearchJump(pending: boolean): boolean {
   return !pending;
 }
 
+export function canNavigateSearchSelection(pending: boolean): boolean {
+  return !pending;
+}
+
 export function getSearchPendingTooltip(pending: boolean): string | undefined {
   return pending ? 'Search results are updating…' : undefined;
 }

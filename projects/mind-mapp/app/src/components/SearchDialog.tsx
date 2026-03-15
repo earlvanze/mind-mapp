@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
-import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, canExecuteSearchJump, centerPointInView, clampSearchSelection, computeHighlightRanges, createFocusPathResolver, cycleSearchSelection, edgeSearchSelection, formatSearchSummary, getSearchPendingTooltip, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
+import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, canExecuteSearchJump, canNavigateSearchSelection, centerPointInView, clampSearchSelection, computeHighlightRanges, createFocusPathResolver, cycleSearchSelection, edgeSearchSelection, formatSearchSummary, getSearchPendingTooltip, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { nodes, setFocus } = useMindMapStore();
@@ -86,7 +86,8 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   const selectedNodeId = results[selected]?.node.id;
   const selectedOptionId = selectedNodeId ? `${listboxId}-${selectedNodeId}` : undefined;
   const canJumpToResult = canExecuteSearchJump(isSearchPending);
-  const activeDescendantId = canJumpToResult ? selectedOptionId : undefined;
+  const canNavigateSelection = canNavigateSearchSelection(isSearchPending);
+  const activeDescendantId = canNavigateSelection ? selectedOptionId : undefined;
   const summaryText = useMemo(
     () => formatSearchSummary(results.length, totalMatches, isSearchPending),
     [isSearchPending, results.length, totalMatches],
@@ -142,31 +143,31 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         inputRef.current?.focus();
         inputRef.current?.select();
       }
-      if (e.key === 'ArrowDown' && results.length && canJumpToResult) {
+      if (e.key === 'ArrowDown' && results.length && canNavigateSelection) {
         e.preventDefault();
         setSelected(s => moveSearchSelection(s, results.length, 1));
       }
-      if (e.key === 'ArrowUp' && results.length && canJumpToResult) {
+      if (e.key === 'ArrowUp' && results.length && canNavigateSelection) {
         e.preventDefault();
         setSelected(s => moveSearchSelection(s, results.length, -1));
       }
-      if (e.key === 'PageDown' && results.length && canJumpToResult) {
+      if (e.key === 'PageDown' && results.length && canNavigateSelection) {
         e.preventDefault();
         setSelected(s => moveSearchSelection(s, results.length, 5));
       }
-      if (e.key === 'PageUp' && results.length && canJumpToResult) {
+      if (e.key === 'PageUp' && results.length && canNavigateSelection) {
         e.preventDefault();
         setSelected(s => moveSearchSelection(s, results.length, -5));
       }
-      if (e.key === 'Home' && results.length && canJumpToResult) {
+      if (e.key === 'Home' && results.length && canNavigateSelection) {
         e.preventDefault();
         setSelected(edgeSearchSelection(results.length, 'start'));
       }
-      if (e.key === 'End' && results.length && canJumpToResult) {
+      if (e.key === 'End' && results.length && canNavigateSelection) {
         e.preventDefault();
         setSelected(edgeSearchSelection(results.length, 'end'));
       }
-      if (e.key === 'Tab' && results.length && canJumpToResult) {
+      if (e.key === 'Tab' && results.length && canNavigateSelection) {
         e.preventDefault();
         setSelected(s => {
           if (e.shiftKey) return cycleSearchSelection(s, results.length, -1);
@@ -185,7 +186,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [canJumpToResult, onClose, open, query, results, selected, setFocus]);
+  }, [canJumpToResult, canNavigateSelection, onClose, open, query, results, selected, setFocus]);
 
   if (!open) return null;
 
@@ -231,7 +232,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
         <div id={summaryId} className="search-summary" aria-live="polite">
           {summaryText}
         </div>
-        <div id={listboxId} className={`search-results ${isSearchPending ? 'is-pending' : ''}`} role="listbox" aria-describedby={`${summaryId} ${hintId}`} aria-busy={isSearchPending} aria-disabled={!canJumpToResult}>
+        <div id={listboxId} className={`search-results ${isSearchPending ? 'is-pending' : ''}`} role="listbox" aria-describedby={`${summaryId} ${hintId}`} aria-busy={isSearchPending} aria-disabled={!canNavigateSelection}>
           {results.map((r, i) => {
             const title = r.node.text || '(empty)';
             const meta = `${r.node.id} • ${r.path || '(no path)'}`;
@@ -248,10 +249,10 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
                 ref={(element) => {
                   resultRefs.current[r.node.id] = element;
                 }}
-                className={`search-item ${canJumpToResult && i === selected ? 'active' : ''} ${canJumpToResult ? '' : 'is-disabled'}`}
+                className={`search-item ${canNavigateSelection && i === selected ? 'active' : ''} ${canJumpToResult ? '' : 'is-disabled'}`}
                 title={pendingTitle}
                 onMouseEnter={() => {
-                  if (!canJumpToResult) return;
+                  if (!canNavigateSelection) return;
                   setSelected(i);
                 }}
                 onClick={(event) => {

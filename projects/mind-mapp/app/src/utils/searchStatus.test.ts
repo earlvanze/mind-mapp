@@ -1,10 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { canExecuteSearchJump, formatSearchSummary, getSearchPendingTooltip } from './searchStatus';
+import { canExecuteSearchJump, canNavigateSearchSelection, formatSearchSummary, getSearchPendingTooltip } from './searchStatus';
 
 describe('canExecuteSearchJump', () => {
   it('allows jumps only when search is not pending', () => {
     expect(canExecuteSearchJump(false)).toBe(true);
     expect(canExecuteSearchJump(true)).toBe(false);
+  });
+});
+
+describe('canNavigateSearchSelection', () => {
+  it('allows selection navigation only when search is not pending', () => {
+    expect(canNavigateSearchSelection(false)).toBe(true);
+    expect(canNavigateSearchSelection(true)).toBe(false);
   });
 });
 
