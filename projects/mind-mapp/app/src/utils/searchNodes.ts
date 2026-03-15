@@ -60,16 +60,25 @@ export function tokenizeSearchQuery(query: string): readonly SearchToken[] {
   const tokens: SearchToken[] = [];
   const pattern = /(-?)"([^"]*)"|(-?)(\S+)/g;
   let match: RegExpExecArray | null;
+  let pendingNegation = false;
 
   while ((match = pattern.exec(trimmedQuery)) !== null) {
     const prefix = match[1] || match[3] || '';
-    const raw = normalizeSearchText(match[2] || match[4] || '');
-    if (!raw) continue;
+    const rawToken = match[2] || match[4] || '';
+    const value = normalizeSearchText(rawToken);
+
+    if (!value) {
+      if (rawToken === '-') {
+        pendingNegation = true;
+      }
+      continue;
+    }
 
     tokens.push(Object.freeze({
-      value: raw,
-      negated: prefix === '-',
+      value,
+      negated: prefix === '-' || pendingNegation,
     }));
+    pendingNegation = false;
   }
 
   lastSearchTokenQuery = trimmedQuery;

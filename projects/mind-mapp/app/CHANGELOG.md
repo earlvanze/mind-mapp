@@ -163,6 +163,7 @@
 - Converted pre-tokenized search-token normalization/filtering to a loop-based pass to avoid intermediate map/filter allocations
 - Reused tokenized query output between search ranking and highlight-term extraction in Search dialog to remove duplicate parsing work
 - Removed redundant full-query lowercasing before search token regex parsing (token normalization already handles casing), with regression coverage for uppercase/quoted/negated input
+- Added support for whitespace-separated negation marker before quoted search phrases (e.g., - "alpha review") with regression coverage
 - Added last-query token cache reuse in search query tokenization and froze cached token arrays/entries to avoid accidental mutation
 - Tagged normalized search-token arrays to short-circuit re-normalization when tokenized query output is reused directly
 - Centralized pre-tokenized search token normalization into a shared builder helper used by normalizeTokens to reduce internal duplication

@@ -52,6 +52,13 @@ describe('tokenizeSearchQuery', () => {
     expect(Object.isFrozen(first)).toBe(true);
     expect(Object.isFrozen(first[0]!)).toBe(true);
   });
+
+  it('supports whitespace-separated negation marker before quoted phrases', () => {
+    expect(tokenizeSearchQuery('- "alpha review" beta')).toEqual([
+      { value: 'alpha review', negated: true },
+      { value: 'beta', negated: false },
+    ]);
+  });
 });
 
 describe('searchNodes', () => {
@@ -77,6 +84,11 @@ describe('searchNodes', () => {
   it('supports quoted phrase queries', () => {
     const results = searchNodes(nodes, '"alpha review"');
     expect(results.map(node => node.id)).toEqual(['n_review']);
+  });
+
+  it('supports negated quoted phrases written with a separated minus token', () => {
+    const results = searchNodes(nodes, '- "alpha review"');
+    expect(results.some(node => node.id === 'n_review')).toBe(false);
   });
 
   it('accepts pre-tokenized query input', () => {
