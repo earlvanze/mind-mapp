@@ -113,7 +113,7 @@ function normalizeTokens(input: SearchQueryInput): SearchToken[] {
 function rankSearchMatches(
   nodes: Record<string, Node>,
   query: SearchQueryInput,
-): Array<{ node: Node; rank: number }> {
+): Node[] {
   const tokens = normalizeTokens(query);
   if (!tokens.length) return [];
 
@@ -160,10 +160,10 @@ export function searchNodesWithTotal(
   limit = DEFAULT_SEARCH_RESULT_LIMIT,
 ): { results: Node[]; total: number } {
   const normalizedLimit = normalizeSearchLimit(limit);
-  const scored = rankSearchMatches(nodes, query);
+  const rankedNodes = rankSearchMatches(nodes, query);
   return {
-    results: scored.slice(0, normalizedLimit).map(item => item.node),
-    total: scored.length,
+    results: rankedNodes.slice(0, normalizedLimit),
+    total: rankedNodes.length,
   };
 }
 
