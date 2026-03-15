@@ -24,6 +24,14 @@ describe('tokenizeShortcutQuery', () => {
     expect(tokenizeShortcutQuery('ctrl ctrl slash slash')).toEqual(['ctrl', 'slash']);
     expect(tokenizeShortcutQuery('plus plus plus')).toEqual(['plus']);
   });
+
+  it('reuses frozen token arrays for equivalent normalized queries', () => {
+    const first = tokenizeShortcutQuery('ctrl slash');
+    const second = tokenizeShortcutQuery('CTRL   SLASH');
+
+    expect(first).toBe(second);
+    expect(Object.isFrozen(first)).toBe(true);
+  });
 });
 
 describe('filterShortcuts', () => {

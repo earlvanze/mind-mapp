@@ -7,8 +7,10 @@ type ShortcutHaystackCacheEntry = {
 
 const shortcutHaystackCache = new WeakMap<Shortcut, ShortcutHaystackCacheEntry>();
 
+const EMPTY_SHORTCUT_QUERY_TERMS: readonly string[] = Object.freeze([] as string[]);
+
 let lastShortcutQuery = '';
-let lastShortcutQueryTerms: string[] = [];
+let lastShortcutQueryTerms: readonly string[] = EMPTY_SHORTCUT_QUERY_TERMS;
 
 function normalizeShortcutText(value: string): string {
   return value
@@ -44,7 +46,7 @@ function getShortcutHaystack(shortcut: Shortcut): string {
   return haystack;
 }
 
-export function tokenizeShortcutQuery(query: string): string[] {
+export function tokenizeShortcutQuery(query: string): readonly string[] {
   const normalizedQuery = normalizeShortcutText(query);
   if (normalizedQuery === lastShortcutQuery) {
     return lastShortcutQueryTerms;
@@ -52,14 +54,14 @@ export function tokenizeShortcutQuery(query: string): string[] {
 
   if (!normalizedQuery) {
     lastShortcutQuery = normalizedQuery;
-    lastShortcutQueryTerms = [];
+    lastShortcutQueryTerms = EMPTY_SHORTCUT_QUERY_TERMS;
     return lastShortcutQueryTerms;
   }
 
   const terms = normalizedQuery.split(' ');
   if (terms.length < 2) {
     lastShortcutQuery = normalizedQuery;
-    lastShortcutQueryTerms = terms;
+    lastShortcutQueryTerms = Object.freeze(terms);
     return lastShortcutQueryTerms;
   }
 
@@ -74,11 +76,11 @@ export function tokenizeShortcutQuery(query: string): string[] {
   }
 
   lastShortcutQuery = normalizedQuery;
-  lastShortcutQueryTerms = deduped;
+  lastShortcutQueryTerms = Object.freeze(deduped);
   return lastShortcutQueryTerms;
 }
 
-function includesAllShortcutTerms(haystack: string, terms: string[]): boolean {
+function includesAllShortcutTerms(haystack: string, terms: readonly string[]): boolean {
   for (let i = 0; i < terms.length; i += 1) {
     if (!haystack.includes(terms[i])) {
       return false;
