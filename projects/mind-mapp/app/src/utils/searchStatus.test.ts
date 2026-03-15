@@ -39,6 +39,7 @@ describe('shouldDisplaySearchEmptyState', () => {
   it('returns false for blank and whitespace-only queries', () => {
     expect(shouldDisplaySearchEmptyState('', false)).toBe(false);
     expect(shouldDisplaySearchEmptyState('   ', false)).toBe(false);
+    expect(shouldDisplaySearchEmptyState('\n\t', false)).toBe(false);
   });
 
   it('returns false for tokenless non-empty queries', () => {

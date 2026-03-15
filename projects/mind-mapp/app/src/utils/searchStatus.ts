@@ -10,6 +10,8 @@ const SEARCH_SELECTION_NAVIGATION_KEYS = new Set([
   'Tab',
 ]);
 
+const NON_WHITESPACE_RE = /\S/;
+
 export function canExecuteSearchJump(pending: boolean): boolean {
   return !pending;
 }
@@ -30,7 +32,7 @@ export function shouldDisplaySearchEmptyState(
   query: string,
   hasTokens: boolean,
 ): boolean {
-  if (query.trim().length === 0) return false;
+  if (!NON_WHITESPACE_RE.test(query)) return false;
   return hasTokens;
 }
 
