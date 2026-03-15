@@ -161,6 +161,7 @@
 - Converted pre-tokenized search-token normalization/filtering to a loop-based pass to avoid intermediate map/filter allocations
 - Reused tokenized query output between search ranking and highlight-term extraction in Search dialog to remove duplicate parsing work
 - Removed redundant full-query lowercasing before search token regex parsing (token normalization already handles casing), with regression coverage for uppercase/quoted/negated input
+- Added last-query token cache reuse in search query tokenization and froze cached token arrays/entries to avoid accidental mutation
 - Added normalized search result-cap handling (non-finite → default, negative → zero, decimals truncated) with regression coverage
 - Centralized default search result cap in shared DEFAULT_SEARCH_RESULT_LIMIT constant and reused it in Search dialog/tests
 - Added deferred query evaluation in Search dialog with inline "updating…" status to keep typing responsive on larger maps

@@ -8,11 +8,24 @@ export type SearchToken = {
 
 export type SearchQueryInput = string | SearchToken[];
 
-export function tokenizeSearchQuery(query: string): SearchToken[] {
-  const tokens: SearchToken[] = [];
-  const trimmedQuery = query.trim();
-  if (!trimmedQuery) return tokens;
+const EMPTY_SEARCH_TOKENS: readonly SearchToken[] = Object.freeze([] as SearchToken[]);
 
+let lastSearchTokenQuery = '';
+let lastSearchTokenResult: readonly SearchToken[] = EMPTY_SEARCH_TOKENS;
+
+export function tokenizeSearchQuery(query: string): SearchToken[] {
+  const trimmedQuery = query.trim();
+  if (trimmedQuery === lastSearchTokenQuery) {
+    return lastSearchTokenResult as SearchToken[];
+  }
+
+  if (!trimmedQuery) {
+    lastSearchTokenQuery = trimmedQuery;
+    lastSearchTokenResult = EMPTY_SEARCH_TOKENS;
+    return lastSearchTokenResult as SearchToken[];
+  }
+
+  const tokens: SearchToken[] = [];
   const pattern = /(-?)"([^"]*)"|(-?)(\S+)/g;
   let match: RegExpExecArray | null;
 
@@ -21,13 +34,18 @@ export function tokenizeSearchQuery(query: string): SearchToken[] {
     const raw = normalizeSearchText(match[2] || match[4] || '');
     if (!raw) continue;
 
-    tokens.push({
+    tokens.push(Object.freeze({
       value: raw,
       negated: prefix === '-',
-    });
+    }));
   }
 
-  return tokens;
+  lastSearchTokenQuery = trimmedQuery;
+  lastSearchTokenResult = tokens.length
+    ? Object.freeze(tokens)
+    : EMPTY_SEARCH_TOKENS;
+
+  return lastSearchTokenResult as SearchToken[];
 }
 
 function buildSearchPathCache(nodes: Record<string, Node>): Record<string, string> {

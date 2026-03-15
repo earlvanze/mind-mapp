@@ -43,6 +43,15 @@ describe('tokenizeSearchQuery', () => {
       { value: 'beta', negated: true },
     ]);
   });
+
+  it('reuses frozen cached tokens for equivalent trimmed input', () => {
+    const first = tokenizeSearchQuery(' alpha -beta ');
+    const second = tokenizeSearchQuery('alpha -beta');
+
+    expect(first).toBe(second);
+    expect(Object.isFrozen(first)).toBe(true);
+    expect(Object.isFrozen(first[0]!)).toBe(true);
+  });
 });
 
 describe('searchNodes', () => {
