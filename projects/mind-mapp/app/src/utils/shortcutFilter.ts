@@ -12,6 +12,32 @@ const EMPTY_SHORTCUT_QUERY_TERMS: readonly string[] = Object.freeze([] as string
 let lastShortcutQuery = '';
 let lastShortcutQueryTerms: readonly string[] = EMPTY_SHORTCUT_QUERY_TERMS;
 
+function dedupeNormalizedShortcutTerms(terms: string[]): readonly string[] {
+  if (terms.length < 2) {
+    return Object.freeze(terms);
+  }
+
+  if (terms.length === 2) {
+    if (terms[0] === terms[1]) {
+      return Object.freeze([terms[0]]);
+    }
+
+    return Object.freeze(terms);
+  }
+
+  const deduped: string[] = [];
+  const seen = new Set<string>();
+
+  for (let i = 0; i < terms.length; i += 1) {
+    const term = terms[i];
+    if (seen.has(term)) continue;
+    seen.add(term);
+    deduped.push(term);
+  }
+
+  return Object.freeze(deduped);
+}
+
 function normalizeShortcutText(value: string): string {
   if (!value) return '';
 
@@ -61,24 +87,9 @@ export function tokenizeShortcutQuery(query: string): readonly string[] {
   }
 
   const terms = normalizedQuery.split(' ');
-  if (terms.length < 2) {
-    lastShortcutQuery = normalizedQuery;
-    lastShortcutQueryTerms = Object.freeze(terms);
-    return lastShortcutQueryTerms;
-  }
-
-  const deduped: string[] = [];
-  const seen = new Set<string>();
-
-  for (let i = 0; i < terms.length; i += 1) {
-    const term = terms[i];
-    if (seen.has(term)) continue;
-    seen.add(term);
-    deduped.push(term);
-  }
 
   lastShortcutQuery = normalizedQuery;
-  lastShortcutQueryTerms = Object.freeze(deduped);
+  lastShortcutQueryTerms = dedupeNormalizedShortcutTerms(terms);
   return lastShortcutQueryTerms;
 }
 

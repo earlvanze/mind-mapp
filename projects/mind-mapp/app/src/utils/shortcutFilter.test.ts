@@ -88,6 +88,8 @@ describe('tokenizeShortcutQuery', () => {
   it('deduplicates repeated normalized query terms', () => {
     expect(tokenizeShortcutQuery('ctrl ctrl slash slash')).toEqual(['ctrl', 'slash']);
     expect(tokenizeShortcutQuery('plus plus plus')).toEqual(['plus']);
+    expect(tokenizeShortcutQuery('ctrl ctrl')).toEqual(['ctrl']);
+    expect(tokenizeShortcutQuery('ctrl slash')).toEqual(['ctrl', 'slash']);
   });
 
   it('reuses frozen token arrays for equivalent normalized queries', () => {
