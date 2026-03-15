@@ -17,7 +17,12 @@ describe('tokenizeShortcutQuery', () => {
   it('normalizes symbol/alias words into searchable terms', () => {
     expect(tokenizeShortcutQuery('Cmd/Ctrl+/')).toEqual(['cmd', 'ctrl', 'plus', 'slash']);
     expect(tokenizeShortcutQuery('forward slash')).toEqual(['slash']);
-    expect(tokenizeShortcutQuery('???')).toEqual(['question', 'question', 'question']);
+    expect(tokenizeShortcutQuery('???')).toEqual(['question']);
+  });
+
+  it('deduplicates repeated normalized query terms', () => {
+    expect(tokenizeShortcutQuery('ctrl ctrl slash slash')).toEqual(['ctrl', 'slash']);
+    expect(tokenizeShortcutQuery('plus plus plus')).toEqual(['plus']);
   });
 });
 

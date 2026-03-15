@@ -45,7 +45,20 @@ export function tokenizeShortcutQuery(query: string): string[] {
   const normalizedQuery = normalizeShortcutText(query);
   if (!normalizedQuery) return [];
 
-  return normalizedQuery.split(' ');
+  const terms = normalizedQuery.split(' ');
+  if (terms.length < 2) return terms;
+
+  const deduped: string[] = [];
+  const seen = new Set<string>();
+
+  for (let i = 0; i < terms.length; i += 1) {
+    const term = terms[i];
+    if (seen.has(term)) continue;
+    seen.add(term);
+    deduped.push(term);
+  }
+
+  return deduped;
 }
 
 function includesAllShortcutTerms(haystack: string, terms: string[]): boolean {
