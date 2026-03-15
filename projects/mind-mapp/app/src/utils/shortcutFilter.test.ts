@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Shortcut } from './shortcuts';
-import { filterShortcuts } from './shortcutFilter';
+import { filterShortcuts, tokenizeShortcutQuery } from './shortcutFilter';
 
 const SAMPLE: Shortcut[] = [
   { key: 'Cmd/Ctrl+F', desc: 'focus search input' },
@@ -9,9 +9,25 @@ const SAMPLE: Shortcut[] = [
   { key: 'Alt+Shift+Q', desc: 'reset focus history' },
 ];
 
+describe('tokenizeShortcutQuery', () => {
+  it('returns empty terms for blank input', () => {
+    expect(tokenizeShortcutQuery('   ')).toEqual([]);
+  });
+
+  it('normalizes symbol/alias words into searchable terms', () => {
+    expect(tokenizeShortcutQuery('Cmd/Ctrl+/')).toEqual(['cmd', 'ctrl', 'plus', 'slash']);
+    expect(tokenizeShortcutQuery('forward slash')).toEqual(['slash']);
+    expect(tokenizeShortcutQuery('???')).toEqual(['question', 'question', 'question']);
+  });
+});
+
 describe('filterShortcuts', () => {
   it('returns all shortcuts for empty query', () => {
     expect(filterShortcuts(SAMPLE, '   ')).toEqual(SAMPLE);
+  });
+
+  it('treats repeated punctuation-only query as repeated normalized terms', () => {
+    expect(filterShortcuts(SAMPLE, '???')).toEqual([]);
   });
 
   it('matches punctuation-agnostic shortcut queries', () => {

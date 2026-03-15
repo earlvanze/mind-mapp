@@ -41,14 +41,29 @@ function getShortcutHaystack(shortcut: Shortcut): string {
   return haystack;
 }
 
-export function filterShortcuts(shortcuts: Shortcut[], query: string): Shortcut[] {
+export function tokenizeShortcutQuery(query: string): string[] {
   const normalizedQuery = normalizeShortcutText(query);
-  if (!normalizedQuery) return shortcuts;
+  if (!normalizedQuery) return [];
 
-  const terms = normalizedQuery.split(' ');
+  return normalizedQuery.split(' ');
+}
+
+function includesAllShortcutTerms(haystack: string, terms: string[]): boolean {
+  for (let i = 0; i < terms.length; i += 1) {
+    if (!haystack.includes(terms[i])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export function filterShortcuts(shortcuts: Shortcut[], query: string): Shortcut[] {
+  const terms = tokenizeShortcutQuery(query);
+  if (!terms.length) return shortcuts;
 
   return shortcuts.filter((shortcut) => {
     const haystack = getShortcutHaystack(shortcut);
-    return terms.every(term => haystack.includes(term));
+    return includesAllShortcutTerms(haystack, terms);
   });
 }
