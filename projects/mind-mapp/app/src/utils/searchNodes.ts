@@ -282,6 +282,28 @@ function splitSearchTerms(tokens: readonly SearchToken[]): PartitionedSearchTerm
   return partitioned;
 }
 
+function flattenRankBuckets(rankBuckets: readonly Node[][]): Node[] {
+  let total = 0;
+  for (let i = 0; i < rankBuckets.length; i += 1) {
+    total += rankBuckets[i].length;
+  }
+
+  if (total === 0) return [];
+
+  const flattened = new Array<Node>(total);
+  let cursor = 0;
+
+  for (let i = 0; i < rankBuckets.length; i += 1) {
+    const bucket = rankBuckets[i];
+    for (let j = 0; j < bucket.length; j += 1) {
+      flattened[cursor] = bucket[j];
+      cursor += 1;
+    }
+  }
+
+  return flattened;
+}
+
 function rankSearchMatches(
   nodes: Record<string, Node>,
   query: SearchQueryInput,
@@ -323,7 +345,7 @@ function rankSearchMatches(
     }
   }
 
-  return rankBuckets.flat();
+  return flattenRankBuckets(rankBuckets);
 }
 
 export const DEFAULT_SEARCH_RESULT_LIMIT = 20;
