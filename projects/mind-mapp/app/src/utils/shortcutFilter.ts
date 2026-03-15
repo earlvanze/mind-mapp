@@ -13,6 +13,8 @@ let lastShortcutQuery = '';
 let lastShortcutQueryTerms: readonly string[] = EMPTY_SHORTCUT_QUERY_TERMS;
 
 function normalizeShortcutText(value: string): string {
+  if (!value) return '';
+
   return value
     .toLowerCase()
     .replace(/\bforward\s+slash\b/g, 'slash')

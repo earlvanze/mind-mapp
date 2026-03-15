@@ -9,33 +9,8 @@ const SAMPLE: Shortcut[] = [
   { key: 'Alt+Shift+Q', desc: 'reset focus history' },
 ];
 
-describe('tokenizeShortcutQuery', () => {
-  it('returns empty terms for blank input', () => {
-    expect(tokenizeShortcutQuery('   ')).toEqual([]);
-  });
-
-  it('normalizes symbol/alias words into searchable terms', () => {
-    expect(tokenizeShortcutQuery('Cmd/Ctrl+/')).toEqual(['cmd', 'ctrl', 'plus', 'slash']);
-    expect(tokenizeShortcutQuery('forward slash')).toEqual(['slash']);
-    expect(tokenizeShortcutQuery('???')).toEqual(['question']);
-  });
-
-  it('deduplicates repeated normalized query terms', () => {
-    expect(tokenizeShortcutQuery('ctrl ctrl slash slash')).toEqual(['ctrl', 'slash']);
-    expect(tokenizeShortcutQuery('plus plus plus')).toEqual(['plus']);
-  });
-
-  it('reuses frozen token arrays for equivalent normalized queries', () => {
-    const first = tokenizeShortcutQuery('ctrl slash');
-    const second = tokenizeShortcutQuery('CTRL   SLASH');
-
-    expect(first).toBe(second);
-    expect(Object.isFrozen(first)).toBe(true);
-  });
-});
-
 describe('filterShortcuts', () => {
-  it('returns all shortcuts for empty query', () => {
+  it('returns all shortcuts when query is empty', () => {
     const result = filterShortcuts(SAMPLE, '   ');
     expect(result).toEqual(SAMPLE);
     expect(result).toBe(SAMPLE);
@@ -44,10 +19,6 @@ describe('filterShortcuts', () => {
   it('returns a filtered array instance for non-empty queries', () => {
     const result = filterShortcuts(SAMPLE, 'cmd');
     expect(result).not.toBe(SAMPLE);
-  });
-
-  it('treats repeated punctuation-only query as repeated normalized terms', () => {
-    expect(filterShortcuts(SAMPLE, '???')).toEqual([]);
   });
 
   it('matches punctuation-agnostic shortcut queries', () => {
@@ -85,6 +56,10 @@ describe('filterShortcuts', () => {
     expect(filterShortcuts(SAMPLE, 'ctrl ctrl slash slash').map(shortcut => shortcut.key)).toEqual(['Cmd/Ctrl+/']);
   });
 
+  it('treats repeated punctuation-only query as repeated normalized terms', () => {
+    expect(filterShortcuts(SAMPLE, '???')).toEqual([]);
+  });
+
   it('refreshes cached haystack when shortcut text changes', () => {
     const dynamic: Shortcut[] = [
       { key: 'Cmd/Ctrl+F', desc: 'focus search input' },
@@ -98,3 +73,29 @@ describe('filterShortcuts', () => {
     expect(filterShortcuts(dynamic, 'toggle').map(shortcut => shortcut.key)).toEqual(['Cmd/Ctrl+F']);
   });
 });
+
+describe('tokenizeShortcutQuery', () => {
+  it('returns empty terms for blank input', () => {
+    expect(tokenizeShortcutQuery('   ')).toEqual([]);
+  });
+
+  it('normalizes symbol/alias words into searchable terms', () => {
+    expect(tokenizeShortcutQuery('Cmd/Ctrl+/')).toEqual(['cmd', 'ctrl', 'plus', 'slash']);
+    expect(tokenizeShortcutQuery('forward slash')).toEqual(['slash']);
+    expect(tokenizeShortcutQuery('???')).toEqual(['question']);
+  });
+
+  it('deduplicates repeated normalized query terms', () => {
+    expect(tokenizeShortcutQuery('ctrl ctrl slash slash')).toEqual(['ctrl', 'slash']);
+    expect(tokenizeShortcutQuery('plus plus plus')).toEqual(['plus']);
+  });
+
+  it('reuses frozen token arrays for equivalent normalized queries', () => {
+    const first = tokenizeShortcutQuery('ctrl slash');
+    const second = tokenizeShortcutQuery('CTRL   SLASH');
+
+    expect(first).toBe(second);
+    expect(Object.isFrozen(first)).toBe(true);
+  });
+});
+
