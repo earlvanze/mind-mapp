@@ -174,6 +174,7 @@
 - Gated Search Tab/Page/Home/End selection navigation while deferred updates are pending
 - Paused Search combobox aria-activedescendant + active-row highlight while deferred updates are pending
 - Added pending-state tooltip copy on Search results (rows + listbox) while deferred updates are catching up
+- Reused shared pending tooltip + empty-state helper directly in Search dialog list rendering to keep pending/no-results copy consistent and avoid per-row helper recomputation
 - Centralized pending tooltip copy in shared searchStatus utility with regression coverage
 - Added shared search empty-state messaging helper to distinguish pending "Searching nodes…" from settled no-results copy
 - Added cached focus-path resolver for Search result metadata labels and wired SearchDialog to reuse it across result rows

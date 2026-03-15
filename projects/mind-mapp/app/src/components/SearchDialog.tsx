@@ -219,7 +219,6 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
           {results.map((r, i) => {
             const title = r.node.text || '(empty)';
             const meta = `${r.node.id} • ${r.path || '(no path)'}`;
-            const pendingTitle = getSearchPendingTooltip(isSearchPending);
             return (
               <div
                 key={r.node.id}
@@ -233,7 +232,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
                   resultRefs.current[r.node.id] = element;
                 }}
                 className={`search-item ${canNavigateSelection && i === selected ? 'active' : ''} ${canJumpToResult ? '' : 'is-disabled'}`}
-                title={pendingTitle}
+                title={pendingTooltip}
                 onMouseEnter={() => {
                   if (!canNavigateSelection) return;
                   setSelected(i);
@@ -251,7 +250,11 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
               </div>
             );
           })}
-          {!results.length && query && <div className="search-empty" role="status">No results</div>}
+          {!results.length && query && (
+            <div className={`search-empty ${isSearchPending ? 'is-pending' : ''}`} role="status">
+              {emptyMessage ?? 'No results'}
+            </div>
+          )}
           <div id={hintId} className="search-hint">Tab/Shift+Tab: cycle selection (when not updating) • PageUp/PageDown: jump by 5 (when not updating) • Home/End: first/last (when not updating) • Enter/click: jump + close (when not updating) • Shift/Cmd/Ctrl/Alt+Enter/click: jump + keep open • Esc: clear query (or close when empty) • Cmd/Ctrl+Shift+K: clear query • Cmd/Ctrl+F: focus search • Cmd/Ctrl+A: select query • Cmd/Ctrl+K: close search</div>
         </div>
       </div>
