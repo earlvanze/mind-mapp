@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useDeferredValue, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 import { SEARCH_DIALOG_ARIA_KEYSHORTCUTS, SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, SEARCH_INPUT_ARIA_KEYSHORTCUTS, centerPointInView, clampSearchSelection, computeHighlightRanges, cycleSearchSelection, edgeSearchSelection, formatFocusPath, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, isSearchToggleEvent, moveSearchSelection, searchNodesWithTotal, shouldKeepSearchOpen, shouldSkipDialogSelectShortcut, tokenizeSearchQuery } from '../utils';
 
@@ -29,6 +29,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     if (closeAfter) onClose();
   };
   const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
   const [selected, setSelected] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const resultRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -37,13 +38,14 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   const listboxId = useId();
   const hintId = useId();
   const searchTokens = useMemo(
-    () => tokenizeSearchQuery(query),
-    [query],
+    () => tokenizeSearchQuery(deferredQuery),
+    [deferredQuery],
   );
   const terms = useMemo(
     () => searchTokens.filter(token => !token.negated).map(token => token.value),
     [searchTokens],
   );
+  const isSearchPending = query !== deferredQuery;
 
   const highlight = (text: string): ReactNode => {
     if (!terms.length) return text;
@@ -218,7 +220,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
           onChange={(e) => setQuery(e.target.value)}
         />
         <div id={summaryId} className="search-summary" aria-live="polite">
-          {results.length} shown / {totalMatches} matches{totalMatches > results.length ? ' (refine to narrow)' : ''}
+          {results.length} shown / {totalMatches} matches{totalMatches > results.length ? ' (refine to narrow)' : ''}{isSearchPending ? ' • updating…' : ''}
         </div>
         <div id={listboxId} className="search-results" role="listbox" aria-describedby={`${summaryId} ${hintId}`}>
           {results.map((r, i) => {
