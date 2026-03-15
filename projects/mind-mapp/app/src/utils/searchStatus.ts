@@ -1,3 +1,5 @@
+import { normalizeNonNegativeInt } from './countNormalize';
+
 const SEARCH_SELECTION_NAVIGATION_KEYS = new Set([
   'ArrowDown',
   'ArrowUp',
@@ -35,25 +37,21 @@ export function shouldDisplaySearchEmptyState(
   return hasTokens;
 }
 
-function normalizeSearchCount(value: number): number {
-  return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
-}
-
 export function getSearchEmptyMessage(shown: number, total: number, pending = false): string | undefined {
   if (pending) return 'Searching nodes…';
 
-  const safeShown = normalizeSearchCount(shown);
+  const safeShown = normalizeNonNegativeInt(shown);
   if (safeShown > 0) return undefined;
 
-  const safeTotal = normalizeSearchCount(total);
+  const safeTotal = normalizeNonNegativeInt(total);
   if (safeTotal > 0) return 'Matches exist, refine your query to reveal them.';
 
   return 'No nodes match your query.';
 }
 
 export function formatSearchSummary(shown: number, total: number, pending = false): string {
-  const safeShown = normalizeSearchCount(shown);
-  const safeTotal = normalizeSearchCount(total);
+  const safeShown = normalizeNonNegativeInt(shown);
+  const safeTotal = normalizeNonNegativeInt(total);
 
   let summary = `${safeShown} shown / ${safeTotal} matches`;
   if (safeTotal > safeShown) {
