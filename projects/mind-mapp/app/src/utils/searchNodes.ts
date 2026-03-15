@@ -41,10 +41,15 @@ function buildNormalizedSearchTokens(
 }
 
 const EMPTY_SEARCH_TOKENS = markNormalizedSearchTokens([]);
-const SEARCH_QUERY_TOKEN_PATTERN = /(-?)"([^"]*)"|(-?)(\S+)/g;
+const SEARCH_NEGATION_PREFIX_RE = /^[-−–]$/;
+const SEARCH_QUERY_TOKEN_PATTERN = /([-−–]?)"([^"]*)"|([-−–]?)(\S+)/g;
 
 let lastSearchTokenQuery = '';
 let lastSearchTokenResult: NormalizedSearchTokenArray = EMPTY_SEARCH_TOKENS;
+
+function isSearchNegationPrefix(value: string): boolean {
+  return SEARCH_NEGATION_PREFIX_RE.test(value);
+}
 
 export function tokenizeSearchQuery(query: string): readonly SearchToken[] {
   const trimmedQuery = query.trim();
@@ -67,10 +72,15 @@ export function tokenizeSearchQuery(query: string): readonly SearchToken[] {
   while ((match = pattern.exec(trimmedQuery)) !== null) {
     const prefix = match[1] || match[3] || '';
     const rawToken = match[2] || match[4] || '';
-    const value = normalizeSearchText(rawToken);
 
+    if (!prefix && isSearchNegationPrefix(rawToken)) {
+      pendingNegation = true;
+      continue;
+    }
+
+    const value = normalizeSearchText(rawToken);
     if (!value) {
-      if (rawToken === '-') {
+      if (isSearchNegationPrefix(rawToken)) {
         pendingNegation = true;
       }
       continue;
@@ -78,7 +88,7 @@ export function tokenizeSearchQuery(query: string): readonly SearchToken[] {
 
     tokens.push(Object.freeze({
       value,
-      negated: prefix === '-' || pendingNegation,
+      negated: isSearchNegationPrefix(prefix) || pendingNegation,
     }));
     pendingNegation = false;
   }

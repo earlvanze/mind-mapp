@@ -60,6 +60,17 @@ describe('tokenizeSearchQuery', () => {
     ]);
   });
 
+  it('supports unicode dash negation markers', () => {
+    expect(tokenizeSearchQuery('−alpha –"beta gamma"')).toEqual([
+      { value: 'alpha', negated: true },
+      { value: 'beta gamma', negated: true },
+    ]);
+
+    expect(tokenizeSearchQuery('− "alpha review"')).toEqual([
+      { value: 'alpha review', negated: true },
+    ]);
+  });
+
   it('tokenizes distinct sequential queries correctly', () => {
     expect(tokenizeSearchQuery('alpha beta')).toEqual([
       { value: 'alpha', negated: false },
@@ -130,6 +141,11 @@ describe('searchNodes', () => {
 
   it('supports negative terms for exclusion', () => {
     const results = searchNodes(nodes, 'alpha -review');
+    expect(results.map(node => node.id)).toEqual(['n_alpha']);
+  });
+
+  it('supports unicode dash negation in search queries', () => {
+    const results = searchNodes(nodes, 'alpha −review');
     expect(results.map(node => node.id)).toEqual(['n_alpha']);
   });
 
