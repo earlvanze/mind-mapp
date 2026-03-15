@@ -86,6 +86,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   const selectedNodeId = results[selected]?.node.id;
   const selectedOptionId = selectedNodeId ? `${listboxId}-${selectedNodeId}` : undefined;
   const canJumpToResult = canExecuteSearchJump(isSearchPending);
+  const activeDescendantId = canJumpToResult ? selectedOptionId : undefined;
   const summaryText = useMemo(
     () => formatSearchSummary(results.length, totalMatches, isSearchPending),
     [isSearchPending, results.length, totalMatches],
@@ -222,7 +223,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
           aria-describedby={`${summaryId} ${hintId}`}
           aria-keyshortcuts={SEARCH_INPUT_ARIA_KEYSHORTCUTS}
           aria-expanded={results.length > 0}
-          aria-activedescendant={selectedOptionId}
+          aria-activedescendant={activeDescendantId}
           placeholder='Search nodes… (use "phrase" or -exclude)'
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -247,7 +248,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
                 ref={(element) => {
                   resultRefs.current[r.node.id] = element;
                 }}
-                className={`search-item ${i === selected ? 'active' : ''} ${canJumpToResult ? '' : 'is-disabled'}`}
+                className={`search-item ${canJumpToResult && i === selected ? 'active' : ''} ${canJumpToResult ? '' : 'is-disabled'}`}
                 title={pendingTitle}
                 onMouseEnter={() => {
                   if (!canJumpToResult) return;

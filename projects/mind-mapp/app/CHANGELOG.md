@@ -164,6 +164,7 @@
 - Added pending-result aria-disabled + disabled visual state in Search list while deferred results are catching up
 - Gated Search result hover-selection while deferred updates are pending and exposed listbox-level aria-disabled
 - Gated Search Tab/Page/Home/End selection navigation while deferred updates are pending
+- Paused Search combobox aria-activedescendant + active-row highlight while deferred updates are pending
 - Added pending-state tooltip copy on Search result rows while deferred updates are catching up
 - Added cached focus-path resolver for Search result metadata labels and wired SearchDialog to reuse it across result rows
 - Added Search: Cmd/Ctrl+F entry to shared shortcut registry for Help filter discoverability parity
