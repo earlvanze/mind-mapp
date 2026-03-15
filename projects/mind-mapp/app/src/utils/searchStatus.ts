@@ -1,9 +1,23 @@
+const SEARCH_SELECTION_NAVIGATION_KEYS = new Set([
+  'ArrowDown',
+  'ArrowUp',
+  'PageDown',
+  'PageUp',
+  'Home',
+  'End',
+  'Tab',
+]);
+
 export function canExecuteSearchJump(pending: boolean): boolean {
   return !pending;
 }
 
 export function canNavigateSearchSelection(pending: boolean): boolean {
   return !pending;
+}
+
+export function isSearchSelectionNavigationKey(key: string): boolean {
+  return SEARCH_SELECTION_NAVIGATION_KEYS.has(key);
 }
 
 export function getSearchPendingTooltip(pending: boolean): string | undefined {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canExecuteSearchJump, canNavigateSearchSelection, formatSearchSummary, getSearchPendingTooltip } from './searchStatus';
+import { canExecuteSearchJump, canNavigateSearchSelection, formatSearchSummary, getSearchPendingTooltip, isSearchSelectionNavigationKey } from './searchStatus';
 
 describe('canExecuteSearchJump', () => {
   it('allows jumps only when search is not pending', () => {
@@ -12,6 +12,19 @@ describe('canNavigateSearchSelection', () => {
   it('allows selection navigation only when search is not pending', () => {
     expect(canNavigateSearchSelection(false)).toBe(true);
     expect(canNavigateSearchSelection(true)).toBe(false);
+  });
+});
+
+describe('isSearchSelectionNavigationKey', () => {
+  it('recognizes supported selection navigation keys', () => {
+    expect(isSearchSelectionNavigationKey('ArrowDown')).toBe(true);
+    expect(isSearchSelectionNavigationKey('ArrowUp')).toBe(true);
+    expect(isSearchSelectionNavigationKey('PageDown')).toBe(true);
+    expect(isSearchSelectionNavigationKey('PageUp')).toBe(true);
+    expect(isSearchSelectionNavigationKey('Home')).toBe(true);
+    expect(isSearchSelectionNavigationKey('End')).toBe(true);
+    expect(isSearchSelectionNavigationKey('Tab')).toBe(true);
+    expect(isSearchSelectionNavigationKey('Enter')).toBe(false);
   });
 });
 
