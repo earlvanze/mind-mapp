@@ -49,17 +49,21 @@ describe('shouldDisplaySearchEmptyState', () => {
 
 describe('getSearchEmptyMessage', () => {
   it('shows searching copy while pending', () => {
-    expect(getSearchEmptyMessage(0, true)).toBe('Searching nodes…');
-    expect(getSearchEmptyMessage(100, true)).toBe('Searching nodes…');
+    expect(getSearchEmptyMessage(0, 0, true)).toBe('Searching nodes…');
+    expect(getSearchEmptyMessage(0, 100, true)).toBe('Searching nodes…');
   });
 
-  it('shows no-results copy when settled with zero matches', () => {
-    expect(getSearchEmptyMessage(0)).toBe('No nodes match your query.');
-    expect(getSearchEmptyMessage(Number.NaN)).toBe('No nodes match your query.');
+  it('shows no-results copy when settled with zero shown and zero total', () => {
+    expect(getSearchEmptyMessage(0, 0)).toBe('No nodes match your query.');
+    expect(getSearchEmptyMessage(Number.NaN, Number.NaN)).toBe('No nodes match your query.');
   });
 
-  it('returns undefined when matches exist', () => {
-    expect(getSearchEmptyMessage(1)).toBeUndefined();
+  it('returns undefined when shown results exist', () => {
+    expect(getSearchEmptyMessage(1, 1)).toBeUndefined();
+  });
+
+  it('shows refine-copy when total matches exist but none are currently shown', () => {
+    expect(getSearchEmptyMessage(0, 5)).toBe('Matches exist, refine your query to reveal them.');
   });
 });
 

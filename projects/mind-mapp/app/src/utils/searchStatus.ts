@@ -28,13 +28,16 @@ export function shouldDisplaySearchEmptyState(query: string): boolean {
   return query.trim().length > 0;
 }
 
-export function getSearchEmptyMessage(total: number, pending = false): string | undefined {
+export function getSearchEmptyMessage(shown: number, total: number, pending = false): string | undefined {
   if (pending) return 'Searching nodes…';
 
-  const safeTotal = Number.isFinite(total) ? Math.max(0, Math.trunc(total)) : 0;
-  if (safeTotal === 0) return 'No nodes match your query.';
+  const safeShown = Number.isFinite(shown) ? Math.max(0, Math.trunc(shown)) : 0;
+  if (safeShown > 0) return undefined;
 
-  return undefined;
+  const safeTotal = Number.isFinite(total) ? Math.max(0, Math.trunc(total)) : 0;
+  if (safeTotal > 0) return 'Matches exist, refine your query to reveal them.';
+
+  return 'No nodes match your query.';
 }
 
 export function formatSearchSummary(shown: number, total: number, pending = false): string {

@@ -94,8 +94,8 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   );
   const pendingTooltip = getSearchPendingTooltip(isSearchPending);
   const emptyMessage = useMemo(
-    () => getSearchEmptyMessage(totalMatches, isSearchPending),
-    [isSearchPending, totalMatches],
+    () => getSearchEmptyMessage(results.length, totalMatches, isSearchPending),
+    [isSearchPending, results.length, totalMatches],
   );
   const shouldShowEmptyState = useMemo(
     () => shouldDisplaySearchEmptyState(query),
