@@ -102,12 +102,20 @@ function getSearchIndex(nodes: Record<string, Node>): SearchIndexEntry[] {
 function normalizeTokens(input: SearchQueryInput): SearchToken[] {
   if (!Array.isArray(input)) return tokenizeSearchQuery(input);
 
-  return input
-    .map((token) => ({
-      value: normalizeSearchText(token.value),
+  const normalizedTokens: SearchToken[] = [];
+
+  for (let i = 0; i < input.length; i += 1) {
+    const token = input[i];
+    const value = normalizeSearchText(token.value);
+    if (!value) continue;
+
+    normalizedTokens.push({
+      value,
       negated: !!token.negated,
-    }))
-    .filter((token) => !!token.value);
+    });
+  }
+
+  return normalizedTokens;
 }
 
 function includesAllTerms(haystack: string, terms: string[]): boolean {

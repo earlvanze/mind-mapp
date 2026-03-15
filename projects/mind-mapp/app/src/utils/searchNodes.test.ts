@@ -85,6 +85,16 @@ describe('searchNodes', () => {
     expect(results.map(node => node.id)).toEqual(['n_alpha']);
   });
 
+  it('filters empty pre-tokenized entries after normalization', () => {
+    const tokens = [
+      { value: 'alpha', negated: false },
+      { value: '---', negated: false },
+      { value: 'review', negated: true },
+    ];
+    const results = searchNodes(nodes, tokens);
+    expect(results.map(node => node.id)).toEqual(['n_alpha']);
+  });
+
   it('supports negative terms for exclusion', () => {
     const results = searchNodes(nodes, 'alpha -review');
     expect(results.map(node => node.id)).toEqual(['n_alpha']);
