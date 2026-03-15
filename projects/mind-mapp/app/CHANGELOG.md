@@ -164,6 +164,7 @@
 - Added WeakMap cache for partitioned search terms (positive/negative/phrase/overlap) keyed by normalized token arrays for repeated-query reuse
 - Optimized positive-phrase assembly to skip `join` allocation for single-term and empty-term search partitions
 - Replaced rank bucket `Array.flat()` output with pre-sized manual flattening to avoid intermediate flatten allocation
+- Optimized `searchNodes` to use direct ranking+slice path (avoids `searchNodesWithTotal` result-wrapper allocation when total is not needed)
 - Centralized per-entry search term skip gating into shared helper to keep include/exclude logic in one branchable path
 - Added 1-term/2-term fast paths for search include/exclude term checks (all/any) with combined include+exclude regression coverage
 - Added branch fast paths for entry skip gating when only include terms or only exclude terms are present

@@ -389,5 +389,7 @@ export function searchNodes(
   query: SearchQueryInput,
   limit = DEFAULT_SEARCH_RESULT_LIMIT,
 ): Node[] {
-  return searchNodesWithTotal(nodes, query, limit).results;
+  const normalizedLimit = normalizeSearchLimit(limit);
+  const rankedNodes = rankSearchMatches(nodes, query);
+  return rankedNodes.slice(0, normalizedLimit);
 }
