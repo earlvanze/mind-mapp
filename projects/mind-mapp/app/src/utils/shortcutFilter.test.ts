@@ -61,6 +61,10 @@ describe('filterShortcuts', () => {
     expect(filterShortcuts(SAMPLE, 'shift plus pageup').map(shortcut => shortcut.key)).toEqual(['Shift+PageUp']);
   });
 
+  it('matches repeated query terms after tokenizer dedupe', () => {
+    expect(filterShortcuts(SAMPLE, 'ctrl ctrl slash slash').map(shortcut => shortcut.key)).toEqual(['Cmd/Ctrl+/']);
+  });
+
   it('refreshes cached haystack when shortcut text changes', () => {
     const dynamic: Shortcut[] = [
       { key: 'Cmd/Ctrl+F', desc: 'focus search input' },

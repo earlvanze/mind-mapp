@@ -7,6 +7,9 @@ type ShortcutHaystackCacheEntry = {
 
 const shortcutHaystackCache = new WeakMap<Shortcut, ShortcutHaystackCacheEntry>();
 
+let lastShortcutQuery = '';
+let lastShortcutQueryTerms: string[] = [];
+
 function normalizeShortcutText(value: string): string {
   return value
     .toLowerCase()
@@ -43,10 +46,22 @@ function getShortcutHaystack(shortcut: Shortcut): string {
 
 export function tokenizeShortcutQuery(query: string): string[] {
   const normalizedQuery = normalizeShortcutText(query);
-  if (!normalizedQuery) return [];
+  if (normalizedQuery === lastShortcutQuery) {
+    return lastShortcutQueryTerms;
+  }
+
+  if (!normalizedQuery) {
+    lastShortcutQuery = normalizedQuery;
+    lastShortcutQueryTerms = [];
+    return lastShortcutQueryTerms;
+  }
 
   const terms = normalizedQuery.split(' ');
-  if (terms.length < 2) return terms;
+  if (terms.length < 2) {
+    lastShortcutQuery = normalizedQuery;
+    lastShortcutQueryTerms = terms;
+    return lastShortcutQueryTerms;
+  }
 
   const deduped: string[] = [];
   const seen = new Set<string>();
@@ -58,7 +73,9 @@ export function tokenizeShortcutQuery(query: string): string[] {
     deduped.push(term);
   }
 
-  return deduped;
+  lastShortcutQuery = normalizedQuery;
+  lastShortcutQueryTerms = deduped;
+  return lastShortcutQueryTerms;
 }
 
 function includesAllShortcutTerms(haystack: string, terms: string[]): boolean {

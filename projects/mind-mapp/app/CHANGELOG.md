@@ -192,6 +192,7 @@
 - Improved Help shortcut filtering with punctuation-agnostic multi-term matching + symbol/alias terms (e.g., ctrl slash, command slash, forward slash, question mark, shift plus pageup) and cached normalized haystacks
 - Added shared shortcut-query tokenizer utility + regression coverage for Help shortcut query normalization behavior
 - Deduplicated repeated normalized Help filter terms to avoid redundant per-term includes checks during shortcut matching
+- Added last-query token cache reuse in shortcut query tokenization to reduce repeated normalization/split work while typing the same Help filter value
 - Fixed Help shortcut alias normalization so forward slash/question mark queries avoid Cmd/Ctrl+F false positives while still matching Cmd/Ctrl+/
 - Unified search normalization logic in shared helper to keep search matching and highlighting behavior in lockstep
 - Marked current breadcrumb segment as aria-current/disabled to prevent redundant refocus clicks
