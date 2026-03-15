@@ -122,6 +122,14 @@ describe('searchNodes', () => {
     expect(results.length).toBe(Object.keys(nodes).length - 1);
   });
 
+  it('short-circuits contradictory include/exclude terms', () => {
+    expect(searchNodes(nodes, 'alpha -alpha')).toEqual([]);
+    expect(searchNodes(nodes, [
+      { value: 'alpha', negated: false },
+      { value: 'alpha', negated: true },
+    ])).toEqual([]);
+  });
+
   it('can match descendants by ancestor path terms', () => {
     const results = searchNodes(nodes, 'alpha');
     expect(results.map(node => node.id)).toEqual(['n_alpha', 'n_review']);

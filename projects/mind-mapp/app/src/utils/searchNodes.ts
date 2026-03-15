@@ -202,6 +202,22 @@ function splitSearchTerms(tokens: readonly SearchToken[]): { positiveTerms: stri
   return { positiveTerms, negativeTerms };
 }
 
+function hasTermOverlap(positiveTerms: readonly string[], negativeTerms: readonly string[]): boolean {
+  if (!positiveTerms.length || !negativeTerms.length) return false;
+
+  const smaller = positiveTerms.length <= negativeTerms.length ? positiveTerms : negativeTerms;
+  const larger = smaller === positiveTerms ? negativeTerms : positiveTerms;
+  const largerSet = new Set(larger);
+
+  for (let i = 0; i < smaller.length; i += 1) {
+    if (largerSet.has(smaller[i])) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function rankSearchMatches(
   nodes: Record<string, Node>,
   query: SearchQueryInput,
@@ -210,6 +226,8 @@ function rankSearchMatches(
   if (!tokens.length) return [];
 
   const { positiveTerms, negativeTerms } = splitSearchTerms(tokens);
+  if (hasTermOverlap(positiveTerms, negativeTerms)) return [];
+
   const phrase = positiveTerms.length ? positiveTerms.join(' ') : '';
   const searchIndex = getSearchIndex(nodes);
   const rankBuckets: [Node[], Node[], Node[], Node[], Node[]] = [[], [], [], [], []];
