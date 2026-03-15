@@ -313,9 +313,17 @@ body, html, #root {
   color: #98a2b3;
 }
 
+.help-results {
+  margin-top: 8px;
+}
+
+.help-results.is-pending {
+  cursor: progress;
+}
+
 .help-box ul {
   padding-left: 18px;
-  margin-top: 8px;
+  margin-top: 0;
   max-height: 260px;
   overflow: auto;
 }

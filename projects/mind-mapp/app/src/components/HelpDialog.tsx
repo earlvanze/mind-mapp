@@ -1,8 +1,9 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { HELP_DIALOG_ARIA_KEYSHORTCUTS, HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, HELP_INPUT_ARIA_KEYSHORTCUTS, filterShortcuts, FOCUS_NAV_HISTORY_SHORTCUT_KEYS, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, pickShortcutsByKeys, SHORTCUTS, shouldSkipDialogSelectShortcut } from '../utils';
+import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { HELP_DIALOG_ARIA_KEYSHORTCUTS, HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS, HELP_INPUT_ARIA_KEYSHORTCUTS, filterShortcuts, FOCUS_NAV_HISTORY_SHORTCUT_KEYS, formatHelpSummary, isDialogClearInputEvent, isDialogFocusInputEvent, isDialogSelectInputEvent, pickShortcutsByKeys, SHORTCUTS, shouldSkipDialogSelectShortcut } from '../utils';
 
 export default function HelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const titleId = useId();
   const summaryId = useId();
@@ -49,12 +50,17 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
   }, [open, onClose, query]);
 
   const filtered = useMemo(
-    () => filterShortcuts(SHORTCUTS, query),
-    [query],
+    () => filterShortcuts(SHORTCUTS, deferredQuery),
+    [deferredQuery],
   );
   const focusNavHistory = useMemo(
     () => pickShortcutsByKeys(SHORTCUTS, FOCUS_NAV_HISTORY_SHORTCUT_KEYS),
     [],
+  );
+  const isFilterPending = query !== deferredQuery;
+  const summaryText = useMemo(
+    () => formatHelpSummary(filtered.length, SHORTCUTS.length, isFilterPending),
+    [filtered.length, isFilterPending],
   );
 
   if (!open) return null;
@@ -103,17 +109,19 @@ export default function HelpDialog({ open, onClose }: { open: boolean; onClose: 
           onChange={(e) => setQuery(e.target.value)}
           autoFocus
         />
-        <div id={summaryId} className="help-meta" aria-live="polite">{filtered.length} / {SHORTCUTS.length} shown</div>
+        <div id={summaryId} className="help-meta" aria-live="polite">{summaryText}</div>
         <div id={hintId} className="help-hint">Esc: clear filter (or close when empty) • Cmd/Ctrl+Shift+K: clear filter • Cmd/Ctrl+F: focus filter • Cmd/Ctrl+A: select filter</div>
-        {filtered.length ? (
-          <ul>
-            {filtered.map(s => (
-              <li key={s.key}><b>{s.key}</b>: {s.desc}</li>
-            ))}
-          </ul>
-        ) : (
-          <div className="help-empty" role="status">No shortcuts match your filter.</div>
-        )}
+        <div className={`help-results ${isFilterPending ? 'is-pending' : ''}`} aria-busy={isFilterPending}>
+          {filtered.length ? (
+            <ul>
+              {filtered.map(s => (
+                <li key={s.key}><b>{s.key}</b>: {s.desc}</li>
+              ))}
+            </ul>
+          ) : (
+            <div className="help-empty" role="status">No shortcuts match your filter.</div>
+          )}
+        </div>
       </div>
     </div>
   );
