@@ -32,3 +32,4 @@ export * from './uiPrefs';
 export * from './version';
 export * from './viewMath';
 export * from './theme';
+export * from './shareLink';

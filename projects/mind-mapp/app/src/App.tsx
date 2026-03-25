@@ -6,7 +6,7 @@ import Edges from './components/Edges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, APP_VERSION, HELP_TOGGLE_ARIA_KEYSHORTCUTS, SEARCH_TOGGLE_ARIA_KEYSHORTCUTS } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, APP_VERSION, HELP_TOGGLE_ARIA_KEYSHORTCUTS, SEARCH_TOGGLE_ARIA_KEYSHORTCUTS, encodeShareLink, loadSharedMap, clearShareLink } from './utils';
 import MiniMap from './components/MiniMap';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
@@ -76,6 +76,17 @@ export default function App() {
   useEffect(() => {
     let next = recordFocus(focusHistoryRef.current, focusId);
     next = pruneFocusHistory(next, (id) => !!nodes[id], focusId);
+
+  // Load shared map from URL on mount
+  useEffect(() => {
+    const sharedNodes = loadSharedMap();
+    if (sharedNodes) {
+      importState(sharedNodes);
+      clearShareLink();
+      resetFocusHistoryTo('n_root');
+      setImportNotice({ text: `Loaded shared map with ${Object.keys(sharedNodes).length} nodes.`, kind: 'success' });
+    }
+  }, []);
     focusHistoryRef.current = next;
     saveFocusHistory(next);
   }, [focusId, nodes]);
@@ -541,6 +552,17 @@ export default function App() {
     }
   };
 
+  const createShareLink = async () => {
+    try {
+      const link = encodeShareLink(nodes);
+      await writeClipboard(link);
+      setImportNotice({ text: 'Share link copied to clipboard!', kind: 'success' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to create share link.';
+      setImportNotice({ text: message, kind: 'error' });
+    }
+  };
+
   return (
     <div className="app">
       <div className="toolbar" role="toolbar" aria-label="Mind Mapp actions" aria-orientation="horizontal">
@@ -750,6 +772,7 @@ export default function App() {
             />
           </label>
           <button title="Export JSON" aria-keyshortcuts="Control+S Meta+S" data-export="json" onClick={exportJson}>Export JSON</button>
+          <button title="Create shareable link (copies to clipboard)" aria-label="Create share link" onClick={createShareLink}>Share Link</button>
           <button title="Export Markdown" aria-keyshortcuts="Control+Shift+M Meta+Shift+M" data-export="markdown" onClick={() => exportMarkdownData(nodes)}>Export MD</button>
           <button title="Copy selected/focused node text (Cmd/Ctrl+Shift+C)" aria-keyshortcuts="Control+Shift+C Meta+Shift+C" onClick={copySelectionText}>Copy Sel</button>
           <button title="Copy focused subtree outline (Cmd/Ctrl+Shift+L)" aria-keyshortcuts="Control+Shift+L Meta+Shift+L" onClick={copySubtreeText}>Copy Tree</button>
