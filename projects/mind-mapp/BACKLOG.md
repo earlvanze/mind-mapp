@@ -36,10 +36,10 @@
 - [x] Touch/pinch zoom support
 - [x] Sample map loader
 
-## Performance Optimizations (Next Phase)
-- [ ] Canvas renderer for larger maps
-- [ ] Virtualization for very large maps
-- [ ] Lazy rendering for off-screen nodes
+## Performance Optimizations ✅ Complete
+- [x] Canvas renderer for larger maps
+- [x] Virtualization for very large maps (>500 nodes)
+- [x] Canvas + virtualization handles 1000+ nodes efficiently
 
 ## Future Enhancements
 - [ ] Collaborative editing (conflict-free replicated data types)
@@ -47,3 +47,7 @@
 - [ ] Mobile app (React Native)
 - [ ] Export to more formats (PDF, SVG, FreeMind)
 - [ ] Auto-layout algorithms (tree, radial, force-directed)
+- [ ] Node styling (colors, shapes, icons)
+- [ ] Rich text editing (bold, italic, lists)
+- [ ] Attachments (images, files, links)
+- [ ] Version history and branching
