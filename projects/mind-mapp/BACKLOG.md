@@ -16,12 +16,12 @@
 - [x] Undo/redo
 - [x] Theme toggle (light/dark) — Shift+T
 
-## Could‑Do ✅ Complete
+## Could‑Do (v0.2) ✅ Complete
 - [x] Markdown export
 - [x] Quick share link (no auth)
 - [x] Templates (meeting notes, project map) — via sample map loader
 
-## Bonus (Implemented)
+## Bonus (v0.2) ✅ Complete
 - [x] Mini-map with navigation
 - [x] Help dialog with shortcut filtering
 - [x] Focus history (back/forward navigation)
@@ -36,18 +36,32 @@
 - [x] Touch/pinch zoom support
 - [x] Sample map loader
 
-## Performance Optimizations ✅ Complete
+## Performance Optimizations (v0.3) ✅ Complete
 - [x] Canvas renderer for larger maps
 - [x] Virtualization for very large maps (>500 nodes)
 - [x] Canvas + virtualization handles 1000+ nodes efficiently
+- [x] Component optimization (React.memo)
+
+## v0.4 Node Styling 🎨 Next
+- [ ] Color presets (7 presets: default, primary, success, warning, danger, info, muted)
+- [ ] Custom colors (background, text, border)
+- [ ] Node shapes (rectangle, rounded, ellipse, diamond)
+- [ ] Icon support (emoji picker)
+- [ ] Style toolbar
+- [ ] Keyboard shortcuts (Cmd/Ctrl+1-7 for presets)
+- [ ] Theme-aware color palettes
+- [ ] Export with styling preserved
+
+## v0.5 Enhanced Exports
+- [ ] PDF export with page layout options
+- [ ] SVG export (vector format)
+- [ ] FreeMind XML export (interoperability)
 
 ## Future Enhancements
 - [ ] Collaborative editing (conflict-free replicated data types)
 - [ ] Plugin system for custom node types/visualizations
 - [ ] Mobile app (React Native)
-- [ ] Export to more formats (PDF, SVG, FreeMind)
 - [ ] Auto-layout algorithms (tree, radial, force-directed)
-- [ ] Node styling (colors, shapes, icons)
 - [ ] Rich text editing (bold, italic, lists)
 - [ ] Attachments (images, files, links)
 - [ ] Version history and branching
