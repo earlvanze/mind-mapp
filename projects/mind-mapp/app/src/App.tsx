@@ -3,6 +3,7 @@ import { useMindMapStore, saveState } from './store/useMindMapStore';
 import { loadTheme, saveTheme, applyTheme, toggleTheme, type Theme } from './utils/theme';
 import Node from './components/Node';
 import Edges from './components/Edges';
+import CanvasEdges from './components/CanvasEdges';
 import { useKeyboard } from './hooks/useKeyboard';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
@@ -19,6 +20,7 @@ export default function App() {
   const [showGrid, setShowGrid] = useState(false);
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
+  const [useCanvasRenderer, setUseCanvasRenderer] = useState(false);
   const [theme, setTheme] = useState<Theme>(() => {
     const t = loadTheme();
     applyTheme(t);
@@ -35,11 +37,12 @@ export default function App() {
     if (typeof prefs.showGrid === 'boolean') setShowGrid(prefs.showGrid);
     if (typeof prefs.showMiniMap === 'boolean') setShowMiniMap(prefs.showMiniMap);
     if (typeof prefs.showAdvancedActions === 'boolean') setShowAdvancedActions(prefs.showAdvancedActions);
+    if (typeof prefs.rendererMode === 'string') setUseCanvasRenderer(prefs.rendererMode === 'canvas');
   }, []);
 
   useEffect(() => {
-    saveUiPrefs({ showGrid, showMiniMap, showAdvancedActions });
-  }, [showGrid, showMiniMap, showAdvancedActions]);
+    saveUiPrefs({ showGrid, showMiniMap, showAdvancedActions, rendererMode: useCanvasRenderer ? 'canvas' : 'svg' });
+  }, [showGrid, showMiniMap, showAdvancedActions, useCanvasRenderer]);
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -699,6 +702,7 @@ export default function App() {
           <button title={canFocusHistoryEnd ? `Jump to newest focus in history (Alt+Shift+End): ${historyEndLabel}` : 'Already at newest focus history entry'} aria-keyshortcuts="Alt+Shift+End" onClick={focusHistoryEnd} disabled={!canFocusHistoryEnd}>Hist End</button>
           <button title={focusHistoryCount > 1 ? 'Reset focus history to current node (Alt+Shift+Q)' : 'Focus history already reset'} aria-keyshortcuts="Alt+Shift+Q" onClick={resetFocusHistoryNow} disabled={focusHistoryCount <= 1}>Reset Hist</button>
           <button title="Toggle grid overlay (Shift+G)" aria-pressed={showGrid} aria-keyshortcuts="Shift+G" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
+          <button title="Toggle Canvas Renderer (better performance for large maps)" aria-pressed={useCanvasRenderer} onClick={() => setUseCanvasRenderer(v => !v)}>{useCanvasRenderer ? "Canvas" : "SVG"}</button>
           <button
             title="Toggle mini-map (Shift+M)"
             aria-pressed={showMiniMap}
@@ -812,7 +816,7 @@ export default function App() {
         </div>
       </div>
       <div className={`canvas ${showGrid ? 'grid-on' : ''}`}>
-        <Edges nodes={nodes} />
+        {useCanvasRenderer ? <CanvasEdges nodes={nodes} /> : <Edges nodes={nodes} />}
         {Object.values(nodes).map(n => (
           <Node key={n.id} node={n} isFocused={focusId === n.id} isSelected={selectedIds.includes(n.id)} isEditing={editingId === n.id} />
         ))}

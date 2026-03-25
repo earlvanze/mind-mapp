@@ -4,6 +4,7 @@ export type UiPrefs = {
   showGrid: boolean;
   showAdvancedActions: boolean;
   showMiniMap: boolean;
+  rendererMode: 'svg' | 'canvas';
 };
 
 export function loadUiPrefs(): Partial<UiPrefs> | null {
