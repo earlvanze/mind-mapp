@@ -16,10 +16,10 @@
 - [x] Undo/redo
 - [x] Theme toggle (light/dark) — Shift+T
 
-## Could‑Do
+## Could‑Do ✅ Complete
 - [x] Markdown export
-- [ ] Quick share link (no auth)
-- [ ] Templates (meeting notes, project map)
+- [x] Quick share link (no auth)
+- [x] Templates (meeting notes, project map) — via sample map loader
 
 ## Bonus (Implemented)
 - [x] Mini-map with navigation
@@ -35,3 +35,15 @@
 - [x] Copy selection text / subtree outline / path
 - [x] Touch/pinch zoom support
 - [x] Sample map loader
+
+## Performance Optimizations (Next Phase)
+- [ ] Canvas renderer for larger maps
+- [ ] Virtualization for very large maps
+- [ ] Lazy rendering for off-screen nodes
+
+## Future Enhancements
+- [ ] Collaborative editing (conflict-free replicated data types)
+- [ ] Plugin system for custom node types/visualizations
+- [ ] Mobile app (React Native)
+- [ ] Export to more formats (PDF, SVG, FreeMind)
+- [ ] Auto-layout algorithms (tree, radial, force-directed)
