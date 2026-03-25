@@ -1,14 +1,17 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import { Node as NodeType, useMindMapStore } from '../store/useMindMapStore';
 
-type Props = { node: NodeType };
+type Props = { 
+  node: NodeType;
+  isFocused: boolean;
+  isSelected: boolean;
+  isEditing: boolean;
+};
 
-export default function Node({ node }: Props) {
+function Node({ node, isFocused, isSelected, isEditing }: Props) {
   const {
     nodes,
-    focusId,
     selectedIds,
-    editingId,
     setFocus,
     toggleSelection,
     startEditing,
@@ -19,7 +22,7 @@ export default function Node({ node }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (editingId === node.id) {
+    if (isEditing) {
       ref.current?.focus();
       const range = document.createRange();
       const selection = window.getSelection();
@@ -28,7 +31,7 @@ export default function Node({ node }: Props) {
       selection?.removeAllRanges();
       selection?.addRange(range);
     }
-  }, [editingId, node.id]);
+  }, [isEditing]);
 
   const onDragStart = (e: React.MouseEvent) => {
     const startX = e.clientX;
@@ -82,9 +85,6 @@ export default function Node({ node }: Props) {
     window.addEventListener('mouseup', onUp);
   };
 
-  const isFocused = focusId === node.id;
-  const isSelected = selectedIds.includes(node.id);
-
   return (
     <div
       ref={ref}
@@ -93,7 +93,7 @@ export default function Node({ node }: Props) {
       onMouseDown={(e) => {
         if (e.shiftKey) return;
         if (e.metaKey || e.ctrlKey) return;
-        if (editingId === node.id) return;
+        if (isEditing) return;
         onDragStart(e);
       }}
       onClick={(e) => {
@@ -104,7 +104,7 @@ export default function Node({ node }: Props) {
         setFocus(node.id);
       }}
       onDoubleClick={() => startEditing(node.id)}
-      contentEditable={editingId === node.id}
+      contentEditable={isEditing}
       suppressContentEditableWarning
       onKeyDown={(e) => {
         if (e.key === 'Enter') {
@@ -122,3 +122,19 @@ export default function Node({ node }: Props) {
     </div>
   );
 }
+
+// Memoize to prevent unnecessary re-renders when other nodes change
+export default memo(Node, (prev, next) => {
+  // Re-render only if the node data or state flags change
+  return (
+    prev.node.id === next.node.id &&
+    prev.node.text === next.node.text &&
+    prev.node.x === next.node.x &&
+    prev.node.y === next.node.y &&
+    prev.node.parentId === next.node.parentId &&
+    prev.node.children.length === next.node.children.length &&
+    prev.isFocused === next.isFocused &&
+    prev.isSelected === next.isSelected &&
+    prev.isEditing === next.isEditing
+  );
+});
