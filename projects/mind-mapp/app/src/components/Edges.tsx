@@ -1,7 +1,8 @@
+import { memo } from 'react';
 import { Node } from '../store/useMindMapStore';
 import { edgePath } from '../utils/edgePath';
 
-export default function Edges({ nodes }: { nodes: Record<string, Node> }) {
+function Edges({ nodes }: { nodes: Record<string, Node> }) {
   const paths: { d: string; key: string }[] = [];
   Object.values(nodes).forEach((n) => {
     n.children.forEach((cid) => {
@@ -27,3 +28,29 @@ export default function Edges({ nodes }: { nodes: Record<string, Node> }) {
     </svg>
   );
 }
+
+// Memoize to prevent edge recalculation when only focus/selection changes
+// Re-render only when node positions or structure actually change
+export default memo(Edges, (prev, next) => {
+  const prevNodes = Object.values(prev.nodes);
+  const nextNodes = Object.values(next.nodes);
+  
+  // Different number of nodes = structure changed
+  if (prevNodes.length !== nextNodes.length) return false;
+  
+  // Check if any node moved or changed children
+  for (const node of nextNodes) {
+    const prevNode = prev.nodes[node.id];
+    if (!prevNode) return false; // New node
+    
+    if (prevNode.x !== node.x || prevNode.y !== node.y) return false; // Position changed
+    
+    // Check if children array changed
+    if (prevNode.children.length !== node.children.length) return false;
+    for (let i = 0; i < node.children.length; i++) {
+      if (prevNode.children[i] !== node.children[i]) return false;
+    }
+  }
+  
+  return true; // No relevant changes
+});
