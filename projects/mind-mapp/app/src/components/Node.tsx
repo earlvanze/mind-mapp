@@ -1,5 +1,7 @@
 import { useEffect, useRef, memo } from 'react';
 import { Node as NodeType, useMindMapStore } from '../store/useMindMapStore';
+import { resolveStyle, FONT_SIZE_MAP } from '../utils/nodeStyles';
+import { loadTheme } from '../utils/theme';
 
 type Props = { 
   node: NodeType;
@@ -85,11 +87,40 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
     window.addEventListener('mouseup', onUp);
   };
 
+  const theme = loadTheme();
+  const resolved = resolveStyle(node.style, theme);
+  const focusColor = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim() || '#4f46e5';
+
+  const nodeStyle: React.CSSProperties = {
+    left: node.x,
+    top: node.y,
+    minWidth: 60,
+    backgroundColor: resolved.bg,
+    color: resolved.text,
+    borderColor: isFocused ? focusColor : (isSelected ? focusColor : resolved.border),
+    borderWidth: isFocused || isSelected ? 2 : resolved.borderWidth,
+    fontSize: resolved.fontSize,
+    borderRadius: resolved.shape === 'ellipse' ? '50%'
+               : resolved.shape === 'rounded' ? '8px'
+               : resolved.shape === 'diamond' ? '0'
+               : '4px',
+    borderStyle: 'solid',
+    transform: resolved.shape === 'diamond' ? 'rotate(45deg)' : undefined,
+    transformOrigin: 'center center',
+    display: 'flex',
+    alignItems: 'center',
+    gap: resolved.icon ? '4px' : undefined,
+  };
+
+  const textStyle: React.CSSProperties = {
+    transform: resolved.shape === 'diamond' ? 'rotate(-45deg)' : undefined,
+  };
+
   return (
     <div
       ref={ref}
       className={`node ${isFocused ? 'focused' : ''} ${isSelected ? 'selected' : ''}`}
-      style={{ left: node.x, top: node.y, minWidth: 60 }}
+      style={nodeStyle}
       onMouseDown={(e) => {
         if (e.shiftKey) return;
         if (e.metaKey || e.ctrlKey) return;
@@ -118,14 +149,13 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
         (e.currentTarget as HTMLElement).contentEditable = 'false';
       }}
     >
-      {node.text}
+      {resolved.icon ? <span style={{ fontSize: '1em', lineHeight: 1 }}>{resolved.icon}</span> : null}
+      <span style={textStyle}>{node.text}</span>
     </div>
   );
 }
 
-// Memoize to prevent unnecessary re-renders when other nodes change
 export default memo(Node, (prev, next) => {
-  // Re-render only if the node data or state flags change
   return (
     prev.node.id === next.node.id &&
     prev.node.text === next.node.text &&
@@ -135,6 +165,7 @@ export default memo(Node, (prev, next) => {
     prev.node.children.length === next.node.children.length &&
     prev.isFocused === next.isFocused &&
     prev.isSelected === next.isSelected &&
-    prev.isEditing === next.isEditing
+    prev.isEditing === next.isEditing &&
+    prev.node.style === next.node.style
   );
 });

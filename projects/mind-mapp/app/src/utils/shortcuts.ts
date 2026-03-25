@@ -94,8 +94,16 @@ export const SHORTCUTS: Shortcut[] = [
   { key: '=/+', desc: 'zoom in' },
   { key: '-', desc: 'zoom out' },
   { key: '0', desc: 'reset pan/zoom view' },
+  { key: 'Cmd/Ctrl+1', desc: 'apply color preset 1 (Default)' },
+  { key: 'Cmd/Ctrl+2', desc: 'apply color preset 2 (Primary)' },
+  { key: 'Cmd/Ctrl+3', desc: 'apply color preset 3 (Success)' },
+  { key: 'Cmd/Ctrl+4', desc: 'apply color preset 4 (Warning)' },
+  { key: 'Cmd/Ctrl+5', desc: 'apply color preset 5 (Danger)' },
+  { key: 'Cmd/Ctrl+6', desc: 'apply color preset 6 (Info)' },
+  { key: 'Cmd/Ctrl+7', desc: 'apply color preset 7 (Muted)' },
+  { key: 'Cmd/Ctrl+0', desc: 'reset node style to default' },
+  { key: 'Cmd/Ctrl+Shift+R', desc: 'reset node style to default' },
   { key: '?', desc: 'toggle help dialog' },
-  { key: 'Cmd/Ctrl+/', desc: 'toggle help dialog' }
 ];
 
 export const FOCUS_NAV_HISTORY_SHORTCUT_KEYS: string[] = [

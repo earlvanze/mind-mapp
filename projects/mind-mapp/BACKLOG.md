@@ -42,15 +42,15 @@
 - [x] Canvas + virtualization handles 1000+ nodes efficiently
 - [x] Component optimization (React.memo)
 
-## v0.4 Node Styling 🎨 Next
-- [ ] Color presets (7 presets: default, primary, success, warning, danger, info, muted)
-- [ ] Custom colors (background, text, border)
-- [ ] Node shapes (rectangle, rounded, ellipse, diamond)
-- [ ] Icon support (emoji picker)
-- [ ] Style toolbar
-- [ ] Keyboard shortcuts (Cmd/Ctrl+1-7 for presets)
-- [ ] Theme-aware color palettes
-- [ ] Export with styling preserved
+## v0.4 Node Styling 🎨 ✅ Complete
+- [x] Color presets (7 presets: default, primary, success, warning, danger, info, muted)
+- [x] Custom colors (background, text, border)
+- [x] Node shapes (rectangle, rounded, ellipse, diamond)
+- [x] Icon support (emoji picker)
+- [x] Style toolbar
+- [x] Keyboard shortcuts (Cmd/Ctrl+1-7 for presets)
+- [x] Theme-aware color palettes
+- [x] Export with styling preserved
 
 ## v0.5 Enhanced Exports
 - [ ] PDF export with page layout options

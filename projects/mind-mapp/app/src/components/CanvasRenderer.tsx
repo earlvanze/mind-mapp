@@ -1,5 +1,7 @@
 import { useEffect, useRef, memo, useCallback } from 'react';
 import { Node, useMindMapStore } from '../store/useMindMapStore';
+import { resolveStyle, resolvePreset } from '../utils/nodeStyles';
+import { loadTheme } from '../utils/theme';
 
 type Props = {
   nodes: Record<string, Node>;
@@ -12,10 +14,6 @@ type Props = {
   onDragStart: (id: string, x: number, y: number) => void;
 };
 
-/**
- * Full canvas-based renderer for high-performance maps (>1000 nodes)
- * Renders both nodes and edges on canvas, with DOM overlay for text editing
- */
 function CanvasRenderer({
   nodes,
   focusId,
@@ -31,7 +29,8 @@ function CanvasRenderer({
   const rafRef = useRef<number>();
   const hitMapRef = useRef<Map<string, { x: number; y: number; width: number; height: number }>>(new Map());
 
-  // Render loop
+  const theme = loadTheme();
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -43,40 +42,29 @@ function CanvasRenderer({
       const rect = canvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
 
-      // Set canvas size
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
       ctx.scale(dpr, dpr);
 
-      // Clear
       ctx.clearRect(0, 0, rect.width, rect.height);
 
-      // Apply viewport transform
       ctx.save();
       ctx.translate(viewport.x, viewport.y);
       ctx.scale(viewport.scale, viewport.scale);
 
-      // Draw edges first (behind nodes)
       drawEdges(ctx, nodes);
-
-      // Draw nodes and build hit map
-      hitMapRef.current.clear();
-      drawNodes(ctx, nodes, focusId, selectedIds, editingId, hitMapRef.current);
+      drawNodes(ctx, nodes, focusId, selectedIds, editingId, hitMapRef.current, theme);
 
       ctx.restore();
     };
 
     render();
 
-    // Cancel any pending frame
     return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [nodes, viewport, focusId, selectedIds, editingId]);
+  }, [nodes, viewport, focusId, selectedIds, editingId, theme]);
 
-  // Handle canvas interactions
   const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -85,7 +73,6 @@ function CanvasRenderer({
     const x = (e.clientX - rect.left - viewport.x) / viewport.scale;
     const y = (e.clientY - rect.top - viewport.y) / viewport.scale;
 
-    // Find clicked node
     for (const [id, bounds] of hitMapRef.current.entries()) {
       if (x >= bounds.x && x <= bounds.x + bounds.width &&
           y >= bounds.y && y <= bounds.y + bounds.height) {
@@ -103,7 +90,6 @@ function CanvasRenderer({
     const x = (e.clientX - rect.left - viewport.x) / viewport.scale;
     const y = (e.clientY - rect.top - viewport.y) / viewport.scale;
 
-    // Find clicked node
     for (const [id, bounds] of hitMapRef.current.entries()) {
       if (x >= bounds.x && x <= bounds.x + bounds.width &&
           y >= bounds.y && y <= bounds.y + bounds.height) {
@@ -123,7 +109,6 @@ function CanvasRenderer({
     const x = (e.clientX - rect.left - viewport.x) / viewport.scale;
     const y = (e.clientY - rect.top - viewport.y) / viewport.scale;
 
-    // Find node under mouse
     for (const [id, bounds] of hitMapRef.current.entries()) {
       if (x >= bounds.x && x <= bounds.x + bounds.width &&
           y >= bounds.y && y <= bounds.y + bounds.height) {
@@ -152,7 +137,6 @@ function CanvasRenderer({
         onDoubleClick={handleCanvasDoubleClick}
         onMouseDown={handleCanvasMouseDown}
       />
-      {/* Overlay for text editing */}
       {editingId && nodes[editingId] && (
         <div
           ref={overlayRef}
@@ -187,10 +171,9 @@ function CanvasRenderer({
   );
 }
 
-// Draw all edges between parent and child nodes
 function drawEdges(ctx: CanvasRenderingContext2D, nodes: Record<string, Node>) {
   const edgeColor = getComputedStyle(document.documentElement).getPropertyValue('--color-border').trim() || '#9aa4b2';
-  
+
   ctx.strokeStyle = edgeColor;
   ctx.lineWidth = 2;
   ctx.lineCap = 'round';
@@ -201,18 +184,14 @@ function drawEdges(ctx: CanvasRenderingContext2D, nodes: Record<string, Node>) {
       const child = nodes[childId];
       if (!child) return;
 
-      // Measure node text to get accurate width
-      const nodeWidth = Math.max(60, measureTextWidth(ctx, node.text) + 20);
+      const nodeWidth = Math.max(60, measureTextWidth(ctx, node.text, 13) + 20);
 
-      // Parent center-right (anchor point)
       const x1 = node.x + nodeWidth;
       const y1 = node.y + 16;
 
-      // Child center-left (target point)
       const x2 = child.x;
       const y2 = child.y + 16;
 
-      // Draw cubic bezier curve
       const cp1x = x1 + (x2 - x1) * 0.5;
       const cp1y = y1;
       const cp2x = x1 + (x2 - x1) * 0.5;
@@ -223,13 +202,11 @@ function drawEdges(ctx: CanvasRenderingContext2D, nodes: Record<string, Node>) {
       ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x2, y2);
       ctx.stroke();
 
-      // Draw arrow at child end
       drawArrow(ctx, x2, y2, cp2x, cp2y, edgeColor);
     });
   });
 }
 
-// Draw arrow marker at end of edge
 function drawArrow(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -256,90 +233,104 @@ function drawArrow(
   ctx.restore();
 }
 
-// Draw all nodes and populate hit map
 function drawNodes(
   ctx: CanvasRenderingContext2D,
   nodes: Record<string, Node>,
   focusId: string,
   selectedIds: string[],
   editingId: string | undefined,
-  hitMap: Map<string, { x: number; y: number; width: number; height: number }>
+  hitMap: Map<string, { x: number; y: number; width: number; height: number }>,
+  theme: 'light' | 'dark',
 ) {
-  const nodeColor = getComputedStyle(document.documentElement).getPropertyValue('--color-surface').trim() || '#ffffff';
-  const nodeBorder = getComputedStyle(document.documentElement).getPropertyValue('--color-border').trim() || '#ccc';
   const focusColor = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim() || '#4f46e5';
-  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--color-text').trim() || '#111';
-  const shadowColor = getComputedStyle(document.documentElement).getPropertyValue('--color-shadow').trim() || 'rgba(0,0,0,0.06)';
 
-  ctx.font = '13px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
   ctx.textBaseline = 'middle';
 
   Object.values(nodes).forEach((node) => {
-    // Skip editing node (rendered by overlay)
     if (editingId === node.id) return;
 
     const isFocused = focusId === node.id;
     const isSelected = selectedIds.includes(node.id);
 
-    // Measure text width
-    const textWidth = measureTextWidth(ctx, node.text);
+    const resolved = resolveStyle(node.style, theme);
+    const fontSize = resolved.fontSize;
+    ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+
+    const textWidth = measureTextWidth(ctx, node.text, fontSize);
     const width = Math.max(60, textWidth + 20);
     const height = 32;
 
-    // Store hit bounds
     hitMap.set(node.id, { x: node.x, y: node.y, width, height });
 
-    // Draw shadow
-    ctx.fillStyle = shadowColor;
+    const borderColor = isFocused || isSelected ? focusColor : resolved.border;
+    const borderWidth = isFocused || isSelected ? 2 : resolved.borderWidth;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.06)';
     ctx.fillRect(node.x + 1, node.y + 2, width, height);
 
-    // Draw node background with rounded corners
-    ctx.fillStyle = nodeColor;
-    roundRect(ctx, node.x, node.y, width, height, 8);
+    // Background
+    ctx.fillStyle = resolved.bg;
+    drawShape(ctx, resolved.shape, node.x, node.y, width, height);
     ctx.fill();
 
-    // Draw border
-    ctx.strokeStyle = isFocused ? focusColor : (isSelected ? focusColor : nodeBorder);
-    ctx.lineWidth = isFocused ? 2 : (isSelected ? 2 : 1);
-    roundRect(ctx, node.x, node.y, width, height, 8);
+    // Border
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = borderWidth;
+    drawShape(ctx, resolved.shape, node.x, node.y, width, height);
     ctx.stroke();
 
-    // Draw text
-    ctx.fillStyle = textColor;
-    ctx.fillText(node.text, node.x + 10, node.y + height / 2);
+    // Icon + Text
+    const iconText = resolved.icon ? resolved.icon + ' ' : '';
+    const fullText = iconText + node.text;
+    ctx.fillStyle = resolved.text;
+    ctx.fillText(fullText, node.x + 10, node.y + height / 2);
   });
 }
 
-// Draw rounded rectangle
-function roundRect(
+function drawShape(
   ctx: CanvasRenderingContext2D,
+  shape: string,
   x: number,
   y: number,
   width: number,
   height: number,
-  radius: number
 ) {
   ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + width - radius, y);
-  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-  ctx.lineTo(x + width, y + height - radius);
-  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  ctx.lineTo(x + radius, y + height);
-  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-  ctx.lineTo(x, y + radius);
-  ctx.quadraticCurveTo(x, y, x + radius, y);
-  ctx.closePath();
+  if (shape === 'ellipse') {
+    ctx.ellipse(x + width / 2, y + height / 2, width / 2, height / 2, 0, 0, Math.PI * 2);
+  } else if (shape === 'diamond') {
+    ctx.moveTo(x + width / 2, y);
+    ctx.lineTo(x + width, y + height / 2);
+    ctx.lineTo(x + width / 2, y + height);
+    ctx.lineTo(x, y + height / 2);
+    ctx.closePath();
+  } else if (shape === 'rounded') {
+    const r = Math.min(8, width / 4, height / 4);
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + width - r, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+    ctx.lineTo(x + width, y + height - r);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+    ctx.lineTo(x + r, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  } else {
+    // rectangle
+    ctx.rect(x, y, width, height);
+  }
 }
 
-// Measure text width (cached for performance)
 const textWidthCache = new Map<string, number>();
-function measureTextWidth(ctx: CanvasRenderingContext2D, text: string): number {
-  const cached = textWidthCache.get(text);
+function measureTextWidth(ctx: CanvasRenderingContext2D, text: string, fontSize: number): number {
+  const key = `${fontSize}:${text}`;
+  const cached = textWidthCache.get(key);
   if (cached !== undefined) return cached;
 
   const width = ctx.measureText(text).width;
-  textWidthCache.set(text, width);
+  textWidthCache.set(key, width);
   return width;
 }
 
