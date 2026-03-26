@@ -61,7 +61,7 @@
 - [ ] Collaborative editing (conflict-free replicated data types)
 - [ ] Plugin system for custom node types/visualizations
 - [ ] Mobile app (React Native)
-- [ ] Auto-layout algorithms (tree, radial, force-directed)
+- [x] Auto-layout algorithms (tree, radial) — L key cycles tree ↔ radial
 - [ ] Rich text editing (bold, italic, lists)
 - [ ] Attachments (images, files, links)
 - [ ] Version history and branching

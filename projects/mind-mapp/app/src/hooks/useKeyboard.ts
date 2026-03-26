@@ -46,7 +46,7 @@ type Props = {
 };
 
 export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, suspended = false }: Props) {
-  const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing, setSelectedStyle, selectedIds } = useMindMapStore();
+  const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, editingId, startEditing, setSelectedStyle, selectedIds } = useMindMapStore();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -158,7 +158,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
       if (e.shiftKey && e.key.toLowerCase() === 'k' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusSubtreeLastLeaf(); return; }
       if (e.shiftKey && (e.key === '<' || e.key === ',') && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusPrevLeaf(); return; }
       if (e.shiftKey && (e.key === '>' || e.key === '.') && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusNextLeaf(); return; }
-      if (e.key.toLowerCase() === 'l' && !e.metaKey && !e.ctrlKey && !e.shiftKey) { autoLayoutChildren(focusId); return; }
+      if (e.key.toLowerCase() === 'l' && !e.metaKey && !e.ctrlKey && !e.shiftKey) { setLayoutMode(useMindMapStore.getState().layoutMode === 'tree' ? 'radial' : 'tree'); autoLayout(focusId); return; }
       if (e.key.toLowerCase() === 'e') { startEditing(focusId); return; }
       if (isHelpToggleEvent(e, typingTarget)) { e.preventDefault(); onHelp(); return; }
       if (e.key === 'Enter') { e.preventDefault(); addSibling(focusId); return; }
@@ -191,7 +191,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
     selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves,
     selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors,
     selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection,
-    snapSelectionToGrid, mirrorSelection, autoLayoutChildren, nudgeSelected, editingId, startEditing,
+    snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, editingId, startEditing,
     setSelectedStyle, selectedIds,
     onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView,
     onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild,

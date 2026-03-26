@@ -1,3 +1,4 @@
+import { computeLayout, LayoutMode } from '../utils/treeLayout';
 import { create } from 'zustand';
 import { loadFromStorage, saveToStorage, uid } from '../utils';
 
@@ -38,6 +39,9 @@ type MindMapState = {
   future: Snapshot[];
   canUndo: boolean;
   canRedo: boolean;
+  layoutMode: LayoutMode;
+  autoLayout: (rootId?: string) => void;
+  setLayoutMode: (mode: LayoutMode) => void;
   setText: (id: string, text: string) => void;
   setFocus: (id: string) => void;
   toggleSelection: (id: string) => void;
@@ -118,6 +122,7 @@ const defaultState = {
   future: [] as Snapshot[],
   canUndo: false,
   canRedo: false,
+  layoutMode: 'tree' as LayoutMode,
 };
 
 function loadState() {
@@ -929,6 +934,24 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
     children.forEach((child, i) => {
       updatedNodes[child.id] = { ...updatedNodes[child.id], x: parent.x + 180, y: startY + i * 80 };
     });
+    set(s => ({ ...withHistory(s), nodes: updatedNodes }));
+  },
+  setLayoutMode: mode => set({ layoutMode: mode }),
+  autoLayout: (rootId) => {
+    const state = get();
+    const id = rootId ?? state.focusId;
+    if (!id) return;
+    const positions = computeLayout(id, state.nodes, state.layoutMode);
+    if (!Object.keys(positions).length) return;
+    // Center the layout around the current focus node's position
+    const focusNode = state.nodes[id];
+    const focusPos = positions[id] ?? { x: 0, y: 0 };
+    const offsetX = focusNode ? focusNode.x - focusPos.x : 0;
+    const offsetY = focusNode ? focusNode.y - focusPos.y : 0;
+    const updatedNodes: Record<string, Node> = {};
+    for (const [nid, pos] of Object.entries(positions)) {
+      updatedNodes[nid] = { ...state.nodes[nid], x: pos.x + offsetX, y: pos.y + offsetY };
+    }
     set(s => ({ ...withHistory(s), nodes: updatedNodes }));
   },
   undo: () =>
