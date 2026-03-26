@@ -21,7 +21,7 @@ const SHORTCUT_LABELS = ['1','2','3','4','5','6','7'] as const;
 
 export default function StyleToolbar({ theme }: Props) {
   const { selectedIds, setSelectedStyle, nodes } = useMindMapStore();
-  const [openPicker, setOpenPicker] = useState<'color' | 'shape' | 'icon' | 'image' | null>(null);
+  const [openPicker, setOpenPicker] = useState<'color' | 'shape' | 'icon' | 'image' | 'link' | null>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
 
   const hasSelection = selectedIds.length > 0;
@@ -76,6 +76,18 @@ export default function StyleToolbar({ theme }: Props) {
   const removeImage = () => {
     if (!hasSelection) return;
     setSelectedStyle({ imageUrl: undefined });
+    setOpenPicker(null);
+  };
+
+  const applyLink = (linkUrl: string) => {
+    if (!hasSelection) return;
+    setSelectedStyle({ linkUrl });
+    setOpenPicker(null);
+  };
+
+  const removeLink = () => {
+    if (!hasSelection) return;
+    setSelectedStyle({ linkUrl: undefined });
     setOpenPicker(null);
   };
 
@@ -247,6 +259,65 @@ export default function StyleToolbar({ theme }: Props) {
     </div>
   );
 
+  const renderLinkPicker = () => (
+    <div className="style-picker-content">
+      <div className="style-picker-section">
+        <span className="style-picker-label">External Link</span>
+        <p style={{ fontSize: 12, color: 'inherit', opacity: 0.7, margin: '4px 0 8px' }}>
+          Attach a URL to this node — click the 🔗 indicator to open it.
+        </p>
+      </div>
+      <div className="style-picker-section">
+        <span className="style-picker-label">URL</span>
+        <input
+          type="url"
+          className="style-text-input"
+          placeholder="https://..."
+          defaultValue={currentStyle?.linkUrl || ''}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              const val = (e.target as HTMLInputElement).value;
+              if (val) applyLink(val);
+            }
+          }}
+          aria-label="Link URL"
+        />
+        <button
+          className="style-action-btn"
+          style={{ marginTop: 6 }}
+          onClick={(e) => {
+            const picker = (e.currentTarget as HTMLElement).closest('.style-picker-content');
+            const input = picker?.querySelector('input[type=url]') as HTMLInputElement | null;
+            if (input?.value) applyLink(input.value);
+          }}
+        >
+          Apply Link
+        </button>
+      </div>
+      {currentStyle?.linkUrl && (
+        <div className="style-picker-section">
+          <span className="style-picker-label">Current</span>
+          <a
+            href={currentStyle.linkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ fontSize: 12, wordBreak: 'break-all', color: '#3b82f6' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {currentStyle.linkUrl}
+          </a>
+          <button
+            className="style-action-btn"
+            style={{ marginTop: 6, background: '#ef4444', color: '#fff' }}
+            onClick={removeLink}
+          >
+            Remove Link
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   const EMOJI_OPTIONS = ['🔥','⭐','💡','✅','❌','⚠️','📌','📝','🎯','🚀','💰','🏠','📊','🔧','🌟','💬','📈','🛠️','🎨','✨'];
 
   const renderIconPicker = () => (
@@ -351,6 +422,25 @@ export default function StyleToolbar({ theme }: Props) {
         )}
       </div>
 
+
+      {/* Link */}
+      <div className="style-toolbar-group">
+        <button
+          className={`style-toolbar-btn ${openPicker === 'link' ? 'active' : ''}`}
+          title="Attach link"
+          aria-haspopup="true"
+          aria-expanded={openPicker === 'link'}
+          onClick={() => setOpenPicker(o => o === 'link' ? null : 'link')}
+          disabled={!hasSelection}
+        >
+          <span aria-hidden="true">🔗</span> Link
+        </button>
+        {openPicker === 'link' && (
+          <div className="style-picker" role="dialog" aria-label="Link picker">
+            {renderLinkPicker()}
+          </div>
+        )}
+      </div>
 
       {/* Reset */}
       <button

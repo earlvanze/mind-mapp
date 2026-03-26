@@ -12,6 +12,7 @@ type Props = {
   onNodeClick: (id: string, metaKey: boolean, ctrlKey: boolean) => void;
   onNodeDoubleClick: (id: string) => void;
   onDragStart: (id: string, x: number, y: number) => void;
+  onLinkClick: (url: string) => void;
 };
 
 function CanvasRenderer({
@@ -23,11 +24,13 @@ function CanvasRenderer({
   onNodeClick,
   onNodeDoubleClick,
   onDragStart,
+  onLinkClick,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>();
   const hitMapRef = useRef<Map<string, { x: number; y: number; width: number; height: number }>>(new Map());
+  const linkHitMapRef = useRef<Map<string, { x: number; y: number; width: number; height: number; url: string }>>(new Map());
 
   const theme = loadTheme();
 
@@ -73,6 +76,15 @@ function CanvasRenderer({
     const x = (e.clientX - rect.left - viewport.x) / viewport.scale;
     const y = (e.clientY - rect.top - viewport.y) / viewport.scale;
 
+    // Check link hit area first (overrides node click)
+    for (const [id, linkBounds] of linkHitMapRef.current.entries()) {
+      if (x >= linkBounds.x && x <= linkBounds.x + linkBounds.width &&
+          y >= linkBounds.y && y <= linkBounds.y + linkBounds.height) {
+        onLinkClick(linkBounds.url);
+        return;
+      }
+    }
+    // Then check node hit area
     for (const [id, bounds] of hitMapRef.current.entries()) {
       if (x >= bounds.x && x <= bounds.x + bounds.width &&
           y >= bounds.y && y <= bounds.y + bounds.height) {
@@ -288,6 +300,23 @@ function drawNodes(
 
     hitMap.set(node.id, { x: node.x, y: node.y, width, height });
 
+    // Record link hit area if node has a link
+    if (node.style?.linkUrl) {
+      const linkIcon = '🔗';
+      const linkIconW = ctx.measureText(linkIcon).width + 4;
+      const linkAreaX = node.x + width - linkIconW - 4;
+      const linkAreaY = node.y + 4;
+      linkHitMapRef.current.set(node.id, {
+        x: linkAreaX,
+        y: linkAreaY,
+        width: linkIconW + 4,
+        height: fontSize + 4,
+        url: node.style.linkUrl,
+      });
+    } else {
+      linkHitMapRef.current.delete(node.id);
+    }
+
     const borderColor = isFocused || isSelected ? focusColor : resolved.border;
     const borderWidth = isFocused || isSelected ? 2 : resolved.borderWidth;
 
@@ -330,6 +359,34 @@ function drawNodes(
     lines.forEach((line, i) => {
       ctx.fillText(line, textX, textY + i * lineHeight);
     });
+
+    // Draw link indicator if node has a link
+    if (node.style?.linkUrl) {
+      const linkIcon = '\uD83D\uDD17'; // 🔗
+      const linkIconW = ctx.measureText(linkIcon).width;
+      const linkX = node.x + width - linkIconW - 8;
+      const linkY = node.y + 4;
+      const boxSize = fontSize + 4;
+      // Semi-transparent background pill
+      ctx.fillStyle = 'rgba(0,0,0,0.12)';
+      ctx.beginPath();
+      const r = Math.min(4, boxSize / 4);
+      ctx.moveTo(linkX, linkY);
+      ctx.lineTo(linkX + boxSize, linkY);
+      ctx.quadraticCurveTo(linkX + boxSize + r, linkY, linkX + boxSize + r, linkY + r);
+      ctx.lineTo(linkX + boxSize + r, linkY + boxSize - r);
+      ctx.quadraticCurveTo(linkX + boxSize + r, linkY + boxSize, linkX + boxSize, linkY + boxSize);
+      ctx.lineTo(linkX, linkY + boxSize);
+      ctx.quadraticCurveTo(linkX - r, linkY + boxSize, linkX - r, linkY + boxSize - r);
+      ctx.lineTo(linkX - r, linkY + r);
+      ctx.quadraticCurveTo(linkX - r, linkY, linkX, linkY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = resolved.text;
+      ctx.globalAlpha = 0.7;
+      ctx.fillText(linkIcon, linkX + (boxSize - linkIconW) / 2, linkY + (boxSize - fontSize) / 2 + 1);
+      ctx.globalAlpha = 1;
+    }
   });
 }
 

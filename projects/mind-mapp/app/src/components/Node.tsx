@@ -240,6 +240,33 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
           </div>
         )}
         {resolved.icon ? <span style={{ fontSize: '1em', lineHeight: 1 }}>{resolved.icon}</span> : null}
+        {node.style?.linkUrl && (
+          <a
+            href={node.style.linkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            title={node.style.linkUrl}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              marginLeft: 4,
+              fontSize: '0.85em',
+              opacity: 0.7,
+              textDecoration: 'none',
+              cursor: 'pointer',
+              lineHeight: 1,
+              padding: '2px 3px',
+              borderRadius: 3,
+              background: 'rgba(0,0,0,0.1)',
+              color: resolved.text,
+            }}
+            aria-label={`Open link: ${node.style.linkUrl}`}
+          >
+            🔗
+          </a>
+        )}
         <span
           ref={textRef}
           style={{
@@ -310,6 +337,7 @@ export default memo(Node, (prev, next) => {
     prev.node.style?.shape === next.node.style?.shape &&
     prev.node.style?.icon === next.node.style?.icon &&
     prev.node.style?.fontSize === next.node.style?.fontSize &&
-    prev.node.style?.imageUrl === next.node.style?.imageUrl
+    prev.node.style?.imageUrl === next.node.style?.imageUrl &&
+    prev.node.style?.linkUrl === next.node.style?.linkUrl
   );
 });

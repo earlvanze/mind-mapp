@@ -13,6 +13,7 @@ export type NodeStyle = {
   bold?: boolean;            // bold text
   italic?: boolean;          // italic text
   imageUrl?: string;       // embedded image data URL
+  linkUrl?: string;        // external URL (opens in new tab)
 };
 
 export type Node = {

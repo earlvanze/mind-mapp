@@ -19,7 +19,9 @@ function isNode(value: unknown): value is Node {
     Array.isArray(node.children) &&
     node.children.every(c => typeof c === 'string') &&
     (node.style?.bold == null || typeof node.style.bold === 'boolean') &&
-    (node.style?.italic == null || typeof node.style.italic === 'boolean')
+    (node.style?.italic == null || typeof node.style.italic === 'boolean') &&
+    (node.style?.imageUrl == null || typeof node.style.imageUrl === 'string') &&
+    (node.style?.linkUrl == null || typeof node.style.linkUrl === 'string')
   );
 }
 
