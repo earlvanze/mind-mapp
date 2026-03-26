@@ -10,7 +10,7 @@ export const H_GAP = 80;        // horizontal gap between parent right and child
 export const V_GAP = 60;        // vertical gap between depth levels
 export const MIN_SIBLING_GAP = 24;
 
-export type LayoutMode = 'tree' | 'radial';
+export type LayoutMode = 'tree' | 'radial' | 'force';
 
 interface LayoutNode {
   id: string;
@@ -140,6 +140,97 @@ function computeRadialLayout(
   return results;
 }
 
+
+// ---------------------------------------------------------------------------
+// Force-directed layout — Fruchterman-Reingold variant
+// ---------------------------------------------------------------------------
+
+const FORCE_ITERS      = 60;
+const FORCE_TEMP_INIT  = 200.0;
+const FORCE_TEMP_FINAL = 1.0;
+const REPULSION        = 8000.0;
+const SPRING_LENGTH   = 200.0;
+const SPRING_K         = 0.05;
+const DAMPING          = 0.85;
+
+interface FPos { x: number; y: number; vx: number; vy: number }
+
+function computeForceLayout(
+  rootId: string, nodes: Record<string, Node>,
+): Record<string, { x: number; y: number }> {
+  const ids = Object.keys(nodes);
+  if (ids.length === 0) return {};
+
+  // adjacency
+  const children: Record<string, string[]> = {};
+  for (const [id, node] of Object.entries(nodes)) children[id] = [...node.children];
+  const edges: [string, string][] = [];
+  for (const [parent, ch] of Object.entries(children)) ch.forEach(c => edges.push([parent, c]));
+
+  // initialise positions — random ring
+  const pos: Record<string, FPos> = {};
+  let seed = ids.length * 7 + 13;
+  const rng = () => {
+    seed = (seed * 1664525 + 1013904223) & 0xffffffff;
+    return (seed >>> 0) / 0xffffffff;
+  };
+  for (const id of ids) {
+    const angle = rng() * 2 * Math.PI;
+    const r = 80 + rng() * 120;
+    pos[id] = { x: Math.cos(angle) * r, y: Math.sin(angle) * r, vx: 0, vy: 0 };
+  }
+
+  // centre at origin
+  const vals = Object.values(pos);
+  const cx = vals.reduce((s, p) => s + p.x, 0) / vals.length;
+  const cy = vals.reduce((s, p) => s + p.y, 0) / vals.length;
+  for (const p of vals) { p.x -= cx; p.y -= cy; }
+
+  const tempStep = (FORCE_TEMP_INIT - FORCE_TEMP_FINAL) / FORCE_ITERS;
+  let temp = FORCE_TEMP_INIT;
+
+  for (let iter = 0; iter < FORCE_ITERS; iter++) {
+    // repulsive
+    for (const a of ids) {
+      let fx = 0, fy = 0;
+      for (const b of ids) {
+        if (a === b) continue;
+        const dx = pos[a].x - pos[b].x;
+        const dy = pos[a].y - pos[b].y;
+        const dist = Math.sqrt(dx * dx + dy * dy) + 0.01;
+        const f = REPULSION / (dist * dist);
+        fx += (dx / dist) * f;
+        fy += (dy / dist) * f;
+      }
+      pos[a].vx += fx; pos[a].vy += fy;
+    }
+    // attractive
+    for (const [a, b] of edges) {
+      const dx = pos[b].x - pos[a].x;
+      const dy = pos[b].y - pos[a].y;
+      const dist = Math.sqrt(dx * dx + dy * dy) + 0.01;
+      const f = SPRING_K * (dist - SPRING_LENGTH);
+      const fx = (dx / dist) * f, fy = (dy / dist) * f;
+      pos[a].vx += fx; pos[a].vy += fy;
+      pos[b].vx -= fx; pos[b].vy -= fy;
+    }
+    // gravity
+    for (const p of Object.values(pos)) {
+      p.vx -= p.x * 0.005; p.vy -= p.y * 0.005;
+    }
+    // move + damp
+    for (const p of Object.values(pos)) {
+      const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+      if (speed > temp) { p.vx = (p.vx / speed) * temp; p.vy = (p.vy / speed) * temp; }
+      p.x += p.vx; p.y += p.vy;
+      p.vx *= DAMPING; p.vy *= DAMPING;
+    }
+    temp -= tempStep;
+  }
+
+  return Object.fromEntries(Object.entries(pos).map(([id, p]) => [id, { x: p.x, y: p.y }]));
+}
+
 // ---------------------------------------------------------------------------
 // Normalise positions so bounding box centres at (0, 0)
 // ---------------------------------------------------------------------------
@@ -164,8 +255,10 @@ function normalise(positions: Record<string, { x: number; y: number }>) {
 export function computeLayout(
   rootId: string, nodes: Record<string, Node>, mode: LayoutMode,
 ): Record<string, { x: number; y: number }> {
-  const raw = mode === 'radial'
-    ? computeRadialLayout(rootId, nodes)
-    : computeTreeLayout(rootId, nodes);
+  const raw = mode === 'force'
+    ? computeForceLayout(rootId, nodes)
+    : mode === 'radial'
+      ? computeRadialLayout(rootId, nodes)
+      : computeTreeLayout(rootId, nodes);
   return normalise(raw);
 }

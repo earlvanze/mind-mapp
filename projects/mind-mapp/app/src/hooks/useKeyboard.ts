@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 import { isTypingTarget } from '../utils/keyboardTarget';
 import { isHelpToggleEvent } from '../utils/helpToggle';
+import { LayoutMode } from '../utils/treeLayout';
 import { isSearchToggleEvent } from '../utils/searchToggle';
 import { COLOR_PRESETS } from '../utils/nodeStyles';
 
@@ -142,7 +143,10 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
       if (e.shiftKey && e.key.toLowerCase() === 'k' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusSubtreeLastLeaf(); return; }
       if (e.shiftKey && (e.key === '<' || e.key === ',') && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusPrevLeaf(); return; }
       if (e.shiftKey && (e.key === '>' || e.key === '.') && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusNextLeaf(); return; }
-      if (e.key.toLowerCase() === 'l' && !e.metaKey && !e.ctrlKey && !e.shiftKey) { setLayoutMode(useMindMapStore.getState().layoutMode === 'tree' ? 'radial' : 'tree'); autoLayout(focusId); return; }
+      const modes: LayoutMode[] = ['tree', 'radial', 'force'];
+      const current = useMindMapStore.getState().layoutMode;
+      const next = modes[(modes.indexOf(current) + 1) % modes.length];
+      setLayoutMode(next); autoLayout(focusId); return;
       if (e.key.toLowerCase() === 'e') { startEditing(focusId); return; }
       if (isHelpToggleEvent(e, typingTarget)) { e.preventDefault(); onHelp(); return; }
       if (e.key === 'Enter') { e.preventDefault(); addSibling(focusId); return; }

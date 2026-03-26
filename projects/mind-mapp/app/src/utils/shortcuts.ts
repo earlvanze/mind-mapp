@@ -92,7 +92,7 @@ export const SHORTCUTS: Shortcut[] = [
   { key: 'Shift+,', desc: 'focus + center previous leaf in subtree' },
   { key: 'Shift+.', desc: 'focus + center next leaf in subtree' },
   { key: 'Alt+R', desc: 'jump back to previous focus' },
-  { key: 'L', desc: 'cycle layout mode (tree ↔ radial) + apply auto‑layout' },
+  { key: 'L', desc: 'cycle layout mode (tree ↔ radial ↔ force) + apply auto‑layout' },
   { key: 'Shift+drag', desc: 'pan' },
   { key: 'Ctrl/Cmd+wheel', desc: 'zoom' },
   { key: '=/+', desc: 'zoom in' },
