@@ -1,6 +1,34 @@
 # Mind Mapp — Changelog
 
-## 0.1.2
+## 0.8.0
+- Force-directed layout (Fruchterman-Reingold physics simulation)
+- `L` key cycles: Tree ↔ Radial ↔ Force ↔ off
+- Force layout with configurable area, gravity, speed, iterations
+- Radial layout with concentric ring arrangement by depth
+- Tree layout with configurable horizontal/vertical spacing
+- Layout mode persisted in UI preferences
+
+## 0.5.0
+- PDF export with page layout options (A4/Letter, portrait/landscape, fit-to-content)
+- SVG export (vector format via html-to-image)
+- FreeMind XML export (.mm format — interoperable with FreeMind/MindMaster)
+- Export preserves node styling (colors, icons, shapes)
+- Page size and orientation controls in PDF export
+
+## 0.4.0
+- Node color presets (7 presets: default, primary, success, warning, danger, info, muted)
+- Theme-aware color resolution (light/dark variants)
+- Custom color pickers (background, text, border)
+- Node shapes: rectangle, rounded, ellipse, diamond
+- Emoji icon picker with 20 quick-access icons
+- Style toolbar with color/shape/icon pickers
+- Border width control
+- Reset style action
+- `Cmd/Ctrl+1-7` for color presets
+- Rich text formatting toolbar in edit mode (bold, italic, lists)
+- Style data model in store + JSON import/export preservation
+
+## 0.3.0
 - Sample map loader
 - Reset view (no reload)
 - Shortcuts centralized + expanded (PNG export)

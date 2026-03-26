@@ -34,18 +34,20 @@
 - Component optimization (memoization)
 - Performance profiling & benchmarks
 
-## v0.4 (Node Styling) — Next
-- [ ] Node colors (background, text, border)
-- [ ] Node shapes (rectangle, rounded, ellipse, diamond)
-- [ ] Node icons (emoji or icon library)
-- [ ] Style presets and custom styles
-- [ ] Style toolbar for quick formatting
+## v0.4 (Node Styling) ✅ Complete
+- Node colors (7 presets + custom color pickers)
+- Node shapes (rectangle, rounded, ellipse, diamond)
+- Node icons (emoji picker)
+- Style presets and custom styles
+- Style toolbar for quick formatting
+- `Cmd/Ctrl+1-7` keyboard shortcuts for color presets
+- Rich text formatting toolbar (bold, italic, lists)
 
-## v0.5 (Enhanced Exports)
-- [ ] PDF export with layout options
-- [ ] SVG export (vector format)
-- [ ] FreeMind XML export
-- [ ] Export with styling preserved
+## v0.5 (Enhanced Exports) ✅ Complete
+- PDF export with layout options (A4/Letter, portrait/landscape, fit-to-content)
+- SVG export (vector format)
+- FreeMind XML export (.mm interoperability)
+- Export with styling preserved
 
 ## v0.6 (Collaboration)
 - [ ] Real-time collaborative editing (CRDT-based)
@@ -53,11 +55,15 @@
 - [ ] Presence indicators
 - [ ] Version history browser
 
+## v0.8 (Auto-Layout) ✅ Complete
+- Tree layout (hierarchical)
+- Radial layout (circular)
+- Force-directed layout (Fruchterman-Reingold physics)
+- `L` key cycles through all layouts
+
 ## v1.0 (Full Release)
 - [ ] Mobile app (React Native)
 - [ ] Plugin system for custom visualizations
-- [ ] Auto-layout algorithms (tree, radial, force-directed)
-- [ ] Rich text formatting
 - [ ] Embedded images/attachments
 - [ ] Accessibility audit (WCAG 2.1 AA)
 - [ ] Public release and documentation site
