@@ -160,6 +160,34 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
               color: resolved.text,
             }}
           >I</button>
+          <button
+            title="Bullet list (Cmd+Shift+8)"
+            onMouseDown={(e) => { e.preventDefault(); applyFormat('insertUnorderedList'); }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 13,
+              padding: '2px 6px',
+              borderRadius: 3,
+              color: resolved.text,
+              lineHeight: 1,
+            }}
+          >•</button>
+          <button
+            title="Numbered list (Cmd+Shift+7)"
+            onMouseDown={(e) => { e.preventDefault(); applyFormat('insertOrderedList'); }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: 13,
+              padding: '2px 6px',
+              borderRadius: 3,
+              color: resolved.text,
+              lineHeight: 1,
+            }}
+          >1.</button>
         </div>
       )}
       <div
@@ -200,6 +228,15 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
             if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'i') {
               e.preventDefault();
               applyFormat('italic');
+            }
+            // Lists: Cmd+Shift+7 = ol, Cmd+Shift+8 = ul
+            if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === '8') {
+              e.preventDefault();
+              applyFormat('insertUnorderedList');
+            }
+            if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === '7') {
+              e.preventDefault();
+              applyFormat('insertOrderedList');
             }
           }}
           onBlur={(e) => {

@@ -233,6 +233,14 @@ function drawArrow(
   ctx.restore();
 }
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '');
+}
+
+function getLines(text: string): string[] {
+  return text.split(/<br\s*\/?>/).join('\n').split('\n').filter(l => l.length > 0);
+}
+
 function drawNodes(
   ctx: CanvasRenderingContext2D,
   nodes: Record<string, Node>,
@@ -244,7 +252,7 @@ function drawNodes(
 ) {
   const focusColor = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim() || '#4f46e5';
 
-  ctx.textBaseline = 'middle';
+  ctx.textBaseline = 'top';
 
   Object.values(nodes).forEach((node) => {
     if (editingId === node.id) return;
@@ -254,6 +262,7 @@ function drawNodes(
 
     const resolved = resolveStyle(node.style, theme);
     const fontSize = resolved.fontSize;
+    const lineHeight = fontSize * 1.4;
     const fontStyle = resolved.bold && resolved.italic
       ? 'italic bold '
       : resolved.italic
@@ -263,9 +272,15 @@ function drawNodes(
       : '';
     ctx.font = `${fontStyle}${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
 
-    const textWidth = measureTextWidth(ctx, node.text, fontSize, resolved.bold, resolved.italic);
-    const width = Math.max(60, textWidth + 20);
-    const height = 32;
+    const iconText = resolved.icon ? resolved.icon + ' ' : '';
+    const plainText = iconText + stripHtml(node.text);
+    const lines = getLines(plainText);
+    if (lines.length === 0) lines.push('');
+
+    const textWidth = Math.max(...lines.map(l => measureTextWidth(ctx, l, fontSize, resolved.bold, resolved.italic)));
+    const padding = 20;
+    const width = Math.max(60, textWidth + padding);
+    const height = Math.max(32, lines.length * lineHeight + 8);
 
     hitMap.set(node.id, { x: node.x, y: node.y, width, height });
 
@@ -287,13 +302,16 @@ function drawNodes(
     drawShape(ctx, resolved.shape, node.x, node.y, width, height);
     ctx.stroke();
 
-    // Icon + Text
-    const iconText = resolved.icon ? resolved.icon + ' ' : '';
-    const fullText = iconText + node.text;
+    // Multi-line text rendering
     ctx.fillStyle = resolved.text;
-    ctx.fillText(fullText, node.x + 10, node.y + height / 2);
+    const textX = node.x + 10;
+    const textY = node.y + (height - lines.length * lineHeight) / 2;
+    lines.forEach((line, i) => {
+      ctx.fillText(line, textX, textY + i * lineHeight);
+    });
   });
 }
+
 
 function drawShape(
   ctx: CanvasRenderingContext2D,

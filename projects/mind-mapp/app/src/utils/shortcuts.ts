@@ -33,6 +33,8 @@ export const SHORTCUTS: Shortcut[] = [
   { key: 'Alt+I', desc: 'invert selection' },
   { key: 'Cmd/Ctrl+B', desc: 'bold text (in edit mode)' },
   { key: 'Cmd/Ctrl+I', desc: 'italicize text (in edit mode)' },
+  { key: 'Cmd/Ctrl+Shift+8', desc: 'bullet list (in edit mode)' },
+  { key: 'Cmd/Ctrl+Shift+7', desc: 'numbered list (in edit mode)' },
   { key: 'Cmd/Ctrl+D', desc: 'duplicate selected node(s)' },
   { key: 'Alt+S', desc: 'select siblings of focused node' },
   { key: 'Alt+C', desc: 'select children of focused node' },
