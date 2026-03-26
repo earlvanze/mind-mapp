@@ -17,7 +17,9 @@ function isNode(value: unknown): value is Node {
     typeof node.y === 'number' &&
     (typeof node.parentId === 'string' || node.parentId === null) &&
     Array.isArray(node.children) &&
-    node.children.every(c => typeof c === 'string')
+    node.children.every(c => typeof c === 'string') &&
+    (node.style?.bold == null || typeof node.style.bold === 'boolean') &&
+    (node.style?.italic == null || typeof node.style.italic === 'boolean')
   );
 }
 

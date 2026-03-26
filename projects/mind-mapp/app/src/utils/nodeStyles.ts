@@ -58,7 +58,7 @@ export function resolvePreset(
 
 /** Resolve a full NodeStyle into resolved color values for a given theme */
 export function resolveStyle(
-  style: { backgroundColor?: string; textColor?: string; borderColor?: string; borderWidth?: number; shape?: Shape; icon?: string; fontSize?: string } | undefined,
+  style: { backgroundColor?: string; textColor?: string; borderColor?: string; borderWidth?: number; shape?: Shape; icon?: string; fontSize?: string; bold?: boolean; italic?: boolean } | undefined,
   theme: 'light' | 'dark',
 ): {
   bg: string;
@@ -68,6 +68,8 @@ export function resolveStyle(
   shape: Shape;
   icon: string;
   fontSize: number;
+  bold: boolean;
+  italic: boolean;
 } {
   const fallback = resolvePreset(undefined, theme, {
     bg: theme === 'dark' ? '#1f2937' : '#ffffff',
@@ -87,5 +89,7 @@ export function resolveStyle(
     shape: style?.shape ?? 'rounded',
     icon: style?.icon ?? '',
     fontSize: FONT_SIZE_MAP[style?.fontSize ?? 'medium'] ?? 13,
+    bold: style?.bold ?? false,
+    italic: style?.italic ?? false,
   };
 }

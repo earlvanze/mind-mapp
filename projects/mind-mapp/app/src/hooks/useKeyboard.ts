@@ -58,6 +58,18 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
         return;
       }
 
+      // Bold/italic — only when editing
+      if (editingId && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b' && !e.shiftKey && !e.altKey) {
+        e.preventDefault();
+        useMindMapStore.getState().setSelectedStyle({ bold: !(useMindMapStore.getState().nodes[editingId]?.style?.bold ?? false) });
+        return;
+      }
+      if (editingId && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'i' && !e.shiftKey && !e.altKey) {
+        e.preventDefault();
+        useMindMapStore.getState().setSelectedStyle({ italic: !(useMindMapStore.getState().nodes[editingId]?.style?.italic ?? false) });
+        return;
+      }
+
       if (editingId) return;
       if (isSearchToggleEvent(e)) { e.preventDefault(); onSearch(); return; }
       if (typingTarget) return;

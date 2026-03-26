@@ -254,9 +254,16 @@ function drawNodes(
 
     const resolved = resolveStyle(node.style, theme);
     const fontSize = resolved.fontSize;
-    ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+    const fontStyle = resolved.bold && resolved.italic
+      ? 'italic bold '
+      : resolved.italic
+      ? 'italic '
+      : resolved.bold
+      ? 'bold '
+      : '';
+    ctx.font = `${fontStyle}${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
 
-    const textWidth = measureTextWidth(ctx, node.text, fontSize);
+    const textWidth = measureTextWidth(ctx, node.text, fontSize, resolved.bold, resolved.italic);
     const width = Math.max(60, textWidth + 20);
     const height = 32;
 
@@ -324,8 +331,8 @@ function drawShape(
 }
 
 const textWidthCache = new Map<string, number>();
-function measureTextWidth(ctx: CanvasRenderingContext2D, text: string, fontSize: number): number {
-  const key = `${fontSize}:${text}`;
+function measureTextWidth(ctx: CanvasRenderingContext2D, text: string, fontSize: number, bold = false, italic = false): number {
+  const key = `${bold ? 'b' : ''}${italic ? 'i' : ''}${fontSize}:${text}`;
   const cached = textWidthCache.get(key);
   if (cached !== undefined) return cached;
 
