@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useId } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 import { COLOR_PRESETS, SHAPE_OPTIONS, FONT_SIZE_OPTIONS, resolveStyle, type ColorPresetName, type Shape } from '../utils/nodeStyles';
 import type { Theme } from '../utils/theme';
@@ -19,12 +19,22 @@ const PRESET_COLORS: Array<{ name: ColorPresetName; hex: string }> = [
 
 const SHORTCUT_LABELS = ['1','2','3','4','5','6','7'] as const;
 
+const PICKER_IDS = {
+  color: 'style-picker-color',
+  shape: 'style-picker-shape',
+  icon: 'style-picker-icon',
+  image: 'style-picker-image',
+  link: 'style-picker-link',
+} as const;
+
 export default function StyleToolbar({ theme }: Props) {
   const { selectedIds, setSelectedStyle, nodes } = useMindMapStore();
   const [openPicker, setOpenPicker] = useState<'color' | 'shape' | 'icon' | 'image' | 'link' | null>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   const hasSelection = selectedIds.length > 0;
+  const pickerId = openPicker ? PICKER_IDS[openPicker] : null;
 
   // Close picker on outside click
   useEffect(() => {
@@ -37,6 +47,54 @@ export default function StyleToolbar({ theme }: Props) {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [openPicker]);
+
+  // Focus trap: Tab/Shift+Tab cycle within open picker; Escape closes
+  useEffect(() => {
+    if (!openPicker || !pickerId) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setOpenPicker(null);
+        triggerRef.current?.focus();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+
+      const picker = document.getElementById(pickerId);
+      if (!picker) return;
+
+      const focusable = Array.from(
+        picker.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), [tabindex="0"]'
+        )
+      ).filter(el => !el.hasAttribute('disabled'));
+
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [openPicker, pickerId]);
+
+  const openPickerPanel = (picker: typeof openPicker) => {
+    setOpenPicker(p => p === picker ? null : picker);
+  };
 
   const applyPreset = (name: ColorPresetName) => {
     if (!hasSelection) return;
@@ -344,102 +402,102 @@ export default function StyleToolbar({ theme }: Props) {
     </div>
   );
 
+  const renderPicker = (picker: typeof openPicker, ariaLabel: string, renderFn: () => JSX.Element) => {
+    if (openPicker !== picker) return null;
+    const id = PICKER_IDS[picker];
+    return (
+      <div
+        id={id}
+        className="style-picker"
+        role="dialog"
+        aria-label={ariaLabel}
+      >
+        {renderFn()}
+      </div>
+    );
+  };
+
   return (
     <div className="style-toolbar" ref={pickerRef} role="toolbar" aria-label="Node styling">
       {/* Color */}
       <div className="style-toolbar-group">
         <button
+          ref={triggerRef}
           className={`style-toolbar-btn ${openPicker === 'color' ? 'active' : ''}`}
-          title="Color presets (Alt+Shift+C)"
+          title="Color presets (Alt+Shift+C) — Escape to close"
           aria-haspopup="true"
           aria-expanded={openPicker === 'color'}
-          onClick={() => setOpenPicker(o => o === 'color' ? null : 'color')}
+          aria-controls={openPicker === 'color' ? PICKER_IDS.color : undefined}
+          onClick={() => openPickerPanel('color')}
           disabled={!hasSelection}
         >
           <span aria-hidden="true">🎨</span> Color
         </button>
-        {openPicker === 'color' && (
-          <div className="style-picker" role="dialog" aria-label="Color picker">
-            {renderColorPicker()}
-          </div>
-        )}
+        {renderPicker('color', 'Color picker', renderColorPicker)}
       </div>
 
       {/* Shape */}
       <div className="style-toolbar-group">
         <button
           className={`style-toolbar-btn ${openPicker === 'shape' ? 'active' : ''}`}
-          title="Shape picker"
+          title="Shape picker — Escape to close"
           aria-haspopup="true"
           aria-expanded={openPicker === 'shape'}
-          onClick={() => setOpenPicker(o => o === 'shape' ? null : 'shape')}
+          aria-controls={openPicker === 'shape' ? PICKER_IDS.shape : undefined}
+          onClick={() => openPickerPanel('shape')}
           disabled={!hasSelection}
         >
           <span aria-hidden="true">⬜</span> Shape
         </button>
-        {openPicker === 'shape' && (
-          <div className="style-picker" role="dialog" aria-label="Shape picker">
-            {renderShapePicker()}
-          </div>
-        )}
+        {renderPicker('shape', 'Shape picker', renderShapePicker)}
       </div>
 
       {/* Icon */}
       <div className="style-toolbar-group">
         <button
           className={`style-toolbar-btn ${openPicker === 'icon' ? 'active' : ''}`}
-          title="Icon picker"
+          title="Icon picker — Escape to close"
           aria-haspopup="true"
           aria-expanded={openPicker === 'icon'}
-          onClick={() => setOpenPicker(o => o === 'icon' ? null : 'icon')}
+          aria-controls={openPicker === 'icon' ? PICKER_IDS.icon : undefined}
+          onClick={() => openPickerPanel('icon')}
           disabled={!hasSelection}
         >
           <span aria-hidden="true">😀</span> Icon
         </button>
-        {openPicker === 'icon' && (
-          <div className="style-picker" role="dialog" aria-label="Icon picker">
-            {renderIconPicker()}
-          </div>
-        )}
+        {renderPicker('icon', 'Icon picker', renderIconPicker)}
       </div>
 
       {/* Image */}
       <div className="style-toolbar-group">
         <button
           className={`style-toolbar-btn ${openPicker === 'image' ? 'active' : ''}`}
-          title="Embed image"
+          title="Embed image — Escape to close"
           aria-haspopup="true"
           aria-expanded={openPicker === 'image'}
-          onClick={() => setOpenPicker(o => o === 'image' ? null : 'image')}
+          aria-controls={openPicker === 'image' ? PICKER_IDS.image : undefined}
+          onClick={() => openPickerPanel('image')}
           disabled={!hasSelection}
         >
           <span aria-hidden="true">🖼️</span> Image
         </button>
-        {openPicker === 'image' && (
-          <div className="style-picker" role="dialog" aria-label="Image picker">
-            {renderImagePicker()}
-          </div>
-        )}
+        {renderPicker('image', 'Image picker', renderImagePicker)}
       </div>
-
 
       {/* Link */}
       <div className="style-toolbar-group">
         <button
           className={`style-toolbar-btn ${openPicker === 'link' ? 'active' : ''}`}
-          title="Attach link"
+          title="Attach link — Escape to close"
           aria-haspopup="true"
           aria-expanded={openPicker === 'link'}
-          onClick={() => setOpenPicker(o => o === 'link' ? null : 'link')}
+          aria-controls={openPicker === 'link' ? PICKER_IDS.link : undefined}
+          onClick={() => openPickerPanel('link')}
           disabled={!hasSelection}
         >
           <span aria-hidden="true">🔗</span> Link
         </button>
-        {openPicker === 'link' && (
-          <div className="style-picker" role="dialog" aria-label="Link picker">
-            {renderLinkPicker()}
-          </div>
-        )}
+        {renderPicker('link', 'Link picker', renderLinkPicker)}
       </div>
 
       {/* Reset */}

@@ -1,5 +1,26 @@
 # Mind Mapp — Changelog
 
+## 0.11.0
+- Skip navigation link (keyboard accessibility)
+- `:focus-visible` ring discrimination (keyboard vs mouse)
+- `prefers-reduced-motion` CSS support
+- Dedicated `aria-live` status region
+- Canvas div with `id="mindmap-canvas"` as skip link target
+
+## 0.10.0
+- Named version snapshots (save/load/rename/delete)
+- Version history dialog (`Alt+V`)
+- Up to 50 snapshots with duplicate-name guard
+- Snapshot date formatting (Today/Yesterday/date)
+- Loading a snapshot commits to undo stack
+
+## 0.9.0
+- Embedded images in nodes (URL or file upload)
+- Images display above node text (SVG + Canvas renderers)
+- Image picker in style toolbar
+- Images preserved in JSON/PNG/SVG/PDF exports
+- Images stored as data URLs in localStorage
+
 ## 0.8.0
 - Force-directed layout (Fruchterman-Reingold physics simulation)
 - `L` key cycles: Tree ↔ Radial ↔ Force ↔ off
