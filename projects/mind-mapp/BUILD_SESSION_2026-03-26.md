@@ -143,3 +143,96 @@ ff6ced6 feat: Embedded images in nodes — data URL or file upload via Image pic
 - Images stored as data URLs in localStorage — keep in mind localStorage size limits (~5MB)
 - PNG/PDF/SVG export all preserve images via html-to-image/jsPDF
 - Canvas renderer: large data URL images may slow down renders on low-end devices
+
+---
+
+## Build Session - March 26, 2026 (Late Night) — Version History
+
+### Status Check
+✅ All 302 tests passing (38 files, +1 test file)
+✅ Build succeeds cleanly (v0.10.0)
+✅ Version history feature implemented
+
+### What Was Built
+
+**v0.10.0 — Version History and Branching**
+
+Named snapshots of the mind map, stored separately from autosave:
+
+1. **VersionHistoryDialog** (`src/components/VersionHistoryDialog.tsx`)
+   - Save current map state with a custom name (up to 80 chars)
+   - Browse saved snapshots with name, date, node count
+   - Load any snapshot (replaces current map, resets focus history)
+   - Rename snapshots inline
+   - Delete snapshots with confirmation
+   - Error/success feedback messages
+
+2. **versionHistory store** (`src/store/versionHistory.ts`)
+   - `createSnapshot(nodes, focusId, name)` — deep-clone snapshot creator
+   - `saveSnapshot(snap)` — persists with duplicate-name guard (case-insensitive) and 50-snapshot cap
+   - `deleteSnapshot(id)` — removes by id
+   - `renameSnapshot(id, newName)` — renames with duplicate guard
+   - `formatSnapshotDate(timestamp)` — smart date formatting ("Today HH:MM", "Yesterday HH:MM", or date+time)
+   - Separate localStorage key: `mindmapp.v0.1.history`
+
+3. **Store integration** (`src/store/useMindMapStore.ts`)
+   - `restoreSnapshot(nodes, focusId)` — loads snapshot into store, commits to undo stack
+
+4. **Keyboard** (`src/hooks/useKeyboard.ts`)
+   - `Alt+V` opens version history dialog (typed target excluded)
+
+5. **App.tsx**
+   - "Versions" toolbar button (toggle, aria-controls)
+   - Lazy-loaded dialog via Suspense
+   - `handleSaveSnapshot(name)` → `createSnapshot` + `saveSnapshot`
+   - `handleLoadSnapshot(snap)` → `importState` + `resetFocusHistoryTo`
+
+6. **shortcuts.ts** — added `Alt+V` entry
+
+### Changes
+```
+app/package.json                          |  2 +-      — v0.10.0
+app/src/App.tsx                          | +36        — dialog state, handlers, button
+app/src/components/VersionHistoryDialog  | +276       — NEW
+app/src/hooks/useKeyboard.ts             |  +3        — Alt+V handler
+app/src/store/useMindMapStore.ts         |  +9        — restoreSnapshot type + impl
+app/src/store/versionHistory.ts          | +134       — NEW
+app/src/store/versionHistory.test.ts     | +131       — NEW (12 tests)
+app/src/styles.css                       |  +84       — dialog styles
+app/src/utils/version.ts                 |  2 +-      — v0.10.0
+```
+
+### Test Results
+```
+Test Files: 38 passed (38)
+Tests: 302 passed (302)
+Duration: 2.37s
+```
+
+### Build Output
+```
+dist/index.html                           0.41 kB │ gzip: 0.28 kB
+dist/assets/VersionHistoryDialog-*.js    4.23 kB │ gzip: 1.69 kB
+dist/assets/index-*.css                12.86 kB │ gzip: 2.87 kB
+dist/assets/index-*.js                655.38 kB │ gzip: 211.33 kB
+Build time: 2.49s
+```
+
+### Git Commits
+```
+e36821f feat: version history — named snapshots with save/load/rename/delete (Alt+V)
+```
+
+### Backlog After This Session
+- [x] Embedded images/attachments — ✅ Done (v0.9.0)
+- [x] Version history and branching — ✅ Done (v0.10.0)
+- [ ] Collaborative editing (CRDT-based) — v0.6
+- [ ] Plugin system — v1.0
+- [ ] Mobile app (React Native) — v1.0
+- [ ] Accessibility audit (WCAG 2.1 AA) — v1.0
+
+### Notes
+- Snapshots use separate localStorage key from autosave — safe from overwrites
+- Loading a snapshot commits to undo stack so it can be undone
+- No branching/multiple maps yet — each snapshot is independent; could extend to named map slots
+- 50-snapshot limit prevents localStorage bloat
