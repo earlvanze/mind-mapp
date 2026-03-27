@@ -50,6 +50,7 @@ export default function VersionHistoryDialog({ open, onClose, onLoadSnapshot, on
     const name = saveName.trim();
     if (!name) {
       setError('Please enter a name for this snapshot.');
+      saveInputRef.current?.focus();
       return;
     }
     setSaving(true);
@@ -59,6 +60,7 @@ export default function VersionHistoryDialog({ open, onClose, onLoadSnapshot, on
     if (!result.success) {
       setError(result.error);
       setSaving(false);
+      saveInputRef.current?.focus();
       return;
     }
 
@@ -160,6 +162,8 @@ export default function VersionHistoryDialog({ open, onClose, onLoadSnapshot, on
               <input
                 ref={saveInputRef}
                 id="vh-save-name"
+                aria-describedby="vh-help vh-error"
+                aria-invalid={error ? 'true' : 'false'}
                 type="text"
                 className="style-text-input"
                 placeholder="e.g. Before restructuring"
@@ -178,17 +182,25 @@ export default function VersionHistoryDialog({ open, onClose, onLoadSnapshot, on
                 {saving ? 'Saving…' : 'Save'}
               </button>
             </div>
-            <p style={{ fontSize: 11, color: 'var(--muted)', margin: '4px 0 0' }}>
+            <p id="vh-help" style={{ fontSize: 11, color: 'var(--muted)', margin: '4px 0 0' }}>
               Saves up to 50 named snapshots in browser localStorage.
             </p>
           </div>
 
-          {/* Feedback */}
-          {error && (
-            <div role="alert" style={{ color: 'var(--danger)', fontSize: 13, marginBottom: 8 }}>
-              {error}
-            </div>
-          )}
+          {/* Feedback - Always in DOM for proper aria-describedby association */}
+          <div
+            id="vh-error"
+            role="alert"
+            aria-live="assertive"
+            style={{
+              color: 'var(--danger)',
+              fontSize: 13,
+              marginBottom: 8,
+              display: error ? 'block' : 'none'
+            }}
+          >
+            {error || '\u00A0' /* nbsp to maintain layout */}
+          </div>
           {success && (
             <div role="status" style={{ color: 'var(--success)', fontSize: 13, marginBottom: 8 }}>
               {success}
