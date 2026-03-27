@@ -57,11 +57,35 @@
 - [x] SVG export (vector format via html-to-image)
 - [x] FreeMind XML export (interoperability — .mm format with styles/colors/icons)
 
-## Future Enhancements
-- [ ] Collaborative editing (conflict-free replicated data types)
-- [ ] Plugin system for custom node types/visualizations
-- [ ] Mobile app (React Native)
+## v0.8 Auto-Layout ✅ Complete
 - [x] Auto-layout algorithms (tree, radial, force) — L key cycles tree ↔ radial ↔ force
+
+## v0.9 Embedded Images ✅ Complete
+- [x] Attachments (images via URL or file upload)
 - [x] Rich text editing (bold, italic) — bold/italic toolbar + Cmd+B/I shortcuts
-- [x] Attachments (images, files, links)
-- [ ] Version history and branching
+
+## v0.10 Version History ✅ Complete
+- [x] Version history and branching — named snapshots with save/load/rename/delete
+
+## v0.11 Accessibility ✅ Complete
+- [x] Skip navigation link
+- [x] `:focus-visible` ring discrimination
+- [x] `prefers-reduced-motion` support
+- [x] Dedicated `aria-live` status region
+- [x] Style picker focus trap + Escape handler
+
+## v1.0 (MVP Complete)
+- [x] WCAG 2.1 AA color contrast audit — all text/bg pairs meet 4.5:1 threshold
+- [ ] WCAG 2.1 AA keyboard navigation audit — verify all interactive elements accessible via keyboard
+- [ ] WCAG 2.1 AA error message audit — ensure all form errors have proper `aria-describedby` associations
+- [ ] Performance benchmarks documented (1000+ nodes, memory usage, render time)
+- [ ] Public documentation site
+- [ ] Production deployment guide
+
+## Future (Post-v1.0)
+- [ ] Collaborative editing (CRDT-based)
+- [ ] Plugin system for custom visualizations
+- [ ] Mobile app (React Native)
+- [ ] File attachments (non-image binary files)
+- [ ] Node tags/categories
+- [ ] Advanced search (regex, wildcards)
