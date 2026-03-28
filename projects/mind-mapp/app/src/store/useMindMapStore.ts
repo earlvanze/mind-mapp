@@ -24,6 +24,7 @@ export type Node = {
   parentId: string | null;
   children: string[];
   style?: NodeStyle;  // NEW: optional styling
+  tags?: string[];     // NEW: node tags for categorization
 };
 
 type Snapshot = {
@@ -92,7 +93,7 @@ const MAX_HISTORY = 100;
 
 function cloneNodes(nodes: Record<string, Node>) {
   return Object.fromEntries(
-    Object.entries(nodes).map(([id, node]) => [id, { ...node, children: [...node.children], ...(node.style ? { style: { ...node.style } } : {}) }])
+    Object.entries(nodes).map(([id, node]) => [id, { ...node, children: [...node.children], ...(node.style ? { style: { ...node.style } } : {}), ...(node.tags ? { tags: [...node.tags] } : {}) }])
   ) as Record<string, Node>;
 }
 
@@ -891,6 +892,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
           parentId: isSeedRoot ? source.parentId : mappedParentId ?? null,
           children: source.children.map(cid => idMap[cid]).filter(Boolean),
           ...(source.style ? { style: { ...source.style } } : {}),
+          ...(source.tags ? { tags: [...source.tags] } : {}),
         };
       }
 
