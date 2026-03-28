@@ -36,3 +36,4 @@ export * from './version';
 export * from './viewMath';
 export * from './theme';
 export * from './shareLink';
+export * from './tags';

@@ -11,6 +11,7 @@ type Props = {
   onFit: () => void;
   onFitSelection: () => void;
   onFitSubtree: () => void;
+  onTagPicker: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onResetView: () => void;
@@ -47,7 +48,7 @@ type Props = {
   suspended?: boolean;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, suspended = false }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onTagPicker, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, suspended = false }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, editingId, startEditing, setSelectedStyle, selectedIds } = useMindMapStore();
 
   useEffect(() => {
@@ -57,6 +58,13 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
       if (suspended) {
         if (isSearchToggleEvent(e)) { e.preventDefault(); onSearch(); }
         if (isHelpToggleEvent(e, typingTarget)) { e.preventDefault(); onHelp(); }
+        return;
+      }
+
+      // Cmd/Ctrl+Shift+T — open tag picker dialog
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        onTagPicker();
         return;
       }
 
@@ -128,69 +136,62 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onZ
       if ((e.key === '=' || e.key === '+') && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onZoomIn(); return; }
       if (e.key === '-' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onZoomOut(); return; }
       if (e.key === '0' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onResetView(); return; }
-      if (e.shiftKey && e.key.toLowerCase() === 'g' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onToggleGrid(); return; }
-      if (e.shiftKey && e.key.toLowerCase() === 'm' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onToggleMiniMap(); return; }
-      if (e.shiftKey && e.key.toLowerCase() === 'a' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onToggleAdvanced(); return; }
+      if (e.key === 'f' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) { e.preventDefault(); onFit(); return; }
+      if (e.key === 'c' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) { e.preventDefault(); onCenterFocus(); return; }
+      if (e.key === 'g' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) { e.preventDefault(); onToggleGrid(); return; }
+      if (e.key === 'm' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) { e.preventDefault(); onToggleMiniMap(); return; }
+      if (e.key.toLowerCase() === 'l' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) { 
+        e.preventDefault(); 
+        const modes: LayoutMode[] = ['tree', 'radial', 'force'];
+        const currentIdx = modes.indexOf(useMindMapStore.getState().layoutMode);
+        const nextIdx = (currentIdx + 1) % modes.length;
+        setLayoutMode(modes[nextIdx]);
+        autoLayout();
+        return;
+      }
+      if (e.shiftKey && e.key.toLowerCase() === 'l' && !e.metaKey && !e.ctrlKey && !e.altKey) { 
+        e.preventDefault(); 
+        autoLayoutChildren(focusId);
+        return;
+      }
       if (e.shiftKey && e.key.toLowerCase() === 't' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onToggleTheme(); return; }
-      if (e.key.toLowerCase() === 'f' && !e.metaKey && !e.ctrlKey) { onFit(); return; }
-      if (e.shiftKey && e.key.toLowerCase() === 'c' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onCenterRoot(); return; }
-      if (e.key.toLowerCase() === 'c' && !e.metaKey && !e.ctrlKey && !e.altKey) { onCenterFocus(); return; }
-      if (e.shiftKey && e.key.toLowerCase() === 'r' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusForward(); return; }
-      if (!e.shiftKey && e.key.toLowerCase() === 'r' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusRoot(); return; }
-      if (e.shiftKey && e.key.toLowerCase() === 'p' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusParent(); return; }
-      if (e.shiftKey && e.key.toLowerCase() === 'n' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusChild(); return; }
-      if (e.shiftKey && e.key.toLowerCase() === 'h' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusPrevSibling(); return; }
-      if (e.shiftKey && e.key.toLowerCase() === 'j' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusNextSibling(); return; }
-      if (e.shiftKey && e.key.toLowerCase() === 'l' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusSubtreeFirstLeaf(); return; }
-      if (e.shiftKey && e.key.toLowerCase() === 'k' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusSubtreeLastLeaf(); return; }
-      if (e.shiftKey && (e.key === '<' || e.key === ',') && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusPrevLeaf(); return; }
-      if (e.shiftKey && (e.key === '>' || e.key === '.') && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onFocusNextLeaf(); return; }
-      const modes: LayoutMode[] = ['tree', 'radial', 'force'];
-      const current = useMindMapStore.getState().layoutMode;
-      const next = modes[(modes.indexOf(current) + 1) % modes.length];
-      setLayoutMode(next); autoLayout(focusId); return;
-      if (e.key.toLowerCase() === 'e') { startEditing(focusId); return; }
-      if (isHelpToggleEvent(e, typingTarget)) { e.preventDefault(); onHelp(); return; }
-      if (e.key === 'Enter') { e.preventDefault(); addSibling(focusId); return; }
-      if (e.key === 'Tab') { e.preventDefault(); e.shiftKey ? promoteNode(focusId) : addChild(focusId); return; }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's' && !e.shiftKey) { e.preventDefault(); document.querySelector<HTMLButtonElement>('button[data-export="json"]')?.click(); return; }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); document.querySelector<HTMLButtonElement>('button[data-export="png"]')?.click(); return; }
+      if (e.shiftKey && e.key.toLowerCase() === 'a' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onToggleAdvanced(); return; }
+      if (e.key === 'Home' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) { e.preventDefault(); onFocusRoot(); return; }
+      if (e.key === 'End' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) { e.preventDefault(); onCenterRoot(); return; }
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'm') { e.preventDefault(); onExportMarkdown(); return; }
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'c') { e.preventDefault(); onCopySelection(); return; }
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'l') { e.preventDefault(); onCopySubtree(); return; }
-      if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); deleteSelected(); return; }
-      if (e.altKey && e.key.startsWith('Arrow')) {
-        e.preventDefault();
-        const step = e.shiftKey ? 40 : 10;
-        if (e.key === 'ArrowLeft') nudgeSelected(-step, 0);
-        if (e.key === 'ArrowRight') nudgeSelected(step, 0);
-        if (e.key === 'ArrowUp') nudgeSelected(0, -step);
-        if (e.key === 'ArrowDown') nudgeSelected(0, step);
-        return;
-      }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); moveFocus('left'); return; }
-      if (e.key === 'ArrowRight') { e.preventDefault(); moveFocus('right'); return; }
+      if (isSearchToggleEvent(e)) { e.preventDefault(); onSearch(); return; }
+      if (isHelpToggleEvent(e, typingTarget)) { e.preventDefault(); onHelp(); return; }
+
+      if (editingId || typingTarget) return;
+
       if (e.key === 'ArrowUp') { e.preventDefault(); moveFocus('up'); return; }
       if (e.key === 'ArrowDown') { e.preventDefault(); moveFocus('down'); return; }
-      if (e.key === 'Escape') { setFocus('n_root'); return; }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); onFocusParent(); return; }
+      if (e.key === 'ArrowRight') { e.preventDefault(); onFocusChild(); return; }
+      if (e.key === 'PageUp') { e.preventDefault(); onFocusPrevSibling(); return; }
+      if (e.key === 'PageDown') { e.preventDefault(); onFocusNextSibling(); return; }
+      if (e.key === 'Tab' && !e.shiftKey) { e.preventDefault(); addSibling(); return; }
+      if (e.key === 'Enter') { e.preventDefault(); addChild(); return; }
+      if (e.key === 'Tab' && e.shiftKey) { e.preventDefault(); promoteNode(); return; }
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); deleteSelected(); return; }
+      if (e.key === 'F2') { e.preventDefault(); if (focusId) startEditing(focusId); return; }
+      if (e.key === '[') { e.preventDefault(); onFocusPrevLeaf(); return; }
+      if (e.key === ']') { e.preventDefault(); onFocusNextLeaf(); return; }
+      if (e.key === '{') { e.preventDefault(); onFocusSubtreeFirstLeaf(); return; }
+      if (e.key === '}') { e.preventDefault(); onFocusSubtreeLastLeaf(); return; }
+      if (e.key === '<') { e.preventDefault(); onFocusPrevious(); return; }
+      if (e.key === '>') { e.preventDefault(); onFocusForward(); return; }
+
+      // Arrow nudging (Shift+Arrow)
+      if (e.shiftKey && e.key === 'ArrowUp') { e.preventDefault(); nudgeSelected(0, -10); return; }
+      if (e.shiftKey && e.key === 'ArrowDown') { e.preventDefault(); nudgeSelected(0, 10); return; }
+      if (e.shiftKey && e.key === 'ArrowLeft') { e.preventDefault(); nudgeSelected(-10, 0); return; }
+      if (e.shiftKey && e.key === 'ArrowRight') { e.preventDefault(); nudgeSelected(10, 0); return; }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [
-    focusId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus,
-    selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves,
-    selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors,
-    selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection,
-    snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, editingId, startEditing,
-    setSelectedStyle, selectedIds,
-    onSearch, onFit, onFitSelection, onFitSubtree, onZoomIn, onZoomOut, onResetView,
-    onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild,
-    onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf,
-    onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward,
-    onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory,
-    onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp,
-    onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot,
-    onVersionHistory,
-    suspended,
-  ]);
+
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [focusId, editingId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, onSearch, onFit, onFitSelection, onFitSubtree, onTagPicker, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, startEditing, setSelectedStyle, selectedIds, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, suspended]);
 }

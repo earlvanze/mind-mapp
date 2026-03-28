@@ -17,6 +17,7 @@ import StyleToolbar from './components/StyleToolbar';
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
 const HelpDialog = lazy(() => import('./components/HelpDialog'));
 const VersionHistoryDialogLazy = lazy(() => import('./components/VersionHistoryDialog'));
+const TagPickerDialog = lazy(() => import('./components/TagPickerDialog'));
 
 export default function App() {
   const [useCanvasRenderer, setUseCanvasRenderer] = useState(false);
@@ -25,6 +26,7 @@ export default function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
+  const [tagPickerOpen, setTagPickerOpen] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
@@ -389,6 +391,10 @@ export default function App() {
   };
 
   const toggleVersionHistory = () => {
+
+  const toggleTagPicker = () => {
+    setTagPickerOpen(prev => !prev);
+  };
     setVersionHistoryOpen(v => !v);
   };
 
@@ -432,6 +438,7 @@ export default function App() {
     onToggleAdvanced: () => setShowAdvancedActions(v => !v),
     onToggleTheme: handleToggleTheme,
     onHelp: () => toggleHelpDialog(),
+    onTagPicker: () => toggleTagPicker(),
     onVersionHistory: () => toggleVersionHistory(),
     onUndo: () => undo(),
     onRedo: () => redo(),
@@ -898,6 +905,7 @@ export default function App() {
       <Suspense fallback={null}>
         <SearchDialog open={searchOpen} onClose={closeSearchDialog} />
         <HelpDialog open={helpOpen} onClose={closeHelpDialog} />
+        <TagPickerDialog open={tagPickerOpen} onClose={() => setTagPickerOpen(false)} />
         <VersionHistoryDialogLazy
           open={versionHistoryOpen}
           onClose={() => setVersionHistoryOpen(false)}

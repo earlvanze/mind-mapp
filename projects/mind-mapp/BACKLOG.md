@@ -116,10 +116,10 @@ Branch: feature/node-tags
 - [x] Keyboard shortcuts for tag operations (Cmd+T)
 - [x] Bulk tag for multi-select (addTagToSelected)
 
-### Phase 3: Tag Picker Dialog
-- [ ] Create TagPickerDialog component
-- [ ] Show all existing tags with counts
-- [ ] Click to toggle tag on selected nodes
+### Phase 3: Tag Picker Dialog ✅ Complete
+- [x] Create TagPickerDialog component
+- [x] Show all existing tags with counts
+- [x] Click to toggle tag on selected nodes
 
 ### Phase 4: Filtering & Visualization
 - [ ] Tag filter panel component
@@ -136,3 +136,7 @@ Branch: feature/node-tags
 - [ ] Integration tests for filtering
 - [ ] Update keyboard shortcuts doc
 - [ ] Add tag tutorial to help dialog
+- [x] Filter tags by search
+- [x] Keyboard shortcut (Cmd/Ctrl+Shift+T)
+- [x] Tag utility functions (getAllTagsWithCounts, getSortedTags, nodeHasTag, allNodesHaveTag)
+- [x] Indeterminate checkbox state for partial selection
