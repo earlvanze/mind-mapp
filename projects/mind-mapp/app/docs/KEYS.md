@@ -1,6 +1,9 @@
 # Mind Mapp — Keyboard Shortcuts
 
 Most selection/layout commands are also available in toolbar `Advanced ▾`.
+- Cmd/Ctrl+T: open tag picker dialog
+- Cmd/Ctrl+Shift+T: open tag picker dialog (same action)
+- Cmd/Ctrl+Shift+F: toggle tag filter panel
 
 - Enter: new sibling
 - Tab: new child

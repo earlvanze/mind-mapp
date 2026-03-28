@@ -107,6 +107,9 @@ export const SHORTCUTS: Shortcut[] = [
   { key: 'Cmd/Ctrl+7', desc: 'apply color preset 7 (Muted)' },
   { key: 'Cmd/Ctrl+0', desc: 'reset node style to default' },
   { key: 'Cmd/Ctrl+Shift+R', desc: 'reset node style to default' },
+  { key: 'Cmd/Ctrl+T', desc: 'open tag picker dialog' },
+  { key: 'Cmd/Ctrl+Shift+T', desc: 'open tag picker dialog' },
+  { key: 'Cmd/Ctrl+Shift+F', desc: 'toggle tag filter panel' },
   { key: '?', desc: 'toggle help dialog' },
 ];
 
