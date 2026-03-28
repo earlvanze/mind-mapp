@@ -2,6 +2,7 @@ import { useEffect, useRef, memo } from 'react';
 import { Node as NodeType, useMindMapStore } from '../store/useMindMapStore';
 import { resolveStyle } from '../utils/nodeStyles';
 import { loadTheme } from '../utils/theme';
+import { TagBadge } from './TagBadge';
 
 type Props = { 
   node: NodeType;
@@ -216,104 +217,128 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
         }}
         onDoubleClick={() => startEditing(node.id)}
       >
-        {node.style?.imageUrl && (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: node.style?.imageUrl ? 'center' : 'flex-start',
+          gap: 4,
+        }}>
+          {node.style?.imageUrl && (
+            <div style={{
+              maxWidth: 160,
+              maxHeight: 120,
+              overflow: 'hidden',
+              borderRadius: 4,
+              lineHeight: 0,
+            }}>
+              <img
+                src={node.style.imageUrl}
+                alt=""
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: 112,
+                  objectFit: 'contain',
+                  display: 'block',
+                  borderRadius: 4,
+                }}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+            </div>
+          )}
           <div style={{
-            maxWidth: 160,
-            maxHeight: 120,
-            overflow: 'hidden',
-            borderRadius: 4,
-            marginBottom: node.style?.imageUrl ? 4 : 0,
-            lineHeight: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
           }}>
-            <img
-              src={node.style.imageUrl}
-              alt=""
+            {resolved.icon ? <span style={{ fontSize: '1em', lineHeight: 1 }}>{resolved.icon}</span> : null}
+            {node.style?.linkUrl && (
+              <a
+                href={node.style.linkUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                title={node.style.linkUrl}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  fontSize: '0.85em',
+                  opacity: 0.7,
+                  textDecoration: 'none',
+                  cursor: 'pointer',
+                  lineHeight: 1,
+                  padding: '2px 3px',
+                  borderRadius: 3,
+                  background: 'rgba(0,0,0,0.1)',
+                  color: resolved.text,
+                }}
+                aria-label={`Open link: ${node.style.linkUrl}`}
+              >
+                🔗
+              </a>
+            )}
+            <span
+              ref={textRef}
               style={{
-                maxWidth: '100%',
-                maxHeight: 112,
-                objectFit: 'contain',
-                display: 'block',
-                borderRadius: 4,
+                outline: 'none',
+                minWidth: 8,
+                display: 'inline-block',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                transform: resolved.shape === 'diamond' ? 'rotate(-45deg)' : undefined,
+                pointerEvents: 'none',
               }}
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  (e.currentTarget as HTMLElement).blur();
+                }
+                if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
+                  e.preventDefault();
+                  applyFormat('bold');
+                }
+                if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'i') {
+                  e.preventDefault();
+                  applyFormat('italic');
+                }
+                // Lists: Cmd+Shift+7 = ol, Cmd+Shift+8 = ul
+                if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === '8') {
+                  e.preventDefault();
+                  applyFormat('insertUnorderedList');
+                }
+                if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === '7') {
+                  e.preventDefault();
+                  applyFormat('insertOrderedList');
+                }
+              }}
+              onBlur={(e) => {
+                const el = e.currentTarget;
+                // Store HTML to preserve b/i formatting
+                const html = el.innerHTML || '';
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                const text = (temp.textContent || '').trim();
+                // Use innerHTML to preserve bold/italic markup
+                setText(node.id, html.trim() || 'New');
+                el.contentEditable = 'false';
+              }}
+              dangerouslySetInnerHTML={{ __html: node.text || '' }}
             />
           </div>
-        )}
-        {resolved.icon ? <span style={{ fontSize: '1em', lineHeight: 1 }}>{resolved.icon}</span> : null}
-        {node.style?.linkUrl && (
-          <a
-            href={node.style.linkUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-            title={node.style.linkUrl}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              marginLeft: 4,
-              fontSize: '0.85em',
-              opacity: 0.7,
-              textDecoration: 'none',
-              cursor: 'pointer',
-              lineHeight: 1,
-              padding: '2px 3px',
-              borderRadius: 3,
-              background: 'rgba(0,0,0,0.1)',
-              color: resolved.text,
-            }}
-            aria-label={`Open link: ${node.style.linkUrl}`}
-          >
-            🔗
-          </a>
-        )}
-        <span
-          ref={textRef}
-          style={{
-            outline: 'none',
-            minWidth: 8,
-            display: 'inline-block',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-            transform: resolved.shape === 'diamond' ? 'rotate(-45deg)' : undefined,
-            pointerEvents: 'none',
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              (e.currentTarget as HTMLElement).blur();
-            }
-            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
-              e.preventDefault();
-              applyFormat('bold');
-            }
-            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'i') {
-              e.preventDefault();
-              applyFormat('italic');
-            }
-            // Lists: Cmd+Shift+7 = ol, Cmd+Shift+8 = ul
-            if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === '8') {
-              e.preventDefault();
-              applyFormat('insertUnorderedList');
-            }
-            if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === '7') {
-              e.preventDefault();
-              applyFormat('insertOrderedList');
-            }
-          }}
-          onBlur={(e) => {
-            const el = e.currentTarget;
-            // Store HTML to preserve b/i formatting
-            const html = el.innerHTML || '';
-            const temp = document.createElement('div');
-            temp.innerHTML = html;
-            const text = (temp.textContent || '').trim();
-            // Use innerHTML to preserve bold/italic markup
-            setText(node.id, html.trim() || 'New');
-            el.contentEditable = 'false';
-          }}
-          dangerouslySetInnerHTML={{ __html: node.text || '' }}
-        />
+          {node.tags && node.tags.length > 0 && (
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 4,
+              marginTop: 2,
+              transform: resolved.shape === 'diamond' ? 'rotate(-45deg)' : undefined,
+            }}>
+              {node.tags.map((tag) => (
+                <TagBadge key={tag} tag={tag} size="small" />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </>
   );
@@ -338,6 +363,7 @@ export default memo(Node, (prev, next) => {
     prev.node.style?.icon === next.node.style?.icon &&
     prev.node.style?.fontSize === next.node.style?.fontSize &&
     prev.node.style?.imageUrl === next.node.style?.imageUrl &&
-    prev.node.style?.linkUrl === next.node.style?.linkUrl
+    prev.node.style?.linkUrl === next.node.style?.linkUrl &&
+    JSON.stringify(prev.node.tags || []) === JSON.stringify(next.node.tags || [])
   );
 });
