@@ -10,9 +10,10 @@ type Props = {
   isFocused: boolean;
   isSelected: boolean;
   isEditing: boolean;
+  isFaded?: boolean;
 };
 
-function Node({ node, isFocused, isSelected, isEditing }: Props) {
+function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props) {
   const {
     nodes,
     selectedIds,
@@ -116,6 +117,8 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
     cursor: isEditing ? 'text' : 'grab',
     userSelect: 'none',
     padding: node.style?.imageUrl ? '8px 8px 4px' : '4px 8px',
+    opacity: isFaded ? 0.2 : 1,
+    transition: 'opacity 0.15s ease',
   };
 
   return (

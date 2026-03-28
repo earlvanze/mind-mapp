@@ -89,6 +89,11 @@ type MindMapState = {
   addTag: (id: string, tag: string) => void;
   removeTag: (id: string, tag: string) => void;
   addTagToSelected: (tag: string) => void;
+  activeTagFilters: string[];
+  matchMode: 'any' | 'all';
+  setTagFilter: (tag: string) => void;
+  clearTagFilters: () => void;
+  toggleMatchMode: () => void;
 };
 
 const rootId = 'n_root';
@@ -130,6 +135,8 @@ const defaultState = {
   canUndo: false,
   canRedo: false,
   layoutMode: 'tree' as LayoutMode,
+  activeTagFilters: [] as string[],
+  matchMode: 'any' as 'any' | 'all',
 };
 
 function loadState() {
@@ -1144,6 +1151,27 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         nodes: nextNodes,
       };
     }),
+
+    setTagFilter: (tag) => {
+      set((state) => {
+        const filters = state.activeTagFilters;
+        if (filters.includes(tag)) {
+          return { activeTagFilters: filters.filter(t => t !== tag) };
+        } else {
+          return { activeTagFilters: [...filters, tag] };
+        }
+      });
+    },
+
+    clearTagFilters: () => {
+      set({ activeTagFilters: [] });
+    },
+
+    toggleMatchMode: () => {
+      set((state) => ({
+        matchMode: state.matchMode === 'any' ? 'all' : 'any',
+      }));
+    },
 }));
 
 // autosave is triggered from hook to debounce localStorage writes

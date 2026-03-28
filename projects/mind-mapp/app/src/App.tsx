@@ -13,6 +13,7 @@ import { useAutosave } from './hooks/useAutosave';
 import { exportPng, exportJsonData, exportMarkdownData, exportSvg, exportFreemindData, exportPdf, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, APP_VERSION, HELP_TOGGLE_ARIA_KEYSHORTCUTS, SEARCH_TOGGLE_ARIA_KEYSHORTCUTS, encodeShareLink, loadSharedMap, clearShareLink } from './utils';
 import MiniMap from './components/MiniMap';
 import StyleToolbar from './components/StyleToolbar';
+import TagFilterPanel from './components/TagFilterPanel';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
 const HelpDialog = lazy(() => import('./components/HelpDialog'));
@@ -21,12 +22,13 @@ const TagPickerDialog = lazy(() => import('./components/TagPickerDialog'));
 
 export default function App() {
   const [useCanvasRenderer, setUseCanvasRenderer] = useState(false);
-  const { nodes, focusId, selectedIds, editingId, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
+  const { nodes, focusId, selectedIds, editingId, activeTagFilters, matchMode, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo } = useMindMapStore();
   const { visibleNodeIds, shouldVirtualize } = useVirtualization(nodes, useCanvasRenderer);
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
   const [tagPickerOpen, setTagPickerOpen] = useState(false);
+  const [showTagFilter, setShowTagFilter] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
@@ -439,6 +441,7 @@ export default function App() {
     onToggleTheme: handleToggleTheme,
     onHelp: () => toggleHelpDialog(),
     onTagPicker: () => toggleTagPicker(),
+    onTagFilter: () => setShowTagFilter(v => !v),
     onVersionHistory: () => toggleVersionHistory(),
     onUndo: () => undo(),
     onRedo: () => redo(),
@@ -749,6 +752,15 @@ export default function App() {
           <button title="Toggle grid overlay (Shift+G)" aria-pressed={showGrid} aria-keyshortcuts="Shift+G" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
           <button title="Toggle Canvas Renderer (better performance for large maps)" aria-pressed={useCanvasRenderer} onClick={() => setUseCanvasRenderer(v => !v)}>{useCanvasRenderer ? "Canvas" : "SVG"}</button>
           <button
+            title={showTagFilter ? 'Hide tag filter (Cmd/Ctrl+Shift+T)' : 'Show tag filter (Cmd/Ctrl+Shift+T)'}
+            aria-pressed={showTagFilter}
+            aria-expanded={showTagFilter}
+            aria-keyshortcuts="Control+Shift+T Meta+Shift+T"
+            onClick={() => setShowTagFilter(v => !v)}
+          >
+            {showTagFilter ? 'Filter On' : 'Filter Off'}
+          </button>
+          <button
             title="Toggle mini-map (Shift+M)"
             aria-pressed={showMiniMap}
             aria-expanded={showMiniMap}
@@ -886,9 +898,17 @@ export default function App() {
       </div>
       <div id="mindmap-canvas" className={`canvas ${showGrid ? 'grid-on' : ''}`} role="application" aria-label="Mind map canvas. Use arrow keys to navigate nodes, Enter to edit, Tab to add child, Delete to remove." tabIndex={-1}>
         {useCanvasRenderer ? <CanvasEdges nodes={nodes} /> : <Edges nodes={nodes} />}
-        {Object.values(nodes).filter(n => !shouldVirtualize || visibleNodeIds.has(n.id)).map(n => (
-          <Node key={n.id} node={n} isFocused={focusId === n.id} isSelected={selectedIds.includes(n.id)} isEditing={editingId === n.id} />
-        ))}
+        {Object.values(nodes).filter(n => !shouldVirtualize || visibleNodeIds.has(n.id)).map(n => {
+          const hasFilters = activeTagFilters.length > 0;
+          const nodeTags = n.tags || [];
+          const isFaded = hasFilters && (
+            matchMode === 'any'
+              ? !activeTagFilters.some(f => nodeTags.includes(f))
+              : !activeTagFilters.every(f => nodeTags.includes(f))
+          );
+          return <Node key={n.id} node={n} isFocused={focusId === n.id} isSelected={selectedIds.includes(n.id)} isEditing={editingId === n.id} isFaded={isFaded} />;
+        })}
+        {showTagFilter && <TagFilterPanel />}
         {showMiniMap ? (
           <MiniMap
             nodes={nodes}
