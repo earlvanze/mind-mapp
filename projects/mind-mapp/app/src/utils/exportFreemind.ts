@@ -35,35 +35,42 @@ function colorToFreemind(color?: string): string | undefined {
   return undefined;
 }
 
-function nodeAttrs(node: Node): string {
+function nodeAttrs(node: Node): { attrs: string; note: string } {
   const text = cleanText(node.text);
   const bgColor = colorToFreemind(node.style?.backgroundColor);
   const borderColor = colorToFreemind(node.style?.borderColor);
   const shape = shapeToFreemind(node.style?.shape);
   const icon = node.style?.icon;
+  const tags = node.tags;
 
   let attrs = `TEXT="${text}"`;
   if (shape !== 'bullet') attrs += ` STYLE="${shape}"`;
   if (bgColor) attrs += ` BACKGROUND_COLOR="${bgColor}"`;
   if (borderColor) attrs += ` COLOR="${borderColor}"`;
   if (icon) attrs += ` ICON="${icon}"`;
-  return attrs;
+
+  let note = '';
+  if (tags && tags.length > 0) {
+    note = `      <note>\n        <plain>🏷️ ${tags.join(', ')}</plain>\n      </note>\n`;
+  }
+
+  return { attrs, note };
 }
 
 function renderNode(id: string, nodes: Record<string, Node>, visited: Set<string>): string {
   const node = nodes[id];
   if (!node) return '';
 
-  const attrs = nodeAttrs(node);
+  const { attrs, note } = nodeAttrs(node);
   visited.add(id);
 
   const children = sortIds(node.children.filter(cid => !!nodes[cid] && !visited.has(cid)), nodes);
-  if (children.length === 0) {
-    return `      <node ${attrs} />`;
-  }
-
   const childContent = children.map(cid => renderNode(cid, nodes, visited)).join('\n');
-  return `      <node ${attrs}>\n${childContent}\n      </node>`;
+
+  if (children.length === 0) {
+    return `      <node ${attrs}>${note}</node>`;
+  }
+  return `      <node ${attrs}>\n${note}${childContent}\n      </node>`;
 }
 
 export function toFreemind(nodes: Record<string, Node>): string {
@@ -77,8 +84,8 @@ export function toFreemind(nodes: Record<string, Node>): string {
 
   let content = '';
   if (rootId) {
-    const rootAttrs = nodeAttrs(nodes[rootId]);
-    content += `  <node ${rootAttrs}>\n`;
+    const { attrs, note } = nodeAttrs(nodes[rootId]);
+    content += `  <node ${attrs}>\n${note}`;
     const children = sortIds(nodes[rootId].children.filter(cid => !!nodes[cid]), nodes);
     for (const cid of children) {
       content += renderNode(cid, nodes, visited) + '\n';
@@ -91,12 +98,12 @@ export function toFreemind(nodes: Record<string, Node>): string {
   for (const id of unvisited) {
     visited.add(id);
     const node = nodes[id];
-    const attrs = nodeAttrs(node);
+    const { attrs, note } = nodeAttrs(node);
     const children = sortIds(node.children.filter(cid => !!nodes[cid]), nodes);
     if (children.length === 0) {
-      content += `  <node ${attrs} />\n`;
+      content += `  <node ${attrs}>${note}</node>\n`;
     } else {
-      content += `  <node ${attrs}>\n`;
+      content += `  <node ${attrs}>\n${note}`;
       for (const cid of children) {
         content += renderNode(cid, nodes, visited) + '\n';
       }
