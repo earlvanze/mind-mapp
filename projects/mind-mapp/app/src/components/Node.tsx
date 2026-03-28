@@ -1,8 +1,9 @@
-import { useEffect, useRef, memo } from 'react';
+import { useEffect, useRef, memo, useState } from 'react';
 import { Node as NodeType, useMindMapStore } from '../store/useMindMapStore';
 import { resolveStyle } from '../utils/nodeStyles';
 import { loadTheme } from '../utils/theme';
 import { TagBadge } from './TagBadge';
+import { TagInput } from './TagInput';
 
 type Props = { 
   node: NodeType;
@@ -23,6 +24,8 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
     moveNodes,
   } = useMindMapStore();
   const textRef = useRef<HTMLSpanElement>(null);
+  const [showTagInput, setShowTagInput] = useState(false);
+  const nodeRef = useRef<HTMLDivElement>(null);
 
   // Sync editing state: enable contentEditable and select all text when editing
   useEffect(() => {
@@ -311,6 +314,13 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
                   applyFormat('insertOrderedList');
                 }
               }}
+              onKeyDown={(e) => {
+                // Cmd/Ctrl+T: open tag input
+                if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 't' && !e.shiftKey) {
+                  e.preventDefault();
+                  setShowTagInput(true);
+                }
+              }}
               onBlur={(e) => {
                 const el = e.currentTarget;
                 // Store HTML to preserve b/i formatting
@@ -334,12 +344,27 @@ function Node({ node, isFocused, isSelected, isEditing }: Props) {
               transform: resolved.shape === 'diamond' ? 'rotate(-45deg)' : undefined,
             }}>
               {node.tags.map((tag) => (
-                <TagBadge key={tag} tag={tag} size="small" />
+                <TagBadge key={tag} tag={tag} size="small" onRemove={() => useMindMapStore.getState().removeTag(node.id, tag)} />
               ))}
             </div>
           )}
         </div>
       </div>
+      {showTagInput && nodeRef.current && (
+        <div
+          style={{
+            position: 'absolute',
+            left: node.x,
+            top: node.y + 60,
+            zIndex: 2000,
+          }}
+        >
+          <TagInput
+            nodeId={node.id}
+            onClose={() => setShowTagInput(false)}
+          />
+        </div>
+      )}
     </>
   );
 }

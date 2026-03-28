@@ -86,6 +86,9 @@ type MindMapState = {
   setNodeStyle: (id: string, style: Partial<NodeStyle> | undefined) => void;
   setSelectedStyle: (style: Partial<NodeStyle> | undefined) => void;
   restoreSnapshot: (nodes: Record<string, Node>, focusId: string) => void;
+  addTag: (id: string, tag: string) => void;
+  removeTag: (id: string, tag: string) => void;
+  addTagToSelected: (tag: string) => void;
 };
 
 const rootId = 'n_root';
@@ -1067,6 +1070,72 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
           nextNodes[id] = { ...node, style: newStyle };
           changed = true;
         }
+      }
+      
+      if (!changed) return {};
+      return {
+        ...withHistory(state),
+        nodes: nextNodes,
+      };
+    }),
+    
+  addTag: (id, tag) =>
+    set(state => {
+      const node = state.nodes[id];
+      if (!node) return {};
+      
+      const normalizedTag = tag.trim();
+      if (!normalizedTag) return {};
+      
+      const currentTags = node.tags || [];
+      if (currentTags.includes(normalizedTag)) return {}; // Already has tag
+      
+      return {
+        ...withHistory(state),
+        nodes: {
+          ...state.nodes,
+          [id]: { ...node, tags: [...currentTags, normalizedTag] },
+        },
+      };
+    }),
+    
+  removeTag: (id, tag) =>
+    set(state => {
+      const node = state.nodes[id];
+      if (!node || !node.tags) return {};
+      
+      const newTags = node.tags.filter(t => t !== tag);
+      if (newTags.length === node.tags.length) return {}; // Tag not found
+      
+      return {
+        ...withHistory(state),
+        nodes: {
+          ...state.nodes,
+          [id]: { ...node, tags: newTags.length > 0 ? newTags : undefined },
+        },
+      };
+    }),
+    
+  addTagToSelected: (tag) =>
+    set(state => {
+      const selected = state.selectedIds.filter(id => !!state.nodes[id]);
+      if (!selected.length) return {};
+      
+      const normalizedTag = tag.trim();
+      if (!normalizedTag) return {};
+      
+      const nextNodes = { ...state.nodes };
+      let changed = false;
+      
+      for (const id of selected) {
+        const node = nextNodes[id];
+        if (!node) continue;
+        
+        const currentTags = node.tags || [];
+        if (currentTags.includes(normalizedTag)) continue; // Skip if already has tag
+        
+        nextNodes[id] = { ...node, tags: [...currentTags, normalizedTag] };
+        changed = true;
       }
       
       if (!changed) return {};
