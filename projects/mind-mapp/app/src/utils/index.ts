@@ -18,6 +18,8 @@ export * from './helpStatus';
 export * from './helpToggle';
 export * from './id';
 export * from './importValidation';
+export * from './importXMind';
+export * from './importRouter';
 export * from './sampleMap';
 export * from './searchNodes';
 export * from './searchNormalize';

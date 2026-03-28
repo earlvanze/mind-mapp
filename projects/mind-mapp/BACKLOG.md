@@ -99,7 +99,7 @@
 - [ ] Node animations and transitions
 - [ ] Advanced filters (by style, date, properties)
 
-## v1.1 Node Tags & Categories (In Progress)
+## v1.1 Node Tags & Categories ✅ Complete
 Branch: feature/node-tags
 
 ### Phase 1: Data Model & Basic UI

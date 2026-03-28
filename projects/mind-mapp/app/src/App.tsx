@@ -10,7 +10,7 @@ import { useKeyboard } from './hooks/useKeyboard';
 import { useVirtualization } from './hooks/useVirtualization';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, exportSvg, exportFreemindData, exportPdf, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, APP_VERSION, HELP_TOGGLE_ARIA_KEYSHORTCUTS, SEARCH_TOGGLE_ARIA_KEYSHORTCUTS, encodeShareLink, loadSharedMap, clearShareLink } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, exportSvg, exportFreemindData, exportPdf, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, parseImportContent, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, APP_VERSION, HELP_TOGGLE_ARIA_KEYSHORTCUTS, SEARCH_TOGGLE_ARIA_KEYSHORTCUTS, encodeShareLink, loadSharedMap, clearShareLink } from './utils';
 import MiniMap from './components/MiniMap';
 import StyleToolbar from './components/StyleToolbar';
 import TagFilterPanel from './components/TagFilterPanel';
@@ -588,13 +588,13 @@ export default function App() {
   const importJson = async (file: File) => {
     try {
       const text = await file.text();
-      const parsed = JSON.parse(text);
-      const nodes = parseImportPayload(parsed);
+      const { nodes, format } = parseImportContent(text, undefined, file.name);
       importState(nodes);
       resetFocusHistoryTo('n_root');
-      setImportNotice({ text: `Imported ${Object.keys(nodes).length} nodes and reset focus history.`, kind: 'success' });
+      const formatLabel = format === 'mindmapp-json' ? '' : ` (${format})`;
+      setImportNotice({ text: `Imported ${Object.keys(nodes).length} nodes${formatLabel} and reset focus history.`, kind: 'success' });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Invalid JSON file.';
+      const message = error instanceof Error ? error.message : 'Invalid file.';
       setImportNotice({ text: message, kind: 'error' });
     }
   };
@@ -839,7 +839,7 @@ export default function App() {
             Import JSON
             <input
               type="file"
-              accept="application/json"
+              accept=".json,.xmind,.mm,application/json,application/xml,text/xml"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) importJson(file);
