@@ -107,8 +107,8 @@ Branch: feature/node-tags
 - [x] Create TagBadge component
 - [x] Feature specification document
 - [x] Update localStorage schema (auto-serialized)
-- [ ] Display tags below node text
-- [ ] Add tag to sample maps
+- [x] Display tags below node text
+- [x] Add tag to sample maps
 
 ### Phase 2: Tag Input & Editing
 - [ ] Create TagInput component with autocomplete
