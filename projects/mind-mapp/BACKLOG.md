@@ -82,6 +82,33 @@
 - [x] Public documentation site — comprehensive docs/ with index.html + all markdown files
 - [x] Production deployment guide — enhanced DEPLOY.md with Netlify, Vercel, AWS, Docker, self-hosted options
 
+
+## v1.2 Import Formats (In Progress)
+Branch: feature/node-tags
+
+### Phase 1: Format Detection & Routing
+- [x] Create importRouter.ts with auto-detect (JSON, XMind, FreeMind)
+- [x] Create importXMind.ts parser for XMind 8/9 XML
+- [x] Wire parseImportContent into App.tsx
+- [x] Update file input accept attribute (.json, .xmind, .mm)
+- [x] Unit tests for importRouter + importXMind
+
+### Phase 2: Obsidian Import
+- [ ] Parse Obsidian vault markdown files (nested folders → tree)
+- [ ] Detect and convert [[wiki-links]] between notes
+- [ ] Import tags from YAML frontmatter
+- [ ] Import #headings as child nodes
+
+### Phase 3: MindManager (FreeMind Enhanced)
+- [ ] Handle MindManager-specific attributes (priority, resource, boundary)
+- [ ] Map MindManager folds to MindMapp expand/collapse
+
+### Phase 4: Testing & Documentation
+- [ ] Integration tests with sample files (XMind, FreeMind, Obsidian)
+- [ ] Update keyboard shortcuts docs
+- [ ] Document supported import formats
+
+
 ## Future (Post-v1.0)
 - [ ] Collaborative editing (CRDT-based)
 - [ ] Plugin system for custom visualizations
@@ -98,45 +125,3 @@
 - [ ] Keyboard shortcut customization
 - [ ] Node animations and transitions
 - [ ] Advanced filters (by style, date, properties)
-
-## v1.1 Node Tags & Categories ✅ Complete
-Branch: feature/node-tags
-
-### Phase 1: Data Model & Basic UI
-- [x] Add `tags` field to Node interface
-- [x] Create TagBadge component
-- [x] Feature specification document
-- [x] Update localStorage schema (auto-serialized)
-- [x] Display tags below node text
-- [x] Add tag to sample maps
-
-### Phase 2: Tag Input & Editing ✅ Complete
-- [x] Create TagInput component with autocomplete
-- [x] Add tag edit mode (via TagInput)
-- [x] Keyboard shortcuts for tag operations (Cmd+T)
-- [x] Bulk tag for multi-select (addTagToSelected)
-
-### Phase 3: Tag Picker Dialog ✅ Complete
-- [x] Create TagPickerDialog component
-- [x] Show all existing tags with counts
-- [x] Click to toggle tag on selected nodes
-
-### Phase 4: Filtering & Visualization ✅ Complete
-- [x] Tag filter panel component
-- [x] Filter logic (match any/all modes)
-- [x] Fade non-matching nodes
-
-### Phase 5: Export/Import ✅ Complete (Partial)
-- [x] Include tags in JSON export (already works — tags field serializes natively)
-- [x] Preserve tags in FreeMind export (tags as <note> elements with 🏷️ prefix)
-- [x] Import tags from JSON (existing parseImportPayload already handles tags field)
-
-### Phase 6: Testing & Documentation
-- [x] Unit tests for tag operations
-- [x] Integration tests for filtering
-- [x] Update keyboard shortcuts doc
-- [x] Add tag tutorial to help dialog
-- [x] Filter tags by search
-- [x] Keyboard shortcut (Cmd/Ctrl+Shift+T)
-- [x] Tag utility functions (getAllTagsWithCounts, getSortedTags, nodeHasTag, allNodesHaveTag)
-- [x] Indeterminate checkbox state for partial selection
