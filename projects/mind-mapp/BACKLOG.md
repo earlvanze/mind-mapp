@@ -121,15 +121,15 @@ Branch: feature/node-tags
 - [x] Show all existing tags with counts
 - [x] Click to toggle tag on selected nodes
 
-### Phase 4: Filtering & Visualization
-- [ ] Tag filter panel component
-- [ ] Filter logic (match any/all modes)
-- [ ] Fade non-matching nodes
+### Phase 4: Filtering & Visualization ✅ Complete
+- [x] Tag filter panel component
+- [x] Filter logic (match any/all modes)
+- [x] Fade non-matching nodes
 
-### Phase 5: Export/Import
-- [ ] Include tags in JSON export
-- [ ] Preserve tags in FreeMind export
-- [ ] Import tags from JSON
+### Phase 5: Export/Import ✅ Complete (Partial)
+- [x] Include tags in JSON export (already works — tags field serializes natively)
+- [x] Preserve tags in FreeMind export (tags as <note> elements with 🏷️ prefix)
+- [ ] Import tags from JSON (existing parseImportPayload already handles tags field)
 
 ### Phase 6: Testing & Documentation
 - [ ] Unit tests for tag operations
