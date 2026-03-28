@@ -839,7 +839,7 @@ export default function App() {
             Import JSON
             <input
               type="file"
-              accept=".json,.xmind,.mm,application/json,application/xml,text/xml"
+              accept=".json,.xmind,.mm,.md,application/json,application/xml,text/xml,text/markdown"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) importJson(file);
