@@ -351,6 +351,28 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
               ))}
             </div>
           )}
+          {node.comment && (
+            <div 
+              title={node.comment}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 2,
+                marginTop: 2,
+                padding: '2px 6px',
+                backgroundColor: 'rgba(255, 200, 0, 0.2)',
+                borderRadius: 4,
+                fontSize: '0.75em',
+                color: 'rgba(255, 200, 0, 0.9)',
+                transform: resolved.shape === 'diamond' ? 'rotate(-45deg)' : undefined,
+              }}
+            >
+              <span>💬</span>
+              <span style={{ maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {node.comment.length > 15 ? node.comment.slice(0, 15) + '...' : node.comment}
+              </span>
+            </div>
+          )}
         </div>
       </div>
       {showTagInput && nodeRef.current && (

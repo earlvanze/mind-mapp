@@ -25,7 +25,8 @@ export type Node = {
   children: string[];
   style?: NodeStyle;  // NEW: optional styling
   tags?: string[];     // NEW: node tags for categorization
-  isCollapsed?: boolean; // NEW: collapsed state (hides children in canvas)
+  isCollapsed?: boolean; // NEW: collapsed state
+  comment?: string;    // NEW: node annotation/comment (hides children in canvas)
 };
 
 type Snapshot = {
@@ -96,6 +97,7 @@ type MindMapState = {
   clearTagFilters: () => void;
   toggleMatchMode: () => void;
   toggleNodeCollapsed: (id: string) => void;
+  setNodeComment: (id: string, comment: string | undefined) => void;
 };
 
 const rootId = 'n_root';
@@ -1180,6 +1182,15 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         if (!node || node.children.length === 0) return {};
         const newNodes = { ...state.nodes };
         newNodes[id] = { ...newNodes[id], isCollapsed: !newNodes[id].isCollapsed };
+        return { nodes: newNodes };
+      });
+    },
+    setNodeComment: (id, comment) => {
+      set((state) => {
+        const node = state.nodes[id];
+        if (!node) return {};
+        const newNodes = { ...state.nodes };
+        newNodes[id] = { ...newNodes[id], comment };
         return { nodes: newNodes };
       });
     },

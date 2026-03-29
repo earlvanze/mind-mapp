@@ -19,6 +19,7 @@ const SearchDialog = lazy(() => import('./components/SearchDialog'));
 const HelpDialog = lazy(() => import('./components/HelpDialog'));
 const VersionHistoryDialogLazy = lazy(() => import('./components/VersionHistoryDialog'));
 const TagPickerDialog = lazy(() => import('./components/TagPickerDialog'));
+const CommentDialog = lazy(() => import('./components/CommentDialog'));
 
 export default function App() {
   const [useCanvasRenderer, setUseCanvasRenderer] = useState(false);
@@ -27,6 +28,7 @@ export default function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
+  const [commentNodeId, setCommentNodeId] = useState<string | null>(null);
   const [tagPickerOpen, setTagPickerOpen] = useState(false);
   const [showTagFilter, setShowTagFilter] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
@@ -813,6 +815,16 @@ export default function App() {
           >
             {versionHistoryOpen ? 'Versions On' : 'Versions'}
           </button>
+          <button
+            title="Add/edit node comment (Alt+Shift+C)"
+            aria-label="Add or edit a comment on the focused node" aria-keyshortcuts="Alt+Shift+C"
+            
+            onClick={() => focusId !== "n_root" && setCommentNodeId(focusId)}
+            disabled={focusId === "n_root"}
+            style={{ opacity: focusId === "n_root" ? 0.5 : 1 }}
+          >
+            💬
+          </button>
           <StyleToolbar theme={theme} />
           <button
             title="Clear map"
@@ -871,7 +883,7 @@ export default function App() {
               <button title="Select all nodes (Cmd/Ctrl+A)" aria-keyshortcuts="Control+A Meta+A" onClick={selectAll}>Select All</button>
               <button title="Invert selection (Alt+I)" aria-keyshortcuts="Alt+I" onClick={invertSelection}>Invert</button>
               <button title="Select siblings of focused node (Alt+S)" aria-keyshortcuts="Alt+S" onClick={selectSiblings}>Siblings</button>
-              <button title="Select children of focused node (Alt+C)" aria-keyshortcuts="Alt+C" onClick={selectChildren}>Children</button>
+              <button title="Select children of focused node (Alt+C)"  onClick={selectChildren}>Children</button>
               <button title="Select leaves under focused subtree (Alt+L)" aria-keyshortcuts="Alt+L" onClick={selectLeaves}>Leaves</button>
               <button title="Select focused node ancestors (Alt+U)" aria-keyshortcuts="Alt+U" onClick={selectAncestors}>Ancestors</button>
               <button title="Keep top-level nodes from selection (Alt+T)" aria-keyshortcuts="Alt+T" onClick={selectTopLevel}>Top-level</button>
@@ -926,6 +938,9 @@ export default function App() {
         <SearchDialog open={searchOpen} onClose={closeSearchDialog} />
         <HelpDialog open={helpOpen} onClose={closeHelpDialog} />
         <TagPickerDialog open={tagPickerOpen} onClose={() => setTagPickerOpen(false)} />
+        {commentNodeId && (
+          <CommentDialog nodeId={commentNodeId} onClose={() => setCommentNodeId(null)} />
+        )}
         <VersionHistoryDialogLazy
           open={versionHistoryOpen}
           onClose={() => setVersionHistoryOpen(false)}
