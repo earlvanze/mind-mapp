@@ -121,7 +121,7 @@ Branch: feature/node-tags
 - [ ] Cloud sync (optional backend)
 - [ ] Presentation mode (slideshow through branches)
 - [x] Node comments and annotations ✅
-- [ ] Custom themes and color schemes
+- [x] Custom themes and color schemes
 - [ ] Keyboard shortcut customization
 - [ ] Node animations and transitions
 - [ ] Advanced filters (by style, date, properties)

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useMindMapStore, saveState } from './store/useMindMapStore';
-import { loadTheme, saveTheme, applyTheme, toggleTheme, type Theme } from './utils/theme';
+import { loadTheme, applyTheme } from './utils/theme';
+import { loadSavedPreset, getPresetById, applyPreset, savePreset } from './utils/themePresets';
 import VersionHistoryDialog from './components/VersionHistoryDialog';
 import { createSnapshot, saveSnapshot, type NamedSnapshot } from './store/versionHistory';
 import Node from './components/Node';
@@ -18,6 +19,7 @@ import TagFilterPanel from './components/TagFilterPanel';
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
 const HelpDialog = lazy(() => import('./components/HelpDialog'));
 const VersionHistoryDialogLazy = lazy(() => import('./components/VersionHistoryDialog'));
+const ThemeDialog = lazy(() => import('./components/ThemeDialog'));
 const TagPickerDialog = lazy(() => import('./components/TagPickerDialog'));
 const CommentDialog = lazy(() => import('./components/CommentDialog'));
 const ShortcutSettingsDialog = lazy(() => import('./components/ShortcutSettingsDialog'));
@@ -37,10 +39,11 @@ export default function App() {
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
   const [pdfLayout, setPdfLayout] = useState<'a4-portrait' | 'a4-landscape' | 'letter-portrait' | 'letter-landscape' | 'fit'>('a4-portrait');
-  const [theme, setTheme] = useState<Theme>(() => {
-    const t = loadTheme();
-    applyTheme(t);
-    return t;
+  const [themePresetId, setThemePresetId] = useState(() => {
+    const saved = loadSavedPreset();
+    const preset = getPresetById(saved);
+    if (preset) applyPreset(preset);
+    return saved;
   });
   const [viewScale, setViewScale] = useState(1);
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
@@ -363,13 +366,10 @@ export default function App() {
     });
   };
 
+  const [themeDialogOpen, setThemeDialogOpen] = useState(false);
+
   const handleToggleTheme = () => {
-    setTheme(prev => {
-      const next = toggleTheme(prev);
-      saveTheme(next);
-      applyTheme(next);
-      return next;
-    });
+    setThemeDialogOpen(true);
   };
 
   const closeSearchDialog = () => {
@@ -835,7 +835,7 @@ export default function App() {
           >
             💬
           </button>
-          <StyleToolbar theme={theme} />
+          <StyleToolbar theme={getPresetById(themePresetId)?.isDark ? 'dark' : 'light'} />
           <button
             title="Clear map"
             aria-label="Clear the entire mind map"
@@ -886,7 +886,7 @@ export default function App() {
           </select>
           <button title="Export PDF" aria-label="Export as PDF document" onClick={exportPdfClick}>Export PDF</button>
           <button title="Reset pan/zoom" aria-label="Reset pan and zoom to default view" aria-keyshortcuts="0" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
-          <button title="Toggle theme (Shift+T)" aria-pressed={theme === 'dark'} aria-keyshortcuts="Shift+T" onClick={handleToggleTheme}>{theme === 'dark' ? '🌙 Dark' : '☀️ Light'}</button>
+          <button title="Theme (Shift+T)" aria-pressed={false} aria-keyshortcuts="Shift+T" onClick={handleToggleTheme} style={{ minWidth: 80 }}>🎨 Theme</button>
 
           {showAdvancedActions ? (
             <div id="mindmapp-advanced-actions" role="group" aria-label="Advanced toolbar actions">

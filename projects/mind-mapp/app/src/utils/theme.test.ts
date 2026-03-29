@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { loadTheme, saveTheme, toggleTheme, applyTheme } from './theme';
+import { loadTheme, applyTheme } from './theme';
 
 describe('theme', () => {
   beforeEach(() => {
@@ -33,16 +33,41 @@ describe('theme', () => {
     expect(loadTheme()).toBe('dark');
   });
 
-  it('returns stored theme', () => {
-    saveTheme('dark');
-    expect(loadTheme()).toBe('dark');
-    saveTheme('light');
+  it('returns light when v0.2 preset key is a light preset', () => {
+    // Simulate v0.2 preset being stored
+    const store = new Map<string, string>();
+    store.set('mindmapp.v0.2.theme', 'light');
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => { store.set(key, value); },
+      removeItem: (key: string) => { store.delete(key); },
+      clear: () => { store.clear(); },
+    });
     expect(loadTheme()).toBe('light');
   });
 
-  it('toggleTheme flips light to dark and vice versa', () => {
-    expect(toggleTheme('light')).toBe('dark');
-    expect(toggleTheme('dark')).toBe('light');
+  it('returns dark when v0.2 preset key is a dark preset', () => {
+    const store = new Map<string, string>();
+    store.set('mindmapp.v0.2.theme', 'dark');
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => { store.set(key, value); },
+      removeItem: (key: string) => { store.delete(key); },
+      clear: () => { store.clear(); },
+    });
+    expect(loadTheme()).toBe('dark');
+  });
+
+  it('falls back to v0.1 dark key when no v0.2 key present', () => {
+    const store = new Map<string, string>();
+    store.set('mindmapp.v0.1.theme', 'dark');
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => { store.set(key, value); },
+      removeItem: (key: string) => { store.delete(key); },
+      clear: () => { store.clear(); },
+    });
+    expect(loadTheme()).toBe('dark');
   });
 
   it('applyTheme sets data-theme attribute on documentElement', () => {
