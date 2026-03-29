@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Node } from '../store/useMindMapStore';
-import { DEFAULT_SEARCH_RESULT_LIMIT, searchNodes, searchNodesWithTotal, tokenizeSearchQuery } from './searchNodes';
+import { DEFAULT_SEARCH_RESULT_LIMIT, hasWildcards, searchNodes, searchNodesWithTotal, tokenizeSearchQuery } from './searchNodes';
 
 const nodes: Record<string, Node> = {
   n_root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n_alpha', 'n_beta', 'n_alpine'] },
@@ -294,5 +294,124 @@ describe('searchNodes', () => {
     };
 
     expect(searchNodes(sameText, 'alpha').map(node => node.id)).toEqual(['node_a', 'node_b']);
+  });
+});
+
+describe('wildcard search', () => {
+  it('detects wildcards in search terms', () => {
+    expect(hasWildcards('alpha*')).toBe(true);
+    expect(hasWildcards('*alpha')).toBe(true);
+    expect(hasWildcards('al?ha')).toBe(true);
+    expect(hasWildcards('alpha')).toBe(false);
+    expect(hasWildcards('al*ha?e')).toBe(true);
+  });
+
+  it('matches single character wildcard ?', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2'] },
+      n1: { id: 'n1', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'Alpine', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    // ? matches single char
+    const results = searchNodes(wild, 'Al?ha');
+    expect(results.map(node => node.id)).toEqual(['n1']);
+
+    // * matches zero or more
+    const results2 = searchNodes(wild, 'Al*ha');
+    expect(results2.map(node => node.id)).toEqual(['n1']);
+  });
+
+  it('matches prefix wildcard *', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2', 'n3'] },
+      n1: { id: 'n1', text: 'Review', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'Alpha Review', x: 0, y: 0, parentId: 'root', children: [] },
+      n3: { id: 'n3', text: 'Beta Review', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    // *review matches Review, Alpha Review, Beta Review
+    const results = searchNodes(wild, '*review');
+    expect(results.map(node => node.id)).toEqual(['n1', 'n2', 'n3']);
+  });
+
+  it('matches suffix wildcard *', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2'] },
+      n1: { id: 'n1', text: 'AlphaOne', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'BetaOne', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    const results = searchNodes(wild, 'alpha*');
+    expect(results.map(node => node.id)).toEqual(['n1']);
+  });
+
+  it('matches wildcard across path', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'n1', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: ['n2'] },
+      n2: { id: 'n2', text: 'Beta', x: 0, y: 0, parentId: 'n1', children: [] },
+    };
+
+    // root alpha beta should match via path
+    const results = searchNodes(wild, 'root * beta');
+    expect(results.map(node => node.id)).toEqual(['n2']);
+  });
+
+  it('supports negated wildcard terms', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2', 'n3'] },
+      n1: { id: 'n1', text: 'AlphaReview', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'BetaReview', x: 0, y: 0, parentId: 'root', children: [] },
+      n3: { id: 'n3', text: 'GammaReview', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    // Include *Review but exclude *Alpha*
+    const results = searchNodes(wild, '*review -alpha*');
+    expect(results.map(node => node.id)).toEqual(['n2', 'n3']);
+  });
+
+  it('combines wildcard with multi-term queries', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2'] },
+      n1: { id: 'n1', text: 'Project Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'Project Beta', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    const results = searchNodes(wild, 'project alpha*');
+    expect(results.map(node => node.id)).toEqual(['n1']);
+  });
+
+  it('handles wildcard in node id matching', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2'] },
+      n1: { id: 'node_alpha_1', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'node_beta_2', text: 'Beta', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    const results = searchNodes(wild, 'node_*_1');
+    expect(results.map(node => node.id)).toEqual(['n1']);
+  });
+
+  it('wildcard matches zero characters with *', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'n1', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    // a* matches Alpha (zero chars between a and l is not correct, but a* matches "Al" prefix)
+    // actually "al*" should match "al" prefix of "alpha" 
+    const results = searchNodes(wild, 'al*');
+    expect(results.map(node => node.id)).toEqual(['n1']);
+  });
+
+  it('wildcard is case-insensitive', () => {
+    const wild: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'n1', text: 'AlphaBeta', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+
+    const results = searchNodes(wild, 'alpha*beta');
+    expect(results.map(node => node.id)).toEqual(['n1']);
   });
 });
