@@ -120,7 +120,7 @@ Branch: feature/node-tags
 - [x] Import from other formats (XMind, MindManager, Obsidian) ✅
 - [ ] Cloud sync (optional backend)
 - [ ] Presentation mode (slideshow through branches)
-- [ ] Node comments and annotations
+- [x] Node comments and annotations ✅
 - [ ] Custom themes and color schemes
 - [ ] Keyboard shortcut customization
 - [ ] Node animations and transitions
