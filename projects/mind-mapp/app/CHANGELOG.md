@@ -1,5 +1,25 @@
 # Mind Mapp — Changelog
 
+## 0.14.0
+- **Presentation mode** — press `P` to enter slideshow-style navigation through the mind map
+  - BFS traversal through all nodes starting from root
+  - Fullscreen overlay with current node display
+  - Child node previews shown as thumbnails
+  - Progress bar and counter
+  - Keyboard navigation: `←`/`→` or `Space` to navigate, `Esc` or `P` to exit
+- `getPresentationOrder()`, `getRootId()`, `getNodePreviews()`, `getPresentationProgress()` utilities
+- `PresentationOverlay` component with dark overlay and animations
+
+## 0.13.0
+- Advanced filters (shape, color, icon, date) via FilterPanel
+- FilterPanel replaces TagFilterPanel with Tags/Style/Date tabs
+- Node timestamps (`createdAt`, `updatedAt`) for date-based filtering
+- Color filter substring matching
+- `getUniqueShapes()`, `getUniqueColors()`, `getUniqueIcons()` utilities
+- Keyboard shortcut customization wiring (checkCustomBinding, ACTION_TO_HANDLER)
+- "Customize shortcuts" button in HelpDialog
+
+
 ## 0.11.0
 - Skip navigation link (keyboard accessibility)
 - `:focus-visible` ring discrimination (keyboard vs mouse)

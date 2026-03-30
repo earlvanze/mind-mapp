@@ -48,6 +48,7 @@ type Props = {
   onCopyPath: () => void;
   onCenterRoot: () => void;
   onVersionHistory: () => void;
+  onPresentation: () => void;
   onToggleCollapse: () => void;
   onCollapseAll: () => void;
   onExpandAll: () => void;
@@ -154,6 +155,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onT
       if (e.altKey && !e.shiftKey && e.key.toLowerCase() === 'p' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); selectParent(); return; }
       if (e.altKey && !e.shiftKey && e.key.toLowerCase() === 'r' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); onFocusPrevious(); return; }
       if (e.altKey && e.key.toLowerCase() === 'v' && !e.metaKey && !e.ctrlKey && !e.shiftKey) { e.preventDefault(); onVersionHistory(); return; }
+      if (e.key === 'p' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey && !typingTarget) { e.preventDefault(); onPresentation(); return; }
       if (e.altKey && e.shiftKey && e.key === 'Home' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); onFocusHistoryStart(); return; }
       if (e.altKey && e.shiftKey && e.key === 'End' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); onFocusHistoryEnd(); return; }
       if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'q' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); onResetFocusHistory(); return; }
@@ -233,5 +235,5 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onT
 
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [focusId, editingId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, onSearch, onFit, onFitSelection, onFitSubtree, onTagPicker, onTagFilter, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, startEditing, setSelectedStyle, selectedIds, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, onToggleCollapse, onCollapseAll, onExpandAll, suspended, handlers]);
+  }, [focusId, editingId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, onSearch, onFit, onFitSelection, onFitSubtree, onTagPicker, onTagFilter, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, startEditing, setSelectedStyle, selectedIds, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, onToggleCollapse, onCollapseAll, onExpandAll, onPresentation, suspended, handlers]);
 }

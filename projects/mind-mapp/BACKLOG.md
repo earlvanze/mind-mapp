@@ -119,7 +119,7 @@ Branch: feature/node-tags
 - [ ] Export templates (custom styling presets)
 - [x] Import from other formats (XMind, MindManager, Obsidian) ✅
 - [ ] Cloud sync (optional backend)
-- [ ] Presentation mode (slideshow through branches)
+- [x] Presentation mode (slideshow through branches)
 - [x] Node comments and annotations ✅
 - [x] Custom themes and color schemes
 - [ ] Keyboard shortcut customization

@@ -76,6 +76,7 @@ export const SHORTCUTS: Shortcut[] = [
   { key: 'Shift+M', desc: 'toggle mini-map visibility' },
   { key: 'Shift+A', desc: 'toggle advanced toolbar actions' },
   { key: 'Shift+T', desc: 'toggle light/dark theme' },
+  { key: 'P', desc: 'enter presentation mode' },
   { key: 'C', desc: 'center focused node' },
   { key: 'Alt+Shift+C', desc: 'center selected nodes' },
   { key: 'Shift+C', desc: 'center root node' },

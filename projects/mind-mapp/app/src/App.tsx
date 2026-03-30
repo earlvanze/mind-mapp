@@ -17,6 +17,7 @@ import MiniMap from './components/MiniMap';
 import StyleToolbar from './components/StyleToolbar';
 import FilterPanel from './components/FilterPanel';
 import { shouldFadeNode } from './utils/nodeFilters';
+import { getPresentationOrder, getRootId } from './utils/presentationMode';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
 const HelpDialog = lazy(() => import('./components/HelpDialog'));
@@ -25,6 +26,7 @@ const ThemeDialog = lazy(() => import('./components/ThemeDialog'));
 const TagPickerDialog = lazy(() => import('./components/TagPickerDialog'));
 const CommentDialog = lazy(() => import('./components/CommentDialog'));
 const ShortcutSettingsDialog = lazy(() => import('./components/ShortcutSettingsDialog'));
+const PresentationOverlay = lazy(() => import('./components/PresentationOverlay'));
 
 export default function App() {
   const [useCanvasRenderer, setUseCanvasRenderer] = useState(false);
@@ -36,11 +38,16 @@ export default function App() {
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
   const [commentNodeId, setCommentNodeId] = useState<string | null>(null);
   const [tagPickerOpen, setTagPickerOpen] = useState(false);
+  const [presentationOpen, setPresentationOpen] = useState(false);
+  const [presentationIndex, setPresentationIndex] = useState(0);
+  const [presentationNodes, setPresentationNodes] = useState<string[]>([]);
   const [showTagFilter, setShowTagFilter] = useState(false);
   const [shortcutSettingsOpen, setShortcutSettingsOpen] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
+  const currentPresentationNodeId = presentationNodes[presentationIndex];
+  const currentPresentationNode = currentPresentationNodeId ? nodes[currentPresentationNodeId] : null;
   const [pdfLayout, setPdfLayout] = useState<'a4-portrait' | 'a4-landscape' | 'letter-portrait' | 'letter-landscape' | 'fit'>('a4-portrait');
   const [themePresetId, setThemePresetId] = useState(() => {
     const saved = loadSavedPreset();
@@ -449,7 +456,7 @@ export default function App() {
     onHelp: () => toggleHelpDialog(),
     onTagPicker: () => toggleTagPicker(),
     onTagFilter: () => setShowTagFilter(v => !v),
-    onVersionHistory: () => toggleVersionHistory(),
+    onPresentation: () => openPresentation(),
     onUndo: () => undo(),
     onRedo: () => redo(),
     onExportMarkdown: () => exportMarkdownData(nodes),
@@ -460,7 +467,7 @@ export default function App() {
     onToggleCollapse: () => toggleNodeCollapsed(focusId),
     onCollapseAll: () => collapseAll(),
     onExpandAll: () => expandAll(),
-    suspended: searchOpen || helpOpen,
+    suspended: searchOpen || helpOpen || presentationOpen,
   });
   usePanZoom({ selector: '.canvas' });
   useAutosave(() => saveState(), 600);
