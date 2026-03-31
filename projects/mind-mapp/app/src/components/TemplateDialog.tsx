@@ -3,7 +3,6 @@ import { useMindMapStore } from '../store/useMindMapStore';
 import type { NodeStyle } from '../store/useMindMapStore';
 import {
   getTemplatePresets,
-  getPresetById,
   saveTemplatePreset,
   deleteTemplatePreset,
   renameTemplatePreset,
@@ -18,13 +17,13 @@ type Props = {
 };
 
 export default function TemplateDialog({ theme, open, onClose }: Props) {
-  const { nodes, setSelectedStyle, selectedIds } = useMindMapStore();
+  const { nodes, setSelectedStyle, setNodeStyle, selectedIds } = useMindMapStore();
   const [presets, setPresets] = useState<TemplatePreset[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
-  const [newName, setNewName] = useState('');
   const [showSave, setShowSave] = useState(false);
   const [saveName, setSaveName] = useState('');
+  const [applyAllPresetId, setApplyAllPresetId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'apply' | 'manage'>('apply');
   const dialogRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +82,7 @@ export default function TemplateDialog({ theme, open, onClose }: Props) {
     if (!saveName.trim()) return;
     const firstSelected = selectedIds[0];
     const baseStyle: NodeStyle = firstSelected ? nodes[firstSelected]?.style ?? {} : {};
-    const tpl = saveTemplatePreset({
+    saveTemplatePreset({
       name: saveName.trim(),
       theme,
       defaultStyle: baseStyle,
@@ -229,11 +228,32 @@ export default function TemplateDialog({ theme, open, onClose }: Props) {
             </div>
 
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <button
-                onClick={() => applyPresetToAll(presets[0] ?? presets[0])}
+              <select
+                value={applyAllPresetId || presets[0]?.id || ''}
+                onChange={e => setApplyAllPresetId(e.target.value)}
                 disabled={!presets.length}
                 style={{
                   flex: 1,
+                  padding: '6px 8px',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 6,
+                  background: 'var(--color-bg)',
+                  color: 'var(--color-text)',
+                  fontSize: 12,
+                  cursor: presets.length ? 'pointer' : 'not-allowed',
+                }}
+              >
+                {presets.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+              <button
+                onClick={() => {
+                  const preset = presets.find(p => p.id === applyAllPresetId) || presets[0];
+                  if (preset) applyPresetToAll(preset);
+                }}
+                disabled={!presets.length}
+                style={{
                   padding: '8px 12px',
                   background: presets.length ? 'var(--color-accent)' : 'var(--color-border)',
                   color: '#fff',
@@ -243,7 +263,7 @@ export default function TemplateDialog({ theme, open, onClose }: Props) {
                   fontSize: 13,
                 }}
               >
-                Apply to All Nodes
+                Apply to All
               </button>
               <button
                 onClick={() => setShowSave(true)}
