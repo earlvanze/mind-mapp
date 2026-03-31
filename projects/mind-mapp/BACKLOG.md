@@ -82,46 +82,30 @@
 - [x] Public documentation site — comprehensive docs/ with index.html + all markdown files
 - [x] Production deployment guide — enhanced DEPLOY.md with Netlify, Vercel, AWS, Docker, self-hosted options
 
-
-## v1.2 Import Formats (Complete)
-Branch: feature/node-tags
-
-### Phase 1: Format Detection & Routing
-- [x] Create importRouter.ts with auto-detect (JSON, XMind, FreeMind)
-- [x] Create importXMind.ts parser for XMind 8/9 XML
-- [x] Wire parseImportContent into App.tsx
-- [x] Update file input accept attribute (.json, .xmind, .mm)
-- [x] Unit tests for importRouter + importXMind
-
-### Phase 2: Obsidian Import
-- [x] Parse Obsidian vault markdown files (nested folders → tree)
-- [x] Detect and convert [[wiki-links]] between notes
-- [x] Import tags from YAML frontmatter
-- [x] Import #headings as child nodes
-
-### Phase 3: MindManager (FreeMind Enhanced)
-- [x] Handle MindManager-specific attributes (priority, resource, boundary)
-- [x] Map MindManager folds to MindMapp expand/collapse
-
-### Phase 4: Testing & Documentation ✅ Complete
-- [x] Integration tests with sample files (XMind, FreeMind, Obsidian)
-- [x] Update keyboard shortcuts docs
-- [x] Document supported import formats
-
+## v1.2 Import Formats ✅ Complete
+- [x] XMind 8/9 XML import
+- [x] FreeMind (.mm) import with MindManager attributes
+- [x] Obsidian vault import (markdown → tree, wiki-links, frontmatter tags, headings)
+- [x] Auto-detect format on import
+- [x] Integration tests with sample files
 
 ## Future (Post-v1.0)
 - [ ] Collaborative editing (CRDT-based)
 - [ ] Plugin system for custom visualizations
 - [ ] Mobile app (React Native)
 - [ ] File attachments (non-image binary files)
-- [x] Node tags/categories ✅
 - [ ] Advanced search (regex, wildcards)
 - [ ] Export templates (custom styling presets)
-- [x] Import from other formats (XMind, MindManager, Obsidian) ✅
 - [ ] Cloud sync (optional backend)
-- [x] Presentation mode (slideshow through branches)
-- [x] Node comments and annotations ✅
-- [x] Custom themes and color schemes
 - [ ] Keyboard shortcut customization
 - [ ] Node animations and transitions
 - [ ] Advanced filters (by style, date, properties)
+
+---
+
+**Completed Features (moved from Future):**
+- ✅ Node tags/categories
+- ✅ Import from other formats (XMind, MindManager, Obsidian)
+- ✅ Presentation mode (slideshow through branches)
+- ✅ Node comments and annotations
+- ✅ Custom themes and color schemes
