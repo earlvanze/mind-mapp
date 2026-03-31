@@ -26,6 +26,7 @@ const ThemeDialog = lazy(() => import('./components/ThemeDialog'));
 const TagPickerDialog = lazy(() => import('./components/TagPickerDialog'));
 const CommentDialog = lazy(() => import('./components/CommentDialog'));
 const ShortcutSettingsDialog = lazy(() => import('./components/ShortcutSettingsDialog'));
+const TemplateDialog = lazy(() => import('./components/TemplateDialog'));
 const PresentationOverlay = lazy(() => import('./components/PresentationOverlay'));
 
 export default function App() {
@@ -43,6 +44,7 @@ export default function App() {
   const [presentationNodes, setPresentationNodes] = useState<string[]>([]);
   const [showTagFilter, setShowTagFilter] = useState(false);
   const [shortcutSettingsOpen, setShortcutSettingsOpen] = useState(false);
+  const [templateDialogOpen, setTemplateDialogOpen] = useState(false);
   const [showGrid, setShowGrid] = useState(false);
   const [showMiniMap, setShowMiniMap] = useState(true);
   const [showAdvancedActions, setShowAdvancedActions] = useState(false);
@@ -902,6 +904,7 @@ export default function App() {
           </select>
           <button title="Export PDF" aria-label="Export as PDF document" onClick={exportPdfClick}>Export PDF</button>
           <button title="Reset pan/zoom" aria-label="Reset pan and zoom to default view" aria-keyshortcuts="0" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
+          <button title="Export Templates" aria-label="Open export templates dialog" onClick={() => setTemplateDialogOpen(true)} style={{ minWidth: 80 }}>📋 Templates</button>
           <button title="Theme (Shift+T)" aria-pressed={false} aria-keyshortcuts="Shift+T" onClick={handleToggleTheme} style={{ minWidth: 80 }}>🎨 Theme</button>
 
           {showAdvancedActions ? (
@@ -967,7 +970,12 @@ export default function App() {
       <Suspense fallback={null}>
         <SearchDialog open={searchOpen} onClose={closeSearchDialog} />
         <HelpDialog open={helpOpen} onClose={closeHelpDialog} onOpenShortcutSettings={() => { closeHelpDialog(); setShortcutSettingsOpen(true); }} />
-        <ShortcutSettingsDialog open={shortcutSettingsOpen} onClose={() => setShortcutSettingsOpen(false)} />
+        <TemplateDialog
+            open={templateDialogOpen}
+            onClose={() => setTemplateDialogOpen(false)}
+            theme={theme === 'dark' ? 'dark' : 'light'}
+          />
+          <ShortcutSettingsDialog open={shortcutSettingsOpen} onClose={() => setShortcutSettingsOpen(false)} />
         <TagPickerDialog open={tagPickerOpen} onClose={() => setTagPickerOpen(false)} />
         {commentNodeId && (
           <CommentDialog nodeId={commentNodeId} onClose={() => setCommentNodeId(null)} />
