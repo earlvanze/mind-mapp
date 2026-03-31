@@ -55,6 +55,8 @@ export type ShortcutAction =
   | 'editNode'
   | 'tagPicker'
   | 'tagFilter'
+  | 'versionHistory'
+  | 'presentation'
   | 'undo'
   | 'redo';
 
@@ -150,6 +152,8 @@ export const DEFAULT_SHORTCUT_BINDINGS: ShortcutBinding[] = [
   // Tags
   { action: 'tagPicker',        desc: 'Open tag picker dialog',             defaultKey: 'Cmd+T',         defaultModifiers: { meta: true } },
   { action: 'tagFilter',        desc: 'Toggle tag filter panel',             defaultKey: 'Cmd+Shift+F',  defaultModifiers: { meta: true, shift: true } },
+  { action: 'versionHistory',   desc: 'Open version history',               defaultKey: 'Alt+V',         defaultModifiers: { alt: true } },
+  { action: 'presentation',     desc: 'Start presentation mode',             defaultKey: 'P',             defaultModifiers: {} },
   // Undo/Redo
   { action: 'undo',              desc: 'Undo',                                defaultKey: 'Cmd+Z',         defaultModifiers: { meta: true } },
   { action: 'redo',             desc: 'Redo',                                 defaultKey: 'Cmd+Shift+Z',  defaultModifiers: { meta: true, shift: true } },
@@ -342,6 +346,8 @@ export const ACTION_TO_HANDLER: Record<ShortcutAction, string> = {
   editNode:            'onEditNode',
   tagPicker:           'onTagPicker',
   tagFilter:           'onTagFilter',
+  versionHistory:      'onVersionHistory',
+  presentation:        'onPresentation',
   undo:                'onUndo',
   redo:                'onRedo',
 };

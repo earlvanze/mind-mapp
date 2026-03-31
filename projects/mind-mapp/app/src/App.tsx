@@ -408,13 +408,13 @@ export default function App() {
     });
   };
 
-  const toggleVersionHistory = () => {
+const toggleVersionHistory = () => {
+  setVersionHistoryOpen(v => !v);
+};
 
-  const toggleTagPicker = () => {
-    setTagPickerOpen(prev => !prev);
-  };
-    setVersionHistoryOpen(v => !v);
-  };
+const toggleTagPicker = () => {
+  setTagPickerOpen(prev => !prev);
+};
 
   const handleSaveSnapshot = (name: string) => {
     const snap = createSnapshot(nodes, focusId, name);
@@ -458,7 +458,7 @@ export default function App() {
     onHelp: () => toggleHelpDialog(),
     onTagPicker: () => toggleTagPicker(),
     onTagFilter: () => setShowTagFilter(v => !v),
-    onPresentation: () => openPresentation(),
+    onPresentation: () => setPresentationOpen(prev => !prev),
     onUndo: () => undo(),
     onRedo: () => redo(),
     onExportMarkdown: () => exportMarkdownData(nodes),
@@ -471,49 +471,50 @@ export default function App() {
     onExpandAll: () => expandAll(),
     onVersionHistory: () => toggleVersionHistory(),
     handlers: {
-      onSearch,
-      onHelp,
-      onFit,
-      onFitSelection,
-      onFitSubtree,
-      onZoomIn,
-      onZoomOut,
-      onResetView,
-      onCenterFocus,
-      onCenterSelection,
-      onCenterSubtree,
-      onFocusParent,
-      onFocusChild,
-      onFocusPrevSibling,
-      onFocusNextSibling,
-      onFocusSubtreeFirstLeaf,
-      onFocusSubtreeLastLeaf,
-      onFocusPrevLeaf,
-      onFocusNextLeaf,
-      onFocusRoot,
-      onFocusPrevious,
-      onFocusForward,
-      onFocusHistoryStart,
-      onFocusHistoryEnd,
-      onResetFocusHistory,
-      onToggleGrid,
-      onToggleMiniMap,
-      onToggleAdvanced,
-      onToggleTheme,
-      onTagPicker,
-      onTagFilter,
-      onPresentation,
-      onUndo,
-      onRedo,
-      onExportMarkdown,
-      onCopySelection,
-      onCopySubtree,
-      onCopyPath,
-      onCenterRoot,
-      onToggleCollapse,
-      onCollapseAll,
-      onExpandAll,
-      onVersionHistory,
+      // Passthrough for custom shortcut dispatch — mirrors the named props above
+      onSearch: () => toggleSearchDialog(),
+      onHelp: () => toggleHelpDialog(),
+      onFit: () => fitToView(),
+      onFitSelection: () => fitSelection(),
+      onFitSubtree: () => fitFocusedSubtree(),
+      onZoomIn: () => zoomBy(getKeyboardPref('zoomIn')),
+      onZoomOut: () => zoomBy(getKeyboardPref('zoomOut')),
+      onResetView: () => (window as any).__mindmappResetView?.(),
+      onCenterFocus: () => centerOnNode(focusId),
+      onCenterSelection: () => centerSelection(),
+      onCenterSubtree: () => centerSubtree(),
+      onFocusParent: () => focusParentNode(),
+      onFocusChild: () => focusChildNode(),
+      onFocusPrevSibling: () => focusSibling(-1),
+      onFocusNextSibling: () => focusSibling(1),
+      onFocusSubtreeFirstLeaf: () => focusSubtreeFirstLeaf(),
+      onFocusSubtreeLastLeaf: () => focusSubtreeLastLeaf(),
+      onFocusPrevLeaf: () => focusSubtreeLeafCycle(-1),
+      onFocusNextLeaf: () => focusSubtreeLeafCycle(1),
+      onFocusRoot: () => focusRoot(),
+      onFocusPrevious: () => focusPrevious(),
+      onFocusForward: () => focusForward(),
+      onFocusHistoryStart: () => focusHistoryStart(),
+      onFocusHistoryEnd: () => focusHistoryEnd(),
+      onResetFocusHistory: () => resetFocusHistoryNow(),
+      onToggleGrid: () => setShowGrid(v => !v),
+      onToggleMiniMap: () => setShowMiniMap(v => !v),
+      onToggleAdvanced: () => setShowAdvancedActions(v => !v),
+      onToggleTheme: handleToggleTheme,
+      onTagPicker: () => toggleTagPicker(),
+      onTagFilter: () => setShowTagFilter(v => !v),
+      onPresentation: () => setPresentationOpen(prev => !prev),
+      onUndo: () => undo(),
+      onRedo: () => redo(),
+      onExportMarkdown: () => exportMarkdownData(nodes),
+      onCopySelection: () => copySelectionText(),
+      onCopySubtree: () => copySubtreeText(),
+      onCopyPath: () => copyFocusPath(),
+      onCenterRoot: () => centerRoot(),
+      onToggleCollapse: () => toggleNodeCollapsed(focusId),
+      onCollapseAll: () => collapseAll(),
+      onExpandAll: () => expandAll(),
+      onVersionHistory: () => toggleVersionHistory(),
     },
     suspended: searchOpen || helpOpen || presentationOpen,
   });
