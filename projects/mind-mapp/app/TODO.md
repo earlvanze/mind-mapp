@@ -11,7 +11,7 @@ All features through v1.2 (Import Formats) are complete.
 - [ ] Advanced search (regex, wildcards) — backend indexing
 
 ### Lower Priority
-- [ ] Export templates (custom styling presets)
+- [x] Export templates (custom styling presets)
 - [ ] Keyboard shortcut customization
 - [ ] Advanced filters (by style, date, properties)
 - [ ] File attachments (non-image binary files)
