@@ -23,6 +23,7 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
     setText,
     moveNode,
     moveNodes,
+    isTransitioning,
   } = useMindMapStore();
   const textRef = useRef<HTMLSpanElement>(null);
   const [showTagInput, setShowTagInput] = useState(false);
@@ -118,7 +119,9 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
     userSelect: 'none',
     padding: node.style?.imageUrl ? '8px 8px 4px' : '4px 8px',
     opacity: isFaded ? 0.2 : 1,
-    transition: 'opacity 0.15s ease',
+    transition: isTransitioning
+      ? 'left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), top 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.15s ease'
+      : 'opacity 0.15s ease',
   };
 
   return (

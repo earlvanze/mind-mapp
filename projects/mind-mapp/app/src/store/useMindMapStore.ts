@@ -1027,7 +1027,11 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
     for (const [nid, pos] of Object.entries(positions)) {
       updatedNodes[nid] = { ...state.nodes[nid], x: pos.x + offsetX, y: pos.y + offsetY };
     }
+    // Trigger smooth transition for layout change
+    set({ isTransitioning: true });
     set(s => ({ ...withHistory(s), nodes: updatedNodes }));
+    // Auto-disable transitions after duration
+    setTimeout(() => set({ isTransitioning: false }), 300);
   },
   undo: () =>
     set(state => {
