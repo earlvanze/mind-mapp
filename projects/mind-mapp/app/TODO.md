@@ -12,7 +12,7 @@ All features through v1.2 (Import Formats) are complete.
 
 ### Lower Priority
 - [x] Export templates (custom styling presets)
-- [ ] Keyboard shortcut customization
+- [x] Keyboard shortcut customization
 - [ ] Advanced filters (by style, date, properties)
 - [ ] File attachments (non-image binary files)
 - [ ] E2E testing with Playwright

@@ -1,8 +1,6 @@
 import { useEffect, useId, useRef, useState, useCallback } from 'react';
 import {
   DEFAULT_SHORTCUT_BINDINGS,
-  getEffectiveBinding,
-  matchesBinding,
   findConflicts,
   saveShortcutsPrefs,
   loadShortcutsPrefs,
