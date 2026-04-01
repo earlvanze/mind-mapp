@@ -93,7 +93,7 @@
 - [ ] Collaborative editing (CRDT-based)
 - [ ] Plugin system for custom visualizations
 - [ ] Mobile app (React Native)
-- [ ] File attachments (non-image binary files)
+- [x] File attachments (non-image binary files)
 - [ ] Advanced search (regex, wildcards)
 - [ ] Export templates (custom styling presets)
 - [ ] Cloud sync (optional backend)
