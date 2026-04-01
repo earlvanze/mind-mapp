@@ -14,6 +14,14 @@ export type NodeStyle = {
   italic?: boolean;          // italic text
   imageUrl?: string;       // embedded image data URL
   linkUrl?: string;        // external URL (opens in new tab)
+  attachment?: Attachment; // binary file attachment (non-image)
+};
+
+export type Attachment = {
+  name: string;
+  mimeType: string;
+  data: string;  // base64-encoded
+  size: number;
 };
 
 export type Node = {

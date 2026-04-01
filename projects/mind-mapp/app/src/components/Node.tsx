@@ -211,6 +211,7 @@ function Node({ node, isFocused, isSelected, isEditing, isFaded = false }: Props
       )}
       <div
         role="treeitem"
+        data-node-id={node.id}
         aria-selected={isSelected}
         tabIndex={isFocused ? 0 : -1}
         className={`node ${isFocused ? 'focused' : ''} ${isSelected ? 'selected' : ''}`}

@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useId } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 import { COLOR_PRESETS, SHAPE_OPTIONS, FONT_SIZE_OPTIONS, resolveStyle, type ColorPresetName, type Shape } from '../utils/nodeStyles';
+import type { Attachment } from '../store/useMindMapStore';
+import { validateAttachment, buildAttachment, downloadAttachment, formatFileSize, fileToBase64 } from '../utils/attachments';
 import type { Theme } from '../utils/theme';
 
 type Props = {
@@ -25,11 +27,12 @@ const PICKER_IDS = {
   icon: 'style-picker-icon',
   image: 'style-picker-image',
   link: 'style-picker-link',
+  file: 'style-picker-file',
 } as const;
 
 export default function StyleToolbar({ theme }: Props) {
   const { selectedIds, setSelectedStyle, nodes } = useMindMapStore();
-  const [openPicker, setOpenPicker] = useState<'color' | 'shape' | 'icon' | 'image' | 'link' | null>(null);
+  const [openPicker, setOpenPicker] = useState<'color' | 'shape' | 'icon' | 'image' | 'link' | 'file' | null>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -146,6 +149,18 @@ export default function StyleToolbar({ theme }: Props) {
   const removeLink = () => {
     if (!hasSelection) return;
     setSelectedStyle({ linkUrl: undefined });
+    setOpenPicker(null);
+  };
+
+  const applyAttachment = (attachment: Attachment) => {
+    if (!hasSelection) return;
+    setSelectedStyle({ attachment });
+    setOpenPicker(null);
+  };
+
+  const removeAttachment = () => {
+    if (!hasSelection) return;
+    setSelectedStyle({ attachment: undefined });
     setOpenPicker(null);
   };
 
@@ -402,6 +417,66 @@ export default function StyleToolbar({ theme }: Props) {
     </div>
   );
 
+  const renderFilePicker = () => {
+    const currentAttachment = currentStyle?.attachment;
+    return (
+      <div className="style-picker-content">
+        <div className="style-picker-section">
+          <span className="style-picker-label">Attach File</span>
+          <p style={{ fontSize: 12, color: 'inherit', opacity: 0.7, margin: '4px 0 8px' }}>
+            Attach a file (PDF, DOCX, XLSX, etc.) to this node. Max 5MB.
+          </p>
+        </div>
+        <div className="style-picker-section">
+          <span className="style-picker-label">Upload</span>
+          <input
+            type="file"
+            className="style-file-input"
+            accept={Array.from(ALLOWED_MIME_TYPES).join(',')}
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const error = validateAttachment(file);
+              if (!error.ok) {
+                alert(error.error);
+                return;
+              }
+              const dataUrl = await fileToBase64(file);
+              applyAttachment(buildAttachment(file, dataUrl));
+            }}
+            aria-label="Upload file attachment"
+          />
+        </div>
+        {currentAttachment && (
+          <div className="style-picker-section">
+            <span className="style-picker-label">Current</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12 }}>{currentAttachment.name}</span>
+              <span style={{ fontSize: 11, opacity: 0.7 }}>({formatFileSize(currentAttachment.size)})</span>
+            </div>
+            <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+              <button
+                className="style-action-btn"
+                style={{ background: '#3b82f6', color: '#fff' }}
+                onClick={() => downloadAttachment(currentAttachment)}
+              >
+                Download
+              </button>
+              <button
+                className="style-action-btn"
+                style={{ background: '#ef4444', color: '#fff' }}
+                onClick={removeAttachment}
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+
   const renderPicker = (picker: typeof openPicker, ariaLabel: string, renderFn: () => JSX.Element) => {
     if (openPicker !== picker) return null;
     const id = PICKER_IDS[picker];
@@ -498,6 +573,22 @@ export default function StyleToolbar({ theme }: Props) {
           <span aria-hidden="true">🔗</span> Link
         </button>
         {renderPicker('link', 'Link picker', renderLinkPicker)}
+      </div>
+
+      {/* File */}
+      <div className="style-toolbar-group">
+        <button
+          className={`style-toolbar-btn ${openPicker === 'file' ? 'active' : ''}`}
+          title="Attach file — Escape to close"
+          aria-haspopup="true"
+          aria-expanded={openPicker === 'file'}
+          aria-controls={openPicker === 'file' ? PICKER_IDS.file : undefined}
+          onClick={() => openPickerPanel('file')}
+          disabled={!hasSelection}
+        >
+          <span aria-hidden="true">📎</span> File
+        </button>
+        {renderPicker('file', 'File attachment picker', renderFilePicker)}
       </div>
 
       {/* Reset */}
