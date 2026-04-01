@@ -94,11 +94,11 @@
 - [ ] Plugin system for custom visualizations
 - [ ] Mobile app (React Native)
 - [x] File attachments (non-image binary files)
-- [ ] Advanced search (regex, wildcards)
+- [x] Advanced search (regex, wildcards)
 - [ ] Export templates (custom styling presets)
 - [ ] Cloud sync (optional backend)
-- [ ] Keyboard shortcut customization
-- [ ] Advanced filters (by style, date, properties)
+- [x] Keyboard shortcut customization
+- [x] Advanced filters (by style, date, properties)
 
 ---
 
