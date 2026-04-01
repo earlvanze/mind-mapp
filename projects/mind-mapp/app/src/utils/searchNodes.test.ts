@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Node } from '../store/useMindMapStore';
-import { DEFAULT_SEARCH_RESULT_LIMIT, hasWildcards, searchNodes, searchNodesWithTotal, tokenizeSearchQuery } from './searchNodes';
+import { DEFAULT_SEARCH_RESULT_LIMIT, hasRegex, hasWildcards, searchNodes, searchNodesWithTotal, tokenizeSearchQuery } from './searchNodes';
 
 const nodes: Record<string, Node> = {
   n_root: { id: 'n_root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n_alpha', 'n_beta', 'n_alpine'] },
@@ -413,5 +413,103 @@ describe('wildcard search', () => {
 
     const results = searchNodes(wild, 'alpha*beta');
     expect(results.map(node => node.id)).toEqual(['n1']);
+  });
+});
+
+describe('regex search', () => {
+  describe('hasRegex', () => {
+    it('returns true for valid /pattern/flags syntax', () => {
+      expect(hasRegex('/node|leaf/i')).toBe(true);
+      expect(hasRegex('/\\d+/')).toBe(true);
+      expect(hasRegex('/^root/')).toBe(true);
+      expect(hasRegex('/test/g')).toBe(true);
+    });
+
+    it('returns false for plain text', () => {
+      expect(hasRegex('node')).toBe(false);
+      expect(hasRegex('hello world')).toBe(false);
+    });
+
+    it('returns false for wildcards', () => {
+      expect(hasRegex('node*')).toBe(false);
+      expect(hasRegex('*leaf*')).toBe(false);
+    });
+
+    it('returns false for incomplete regex', () => {
+      expect(hasRegex('/pattern')).toBe(false);
+      expect(hasRegex('pattern/')).toBe(false);
+      expect(hasRegex('/')).toBe(false);
+    });
+  });
+
+  it('matches regex pattern in label', () => {
+    const data: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2', 'n3'] },
+      n1: { id: 'n1', text: 'Item one', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'Item two', x: 0, y: 0, parentId: 'root', children: [] },
+      n3: { id: 'n3', text: 'Other', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+    const results = searchNodes(data, '/item/i');
+    expect(results.map(n => n.id).sort()).toEqual(['n1', 'n2']);
+  });
+
+  it('matches regex with alternation in label', () => {
+    const data: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2', 'n3'] },
+      n1: { id: 'n1', text: 'Node Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'Node Beta', x: 0, y: 0, parentId: 'root', children: [] },
+      n3: { id: 'n3', text: 'Node Gamma', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+    const results = searchNodes(data, '/alpha|beta/i');
+    expect(results.map(n => n.id).sort()).toEqual(['n1', 'n2']);
+  });
+
+  it('matches regex anchored pattern', () => {
+    const data: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2'] },
+      n1: { id: 'n1', text: 'Prefix Alpha Sufix', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'Alpha Sufix', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+    const results = searchNodes(data, '/^alpha/i');
+    expect(results.map(n => n.id)).toEqual(['n2']);
+  });
+
+  it('combines regex with negated terms', () => {
+    const data: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2', 'n3'] },
+      n1: { id: 'n1', text: 'Item Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'Item Beta', x: 0, y: 0, parentId: 'root', children: [] },
+      n3: { id: 'n3', text: 'Item Gamma', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+    const results = searchNodes(data, '/item/i -alpha');
+    expect(results.map(n => n.id).sort()).toEqual(['n2', 'n3']);
+  });
+
+  it('ranks regex label matches above path matches', () => {
+    const data: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'n1', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+    const results = searchNodes(data, '/alpha/i');
+    expect(results[0]?.id).toBe('n1');
+  });
+
+  it('returns empty for invalid regex', () => {
+    const data: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1'] },
+      n1: { id: 'n1', text: 'Alpha', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+    const results = searchNodes(data, '/[invalid/i');
+    expect(results.map(n => n.id)).toEqual([]);
+  });
+
+  it('regex is case-insensitive by default', () => {
+    const data: Record<string, Node> = {
+      root: { id: 'root', text: 'Root', x: 0, y: 0, parentId: null, children: ['n1', 'n2'] },
+      n1: { id: 'n1', text: 'ALPHA', x: 0, y: 0, parentId: 'root', children: [] },
+      n2: { id: 'n2', text: 'alpha', x: 0, y: 0, parentId: 'root', children: [] },
+    };
+    const results = searchNodes(data, '/alpha/');
+    expect(results.map(n => n.id).sort()).toEqual(['n1', 'n2']);
   });
 });

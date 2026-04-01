@@ -26,7 +26,7 @@ function buildNormalizedSearchTokens(
 
   for (let i = 0; i < input.length; i += 1) {
     const token = input[i];
-    const value = normalizeSearchText(token.value);
+    const value = hasRegex(token.value) ? token.value : normalizeSearchText(token.value);
     if (!value) continue;
 
     normalizedTokens.push(Object.freeze({
@@ -79,7 +79,7 @@ export function tokenizeSearchQuery(query: string): readonly SearchToken[] {
       continue;
     }
 
-    const value = normalizeSearchText(rawToken);
+    const value = hasRegex(rawToken) ? rawToken : normalizeSearchText(rawToken);
     if (!value) {
       if (isSearchNegationPrefix(rawToken)) {
         pendingNegation = true;
@@ -452,7 +452,7 @@ function rankSearchMatches(
   for (let i = 0; i < searchIndex.length; i += 1) {
     const { node, label, id, path, searchable } = searchIndex[i];
 
-    if (shouldSkipEntryByTerms(searchable, positiveTerms, negativeTerms)) {
+    if (shouldSkipEntryByTerms(hasRegexTerms ? label : searchable, positiveTerms, negativeTerms)) {
       continue;
     }
 
