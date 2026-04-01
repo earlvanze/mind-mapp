@@ -5,6 +5,10 @@ import {
   saveShortcutsPrefs,
   loadShortcutsPrefs,
   resetAllBindings,
+  importShortcutsFromJson,
+  downloadShortcuts,
+  readShortcutsFile,
+  copyShortcutsToClipboard,
   type ShortcutAction,
   type ShortcutBinding,
   type ShortcutsPrefs,
@@ -46,6 +50,9 @@ export default function ShortcutSettingsDialog({ open, onClose }: Props) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   // Reset on open
   useEffect(() => {
@@ -137,6 +144,45 @@ export default function ShortcutSettingsDialog({ open, onClose }: Props) {
     onClose();
   }, [prefs, numericValues, onClose]);
 
+  const handleCopyShortcuts = async () => {
+    await copyShortcutsToClipboard();
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const json = await readShortcutsFile(file);
+      const err = importShortcutsFromJson(json);
+      if (err) { setImportMsg('✗ ' + err); }
+      else {
+        setImportMsg('✓ Imported successfully!');
+        setPrefs(loadShortcutsPrefs());
+        // Reload numeric prefs too
+        const { loadKeyboardPrefs } = await import('../utils/uiPrefs');
+        const loaded = loadKeyboardPrefs();
+        const vals: NumericPrefs = {};
+        for (const f of NUMERIC_FIELDS) vals[f.key] = loaded[f.key] ?? DEFAULT_KEYBOARD_PREFS[f.key];
+        setNumericValues(vals);
+      }
+    } catch {
+      setImportMsg('✗ Failed to read file.');
+    }
+    setTimeout(() => setImportMsg(null), 3000);
+    // Reset file input so same file can be re-selected
+    e.target.value = '';
+  };
+
+  const handleExportDownload = () => {
+    downloadShortcuts();
+  };
+
   const handleNumericChange = (key: NumericKey, rawValue: string) => {
     const num = parseFloat(rawValue);
     if (isNaN(num)) return;
@@ -210,6 +256,18 @@ export default function ShortcutSettingsDialog({ open, onClose }: Props) {
             ref={listRef}
             style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}
           >
+            {importMsg && (
+              <div style={{
+                padding: '8px 16px',
+                background: importMsg.startsWith('✓') ? '#198754' : '#dc3545',
+                color: '#fff',
+                fontSize: 12,
+                margin: '0 8px 8px',
+                borderRadius: 6,
+              }}>
+                {importMsg}
+              </div>
+            )}
             {recording && (
               <div style={{
                 padding: '10px 16px',
@@ -362,6 +420,7 @@ export default function ShortcutSettingsDialog({ open, onClose }: Props) {
         <div
           style={{
             display: 'flex',
+            flexWrap: 'wrap',
             gap: 8,
             padding: '12px 16px',
             borderTop: '1px solid var(--border-color, #eee)',
@@ -369,6 +428,25 @@ export default function ShortcutSettingsDialog({ open, onClose }: Props) {
             flexShrink: 0,
           }}
         >
+          {/* Hidden file input for import */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
+          {/* Import / Export row */}
+          <button type="button" onClick={handleImportClick} style={btnStyle(false)} title="Import shortcuts from JSON file">
+            📥 Import
+          </button>
+          <button type="button" onClick={handleExportDownload} style={btnStyle(false)} title="Download shortcuts as JSON file">
+            📤 Export
+          </button>
+          <button type="button" onClick={handleCopyShortcuts} style={btnStyle(false)} title="Copy shortcuts JSON to clipboard">
+            {copied ? '✓ Copied!' : '📋 Copy'}
+          </button>
+          <div style={{ flex: 1 }} />
           <button type="button" onClick={handleReset} style={btnStyle(false)}>
             Reset all
           </button>

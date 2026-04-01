@@ -355,3 +355,98 @@ export const ACTION_TO_HANDLER: Record<ShortcutAction, string> = {
 export function getHandlerNameForAction(action: ShortcutAction): string {
   return ACTION_TO_HANDLER[action] ?? action;
 }
+
+// ── Import / Export ──────────────────────────────────────────────────────────
+
+const EXPORT_VERSION = 1;
+
+export interface ShortcutsExport {
+  version: number;
+  exportedAt: number;
+  shortcuts: ShortcutsPrefs;
+  numericPrefs?: import('./uiPrefs').KeyboardPrefs;
+}
+
+/**
+ * Export current shortcuts as a JSON string, optionally including numeric prefs.
+ */
+export function exportShortcutsAsJson(numericPrefs?: import('./uiPrefs').KeyboardPrefs): string {
+  const exp: ShortcutsExport = {
+    version: EXPORT_VERSION,
+    exportedAt: Date.now(),
+    shortcuts: loadShortcutsPrefs(),
+    numericPrefs,
+  };
+  return JSON.stringify(exp, null, 2);
+}
+
+/**
+ * Validate and apply imported shortcuts JSON.
+ * Returns an error message string on failure, null on success.
+ */
+export function importShortcutsFromJson(json: string): string | null {
+  let data: ShortcutsExport;
+  try {
+    data = JSON.parse(json) as ShortcutsExport;
+  } catch {
+    return 'Invalid JSON — could not parse file.';
+  }
+  if (typeof data.version !== 'number') return 'Missing version field.';
+  if (typeof data.shortcuts !== 'object' || data.shortcuts === null) return 'Missing shortcuts object.';
+  // Validate each key is a known action
+  const validActions = new Set(DEFAULT_SHORTCUT_BINDINGS.map(b => b.action));
+  for (const action of Object.keys(data.shortcuts)) {
+    if (!validActions.has(action as ShortcutAction)) {
+      return `Unknown action "${action}" in imported shortcuts.`;
+    }
+  }
+  saveShortcutsPrefs(data.shortcuts);
+  // Numeric prefs are validated by uiPrefs.saveKeyboardPrefs
+  if (data.numericPrefs) {
+    try {
+      const { saveKeyboardPrefs } = require('./uiPrefs');
+      saveKeyboardPrefs(data.numericPrefs);
+    } catch {
+      // numeric prefs are optional — ignore if uiPrefs not available
+    }
+  }
+  return null;
+}
+
+/**
+ * Trigger a file download of the current shortcuts.
+ */
+export function downloadShortcuts() {
+  const json = exportShortcutsAsJson();
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mindmapp-shortcuts.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Copy shortcuts JSON to clipboard.
+ * Returns a promise that resolves on success.
+ */
+export async function copyShortcutsToClipboard(): Promise<void> {
+  const json = exportShortcutsAsJson();
+  await navigator.clipboard.writeText(json);
+}
+
+/**
+ * Read shortcuts from a File object.
+ * Returns a promise resolving to the JSON string.
+ */
+export function readShortcutsFile(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target?.result as string);
+    reader.onerror = () => reject(new Error('Failed to read file.'));
+    reader.readAsText(file);
+  });
+}
