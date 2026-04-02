@@ -15,8 +15,8 @@ All features through v1.2 (Import Formats) are complete.
 - [x] Keyboard shortcut customization
 - [x] Advanced filters (by style, date, properties)
 - [ ] File attachments (non-image binary files)
-- [ ] E2E testing with Playwright
-- [ ] Performance profiling dashboard
+- [x] E2E testing with Playwright (21 specs passing — needs CI setup)
+
 - [ ] Browser compatibility matrix
 
 ---
