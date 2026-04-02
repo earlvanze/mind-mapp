@@ -19,4 +19,14 @@ export default defineConfig({
     port,
     strictPort: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor': ['react', 'react-dom', 'zustand'],
+          'export-libs': ['html-to-image', 'jspdf'],
+        },
+      },
+    },
+  },
 });
