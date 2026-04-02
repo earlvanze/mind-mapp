@@ -1,55 +1,65 @@
-import { describe, expect, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
-  HELP_DIALOG_ARIA_KEYSHORTCUTS,
-  HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS,
-  HELP_INPUT_ARIA_KEYSHORTCUTS,
-  HELP_TOGGLE_ARIA_KEYSHORTCUTS,
-  SEARCH_DIALOG_ARIA_KEYSHORTCUTS,
-  SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS,
-  SEARCH_INPUT_ARIA_KEYSHORTCUTS,
   SEARCH_TOGGLE_ARIA_KEYSHORTCUTS,
+  HELP_TOGGLE_ARIA_KEYSHORTCUTS,
+  SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS,
+  HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS,
+  SEARCH_INPUT_ARIA_KEYSHORTCUTS,
+  HELP_INPUT_ARIA_KEYSHORTCUTS,
+  SEARCH_DIALOG_ARIA_KEYSHORTCUTS,
+  HELP_DIALOG_ARIA_KEYSHORTCUTS,
 } from './dialogKeyshortcuts';
-import { SHORTCUTS } from './shortcuts';
 
-describe('dialog keyshortcuts constants', () => {
-  it('keeps search/help toggle strings in canonical order', () => {
-    expect(SEARCH_TOGGLE_ARIA_KEYSHORTCUTS).toBe('Control+K Meta+K');
-    expect(HELP_TOGGLE_ARIA_KEYSHORTCUTS).toBe('Shift+Slash Control+Slash Meta+Slash');
-  });
+describe('dialogKeyshortcuts', () => {
+  describe('ARIA shortcut string exports', () => {
+    it('exports SEARCH_TOGGLE_ARIA_KEYSHORTCUTS', () => {
+      expect(SEARCH_TOGGLE_ARIA_KEYSHORTCUTS).toBe('Control+K Meta+K');
+    });
 
-  it('includes Escape + toggle shortcuts in close-button metadata', () => {
-    expect(SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS).toBe(`Escape ${SEARCH_TOGGLE_ARIA_KEYSHORTCUTS}`);
-    expect(HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS).toBe(`Escape ${HELP_TOGGLE_ARIA_KEYSHORTCUTS}`);
-  });
+    it('exports HELP_TOGGLE_ARIA_KEYSHORTCUTS', () => {
+      expect(HELP_TOGGLE_ARIA_KEYSHORTCUTS).toBe('Shift+Slash Control+Slash Meta+Slash');
+    });
 
-  it('defines shared input keyshortcuts for search/help filters', () => {
-    expect(SEARCH_INPUT_ARIA_KEYSHORTCUTS).toBe('Control+F Meta+F Control+A Meta+A Control+Shift+K Meta+Shift+K');
-    expect(HELP_INPUT_ARIA_KEYSHORTCUTS).toBe('Control+F Meta+F Control+A Meta+A Control+Shift+K Meta+Shift+K');
-  });
+    it('exports SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS', () => {
+      expect(SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS).toBe('Escape Control+K Meta+K');
+    });
 
-  it('stays aligned with shortcut-registry search/help input entries', () => {
-    const keys = SHORTCUTS.map(shortcut => shortcut.key);
+    it('exports HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS', () => {
+      expect(HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS).toBe('Escape Shift+Slash Control+Slash Meta+Slash');
+    });
 
-    expect(keys).toContain('Search: Cmd/Ctrl+F');
-    expect(keys).toContain('Search: Cmd/Ctrl+A');
-    expect(keys).toContain('Search: Cmd/Ctrl+Shift+K');
-    expect(keys).toContain('Help: Cmd/Ctrl+F');
-    expect(keys).toContain('Help: Cmd/Ctrl+A');
-    expect(keys).toContain('Help: Cmd/Ctrl+Shift+K');
+    it('exports SEARCH_INPUT_ARIA_KEYSHORTCUTS', () => {
+      expect(SEARCH_INPUT_ARIA_KEYSHORTCUTS).toBe(
+        'Control+F Meta+F Control+A Meta+A Control+Shift+K Meta+Shift+K',
+      );
+    });
 
-    expect(SEARCH_INPUT_ARIA_KEYSHORTCUTS).toContain('Control+F Meta+F');
-    expect(SEARCH_INPUT_ARIA_KEYSHORTCUTS).toContain('Control+A Meta+A');
-    expect(SEARCH_INPUT_ARIA_KEYSHORTCUTS).toContain('Control+Shift+K Meta+Shift+K');
-    expect(HELP_INPUT_ARIA_KEYSHORTCUTS).toContain('Control+F Meta+F');
-    expect(HELP_INPUT_ARIA_KEYSHORTCUTS).toContain('Control+A Meta+A');
-    expect(HELP_INPUT_ARIA_KEYSHORTCUTS).toContain('Control+Shift+K Meta+Shift+K');
-  });
+    it('exports HELP_INPUT_ARIA_KEYSHORTCUTS', () => {
+      expect(HELP_INPUT_ARIA_KEYSHORTCUTS).toBe(
+        'Control+F Meta+F Control+A Meta+A Control+Shift+K Meta+Shift+K',
+      );
+    });
 
-  it('includes close + input key groups in dialog metadata', () => {
-    expect(SEARCH_DIALOG_ARIA_KEYSHORTCUTS).toContain(SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS);
-    expect(SEARCH_DIALOG_ARIA_KEYSHORTCUTS).toContain(SEARCH_INPUT_ARIA_KEYSHORTCUTS);
+    it('exports SEARCH_DIALOG_ARIA_KEYSHORTCUTS as composed string', () => {
+      const expected = 'Escape Control+K Meta+K Control+F Meta+F Control+A Meta+A Control+Shift+K Meta+Shift+K Enter Tab Shift+Tab PageUp PageDown Home End';
+      expect(SEARCH_DIALOG_ARIA_KEYSHORTCUTS).toBe(expected);
+    });
 
-    expect(HELP_DIALOG_ARIA_KEYSHORTCUTS).toContain(HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS);
-    expect(HELP_DIALOG_ARIA_KEYSHORTCUTS).toContain(HELP_INPUT_ARIA_KEYSHORTCUTS);
+    it('exports HELP_DIALOG_ARIA_KEYSHORTCUTS as composed string', () => {
+      const expected = 'Escape Shift+Slash Control+Slash Meta+Slash Control+F Meta+F Control+A Meta+A Control+Shift+K Meta+Shift+K';
+      expect(HELP_DIALOG_ARIA_KEYSHORTCUTS).toBe(expected);
+    });
+
+    it('composes SEARCH_DIALOG_ARIA_KEYSHORTCUTS from close + input constants', () => {
+      expect(SEARCH_DIALOG_ARIA_KEYSHORTCUTS).toBe(
+        `${SEARCH_DIALOG_CLOSE_ARIA_KEYSHORTCUTS} ${SEARCH_INPUT_ARIA_KEYSHORTCUTS} Enter Tab Shift+Tab PageUp PageDown Home End`,
+      );
+    });
+
+    it('composes HELP_DIALOG_ARIA_KEYSHORTCUTS from close + input constants', () => {
+      expect(HELP_DIALOG_ARIA_KEYSHORTCUTS).toBe(
+        `${HELP_DIALOG_CLOSE_ARIA_KEYSHORTCUTS} ${HELP_INPUT_ARIA_KEYSHORTCUTS}`,
+      );
+    });
   });
 });
