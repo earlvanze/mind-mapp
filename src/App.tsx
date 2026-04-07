@@ -34,6 +34,15 @@ export default function App() {
   const [useCanvasRenderer, setUseCanvasRenderer] = useState(false);
   const { nodes, focusId, selectedIds, editingId, activeTagFilters, matchMode, layoutMode, setLayoutMode, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo, toggleNodeCollapsed, collapseAll, expandAll } = useMindMapStore();
   const { visibleNodeIds, shouldVirtualize } = useVirtualization(nodes, useCanvasRenderer);
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | undefined>(undefined);
+  const [hoveredEdgeId, setHoveredEdgeId] = useState<string | undefined>(undefined);
+  const { selectEdge, clearEdgeSelection, deleteEdge } = useMindMapStore();
+  const handleEdgeClick = (fromId: string, toId: string) => {
+    const edgeKey = `${fromId}:${toId}`;
+    setSelectedEdgeId(prev => prev === edgeKey ? undefined : edgeKey);
+    selectEdge(fromId, toId);
+  };
+  const handleEdgeHover = (edgeKey: string | null) => setHoveredEdgeId(edgeKey ?? undefined);
   const hiddenNodeIds = getHiddenNodeIds(nodes);
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -1004,7 +1013,7 @@ const toggleTagPicker = () => {
         </div>
       </div>
       <div id="mindmap-canvas" className={`canvas ${showGrid ? 'grid-on' : ''}`} role="application" aria-label="Mind map canvas. Use arrow keys to navigate nodes, Enter to edit, Tab to add child, Delete to remove." tabIndex={-1}>
-        {useCanvasRenderer ? <CanvasEdges nodes={nodes} /> : <Edges nodes={nodes} />}
+        {useCanvasRenderer ? <CanvasEdges nodes={nodes} viewport={viewport} selectedEdgeId={selectedEdgeId} hoveredEdgeId={hoveredEdgeId} onEdgeClick={handleEdgeClick} onEdgeHover={handleEdgeHover} /> : <Edges nodes={nodes} />}
         {Object.values(nodes).filter(n => !shouldVirtualize || visibleNodeIds.has(n.id)).filter(n => !hiddenNodeIds.has(n.id)).map(n => {
           const filterState = useMindMapStore.getState();
           const isFaded = shouldFadeNode(n, {

@@ -1,18 +1,90 @@
-import { useEffect, useRef, memo } from 'react';
+import { useEffect, useRef, memo, useCallback } from 'react';
 import { Node } from '../store/useMindMapStore';
 
 type Props = {
   nodes: Record<string, Node>;
   viewport?: { x: number; y: number; scale: number };
+  selectedEdgeId?: string;
+  hoveredEdgeId?: string;
+  onEdgeClick?: (fromId: string, toId: string) => void;
+  onEdgeHover?: (fromId: string, toId: string | null) => void;
 };
 
 /**
  * Canvas-based edge renderer (better performance than SVG for >100 nodes)
- * Renders only edges on canvas while keeping HTML nodes for text editing
+ * Renders only edges on canvas while keeping HTML nodes for text editing.
+ * Also handles edge click/hover hit detection.
  */
-function CanvasEdges({ nodes, viewport = { x: 0, y: 0, scale: 1 } }: Props) {
+function CanvasEdges({ nodes, viewport = { x: 0, y: 0, scale: 1 }, selectedEdgeId, hoveredEdgeId, onEdgeClick, onEdgeHover }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>();
+  const nodesRef = useRef(nodes);
+  const selectedEdgeIdRef = useRef(selectedEdgeId);
+  const hoveredEdgeIdRef = useRef(hoveredEdgeId);
+
+  // Keep refs in sync
+  useEffect(() => { nodesRef.current = nodes; }, [nodes]);
+  useEffect(() => { selectedEdgeIdRef.current = selectedEdgeId; }, [selectedEdgeId]);
+  useEffect(() => { hoveredEdgeIdRef.current = hoveredEdgeId; }, [hoveredEdgeId]);
+
+  // Hit test: find edge near point (in world coordinates)
+  const hitTest = useCallback((worldX: number, worldY: number) => {
+    const nodesSnapshot = nodesRef.current;
+    const threshold = 10; // pixels in world space
+
+    for (const node of Object.values(nodesSnapshot)) {
+      for (const childId of node.children) {
+        const child = nodesSnapshot[childId];
+        if (!child) continue;
+
+        const x1 = node.x + 80;
+        const y1 = node.y + 16;
+        const x2 = child.x;
+        const y2 = child.y + 16;
+
+        // Check if point is near bezier curve (simplified: distance to midpoint)
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+        const dist = Math.sqrt((worldX - midX) ** 2 + (worldY - midY) ** 2);
+
+        if (dist < threshold) {
+          return { fromId: node.id, toId: childId };
+        }
+      }
+    }
+    return null;
+  }, []);
+
+  // Handle pointer events on canvas
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+    const rect = canvasRef.current!.getBoundingClientRect();
+    const screenX = e.clientX - rect.left;
+    const screenY = e.clientY - rect.top;
+    const worldX = (screenX - viewport.x) / viewport.scale;
+    const worldY = (screenY - viewport.y) / viewport.scale;
+
+    const hit = hitTest(worldX, worldY);
+    if (hit && onEdgeClick) {
+      onEdgeClick(hit.fromId, hit.toId);
+    }
+  }, [viewport, hitTest, onEdgeClick]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLCanvasElement>) => {
+    const rect = canvasRef.current!.getBoundingClientRect();
+    const screenX = e.clientX - rect.left;
+    const screenY = e.clientY - rect.top;
+    const worldX = (screenX - viewport.x) / viewport.scale;
+    const worldY = (screenY - viewport.y) / viewport.scale;
+
+    const hit = hitTest(worldX, worldY);
+    if (onEdgeHover) {
+      onEdgeHover(hit ? hit.fromId + ':' + hit.toId : null);
+    }
+  }, [viewport, hitTest, onEdgeHover]);
+
+  const handlePointerLeave = useCallback(() => {
+    if (onEdgeHover) onEdgeHover(null);
+  }, [onEdgeHover]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -24,35 +96,28 @@ function CanvasEdges({ nodes, viewport = { x: 0, y: 0, scale: 1 } }: Props) {
     const render = () => {
       const rect = canvas.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
-      
-      // Set canvas size
+
       canvas.width = rect.width * dpr;
       canvas.height = rect.height * dpr;
       ctx.scale(dpr, dpr);
 
-      // Clear
       ctx.clearRect(0, 0, rect.width, rect.height);
 
-      // Apply viewport transform
       ctx.save();
       ctx.translate(viewport.x, viewport.y);
       ctx.scale(viewport.scale, viewport.scale);
 
-      // Draw edges
-      drawEdges(ctx, nodes);
+      drawEdges(ctx, nodes, selectedEdgeId, hoveredEdgeId);
 
       ctx.restore();
     };
 
     render();
 
-    // Cancel any pending frame
     return () => {
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [nodes, viewport]);
+  }, [nodes, viewport, selectedEdgeId, hoveredEdgeId]);
 
   return (
     <canvas
@@ -64,16 +129,18 @@ function CanvasEdges({ nodes, viewport = { x: 0, y: 0, scale: 1 } }: Props) {
         left: 0,
         width: '100%',
         height: '100%',
-        pointerEvents: 'none',
+        pointerEvents: 'auto',
+        cursor: hoveredEdgeId ? 'pointer' : 'default',
       }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
     />
   );
 }
 
-// Draw all edges between parent and child nodes
-function drawEdges(ctx: CanvasRenderingContext2D, nodes: Record<string, Node>) {
-  ctx.strokeStyle = '#9aa4b2';
-  ctx.lineWidth = 2;
+// Draw all edges with selection/hover highlighting
+function drawEdges(ctx: CanvasRenderingContext2D, nodes: Record<string, Node>, selectedEdgeId?: string, hoveredEdgeId?: string) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 
@@ -82,76 +149,68 @@ function drawEdges(ctx: CanvasRenderingContext2D, nodes: Record<string, Node>) {
       const child = nodes[childId];
       if (!child) return;
 
-      // Parent center-right (anchor point)
-      const x1 = node.x + 80;  // Node width approx 80px
-      const y1 = node.y + 16;   // Half node height
+      const edgeKey = node.id + ':' + childId;
+      const isSelected = selectedEdgeId === edgeKey;
+      const isHovered = hoveredEdgeId === edgeKey;
 
-      // Child center-left (target point)
+      const x1 = node.x + 80;
+      const y1 = node.y + 16;
       const x2 = child.x;
       const y2 = child.y + 16;
 
-      // Draw cubic bezier curve
       const cp1x = x1 + (x2 - x1) * 0.5;
       const cp1y = y1;
       const cp2x = x1 + (x2 - x1) * 0.5;
       const cp2y = y2;
+
+      // Line style based on state
+      ctx.lineWidth = isSelected ? 3.5 : isHovered ? 3 : 2;
+      ctx.strokeStyle = isSelected ? '#3b82f6' : isHovered ? '#60a5fa' : '#9aa4b2';
 
       ctx.beginPath();
       ctx.moveTo(x1, y1);
       ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x2, y2);
       ctx.stroke();
 
-      // Draw arrow at child end
-      drawArrow(ctx, x2, y2, cp2x, cp2y);
+      // Arrow
+      const angle = Math.atan2(y2 - cp2y, x2 - cp2x);
+      const arrowSize = isSelected || isHovered ? 10 : 8;
+
+      ctx.save();
+      ctx.translate(x2, y2);
+      ctx.rotate(angle);
+
+      ctx.fillStyle = isSelected ? '#3b82f6' : isHovered ? '#60a5fa' : '#9aa4b2';
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-arrowSize, -arrowSize / 2);
+      ctx.lineTo(-arrowSize, arrowSize / 2);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
     });
   });
 }
 
-// Draw arrow marker at end of edge
-function drawArrow(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  fromX: number,
-  fromY: number
-) {
-  const angle = Math.atan2(y - fromY, x - fromX);
-  const arrowSize = 8;
-
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(angle);
-
-  ctx.fillStyle = '#9aa4b2';
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(-arrowSize, -arrowSize / 2);
-  ctx.lineTo(-arrowSize, arrowSize / 2);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.restore();
-}
-
 // Memoize to prevent re-render when viewport changes (handled internally)
 export default memo(CanvasEdges, (prev, next) => {
-  // Re-render only when nodes actually change
   const prevNodes = Object.values(prev.nodes);
   const nextNodes = Object.values(next.nodes);
-  
+
   if (prevNodes.length !== nextNodes.length) return false;
-  
+  if (prev.selectedEdgeId !== next.selectedEdgeId) return false;
+  if (prev.hoveredEdgeId !== next.hoveredEdgeId) return false;
+
   for (const node of nextNodes) {
     const prevNode = prev.nodes[node.id];
     if (!prevNode) return false;
-    
-    // Check position and children
     if (prevNode.x !== node.x || prevNode.y !== node.y) return false;
     if (prevNode.children.length !== node.children.length) return false;
     for (let i = 0; i < node.children.length; i++) {
       if (prevNode.children[i] !== node.children[i]) return false;
     }
   }
-  
-  return true; // No changes
+
+  return true;
 });

@@ -45,6 +45,7 @@ type Snapshot = {
   nodes: Record<string, Node>;
   focusId: string;
   selectedIds: string[];
+  selectedEdgeId?: string;
 };
 
 type MindMapState = {
@@ -52,6 +53,7 @@ type MindMapState = {
   focusId: string;
   selectedIds: string[];
   editingId?: string;
+  selectedEdgeId?: string;
   past: Snapshot[];
   future: Snapshot[];
   canUndo: boolean;
@@ -65,6 +67,9 @@ type MindMapState = {
   setFocus: (id: string) => void;
   toggleSelection: (id: string) => void;
   clearSelection: () => void;
+  deleteEdge: (fromId: string, toId: string) => void;
+  selectEdge: (fromId: string, toId: string) => void;
+  clearEdgeSelection: () => void;
   selectAll: () => void;
   invertSelection: () => void;
   selectSiblings: () => void;
@@ -162,6 +167,7 @@ const defaultState = {
   },
   focusId: rootId,
   selectedIds: [rootId],
+  selectedEdgeId: undefined,
   editingId: undefined,
   past: [] as Snapshot[],
   future: [] as Snapshot[],
@@ -176,7 +182,7 @@ const defaultState = {
 function loadState() {
   const parsed = loadFromStorage<{ nodes: Record<string, Node>; focusId: string }>();
   if (!parsed || !parsed.nodes || !parsed.focusId) return defaultState;
-  return { ...defaultState, nodes: parsed.nodes, focusId: parsed.focusId, selectedIds: [parsed.focusId] };
+  return { ...defaultState, nodes: parsed.nodes, focusId: parsed.focusId, selectedIds: [parsed.focusId], selectedEdgeId: undefined };
 }
 
 export const useMindMapStore = create<MindMapState>((set, get) => ({
@@ -213,7 +219,7 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         },
       };
     }),
-  setFocus: id => set({ focusId: id, selectedIds: [id], editingId: undefined }),
+  setFocus: id => set({ focusId: id, selectedIds: [id], editingId: undefined, selectedEdgeId: undefined }),
   toggleSelection: id =>
     set(state => {
       if (!state.nodes[id]) return {};
@@ -227,7 +233,27 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         editingId: undefined,
       };
     }),
-  clearSelection: () => set(state => ({ selectedIds: state.focusId ? [state.focusId] : [] })),
+  clearSelection: () => set({ selectedIds: [], selectedEdgeId: undefined }),
+  selectEdge: (fromId, toId) => set({ selectedEdgeId: `${fromId}:${toId}` }),
+  clearEdgeSelection: () => set({ selectedEdgeId: undefined }),
+  deleteEdge: (fromId, toId) =>
+    set(state => {
+      const edgeKey = `${fromId}:${toId}`;
+      if (state.selectedEdgeId !== edgeKey) return {};
+      const updated = { ...state.nodes };
+      const from = updated[fromId];
+      if (!from) return {};
+      updated[fromId] = { ...from, children: from.children.filter(c => c !== toId) };
+      const stack = [toId];
+      while (stack.length) {
+        const cur = stack.pop()!;
+        if (updated[cur]) {
+          stack.push(...updated[cur].children);
+          delete updated[cur];
+        }
+      }
+      return { ...withHistory(state), nodes: updated, selectedEdgeId: undefined };
+    }),
   selectAll: () =>
     set(state => {
       const allIds = Object.keys(state.nodes);

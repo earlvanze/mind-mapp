@@ -1,4 +1,4 @@
-import { useEffect, useRef, memo, useCallback } from 'react';
+import { useEffect, useRef, useState, memo, useCallback } from 'react';
 import { Node, useMindMapStore } from '../store/useMindMapStore';
 import { resolveStyle, resolvePreset } from '../utils/nodeStyles';
 import { loadTheme } from '../utils/theme';

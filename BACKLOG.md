@@ -1,8 +1,8 @@
 # Mind Mapp Backlog
 
 ## P0 — Critical (Ship Blockers)
-- [ ] Fix cron timeout: reduce test scope or increase timeout to 600s
-- [ ] Add handwriting.js integration for OCR input
+- [x] Fix cron timeout: reduce test scope or increase timeout to 600s
+- [x] Add handwriting.js integration for OCR input
 
 ## P1 — High Priority
 - [ ] Supabase auth integration
@@ -25,3 +25,6 @@
 - [x] Canvas rendering with Konva
 - [x] Basic node creation and selection
 - [x] Node expand/collapse with double-tap (300ms threshold)
+- [x] Layout mode UI toggle (tree/radial/force)
+- [x] handwriting.js OCR integration (tesseract.js v7, drawing canvas, recognize + insert)
+- [x] Cron timeout fix (testTimeout 600s → 120s)
