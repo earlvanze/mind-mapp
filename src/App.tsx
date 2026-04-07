@@ -32,7 +32,7 @@ const PresentationOverlay = lazy(() => import('./components/PresentationOverlay'
 
 export default function App() {
   const [useCanvasRenderer, setUseCanvasRenderer] = useState(false);
-  const { nodes, focusId, selectedIds, editingId, activeTagFilters, matchMode, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo, toggleNodeCollapsed, collapseAll, expandAll } = useMindMapStore();
+  const { nodes, focusId, selectedIds, editingId, activeTagFilters, matchMode, layoutMode, setLayoutMode, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo, toggleNodeCollapsed, collapseAll, expandAll } = useMindMapStore();
   const { visibleNodeIds, shouldVirtualize } = useVirtualization(nodes, useCanvasRenderer);
   const hiddenNodeIds = getHiddenNodeIds(nodes);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -950,6 +950,26 @@ const toggleTagPicker = () => {
           </select>
           <button title="Export PDF" aria-label="Export as PDF document" onClick={exportPdfClick}>Export PDF</button>
           <button title="Reset pan/zoom" aria-label="Reset pan and zoom to default view" aria-keyshortcuts="0" onClick={() => (window as any).__mindmappResetView?.()}>Reset View</button>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#888' }}>Layout:</span>
+            {(['tree', 'radial', 'force'] as const).map(mode => (
+              <button
+                key={mode}
+                title={`Switch to ${mode} layout`}
+                aria-pressed={layoutMode === mode}
+                onClick={() => setLayoutMode(mode)}
+                style={{
+                  height: '28px',
+                  fontSize: '12px',
+                  padding: '0 8px',
+                  fontWeight: layoutMode === mode ? 'bold' : 'normal',
+                  opacity: layoutMode === mode ? 1 : 0.6,
+                }}
+              >
+                {mode === 'tree' ? '🌲 Tree' : mode === 'radial' ? '⭕ Radial' : '🧲 Force'}
+              </button>
+            ))}
+          </span>
           <button title="Export Templates" aria-label="Open export templates dialog" onClick={() => setTemplateDialogOpen(true)} style={{ minWidth: 80 }}>📋 Templates</button>
           <button title="Theme (Shift+T)" aria-pressed={false} aria-keyshortcuts="Shift+T" onClick={handleToggleTheme} style={{ minWidth: 80 }}>🎨 Theme</button>
 
