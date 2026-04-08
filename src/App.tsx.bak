@@ -32,7 +32,7 @@ const PresentationOverlay = lazy(() => import('./components/PresentationOverlay'
 
 export default function App() {
   const [useCanvasRenderer, setUseCanvasRenderer] = useState(false);
-  const { nodes, focusId, selectedIds, editingId, activeTagFilters, matchMode, layoutMode, setLayoutMode, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo, toggleNodeCollapsed, collapseAll, expandAll, connectMode, pendingConnection, setConnectMode, startConnection, cancelConnection, completeConnection } = useMindMapStore();
+  const { nodes, focusId, selectedIds, editingId, activeTagFilters, matchMode, layoutMode, setLayoutMode, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo, toggleNodeCollapsed, collapseAll, expandAll } = useMindMapStore();
   const { visibleNodeIds, shouldVirtualize } = useVirtualization(nodes, useCanvasRenderer);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | undefined>(undefined);
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | undefined>(undefined);
@@ -69,8 +69,6 @@ export default function App() {
     return saved;
   });
   const [viewScale, setViewScale] = useState(1);
-  const [viewport, setViewport] = useState({ x: 0, y: 0, scale: 1 });
-  const viewportRef = useRef({ x: 0, y: 0, scale: 1 });
   const [importNotice, setImportNotice] = useState<{ text: string; kind: 'success' | 'error' } | null>(null);
   const focusHistoryRef = useRef(createFocusHistory(focusId));
   const focusHistoryHydratedRef = useRef(false);
@@ -96,36 +94,12 @@ export default function App() {
       }
     };
     window.addEventListener('mindmapp:viewchange', handler);
-    // Also update viewportRef when view changes
-    const syncViewport = (event: Event) => {
-      const detail = (event as CustomEvent<{ originX?: number; originY?: number; scale?: number }>).detail;
-      if (typeof detail?.originX === 'number') viewportRef.current.x = detail.originX;
-      if (typeof detail?.originY === 'number') viewportRef.current.y = detail.originY;
-      if (typeof detail?.scale === 'number') viewportRef.current.scale = detail.scale;
-    };
-    window.addEventListener('mindmapp:viewchange', syncViewport);
-    // Sync viewport state as well
-    const syncViewportState = (event: Event) => {
-      const detail = (event as CustomEvent<{ originX?: number; originY?: number; scale?: number }>).detail;
-      if (typeof detail?.originX === 'number' || typeof detail?.originY === 'number' || typeof detail?.scale === 'number') {
-        setViewport(prev => ({
-          x: typeof detail?.originX === 'number' ? detail.originX! : prev.x,
-          y: typeof detail?.originY === 'number' ? detail.originY! : prev.y,
-          scale: typeof detail?.scale === 'number' ? detail.scale! : prev.scale,
-        }));
-      }
-    };
-    window.addEventListener('mindmapp:viewchange', syncViewportState);
     const panZoom = (window as any).__mindmappPanZoom;
     const view = panZoom?.getView?.();
     if (typeof view?.scale === 'number') {
       setViewScale(view.scale);
     }
-    return () => {
-      window.removeEventListener('mindmapp:viewchange', handler);
-      window.removeEventListener('mindmapp:viewchange', syncViewport);
-      window.removeEventListener('mindmapp:viewchange', syncViewportState);
-    };
+    return () => window.removeEventListener('mindmapp:viewchange', handler);
   }, []);
 
   useEffect(() => {
@@ -133,55 +107,6 @@ export default function App() {
     const timeout = window.setTimeout(() => setImportNotice(null), 3200);
     return () => window.clearTimeout(timeout);
   }, [importNotice]);
-
-  // Connect mode: handle connectstart events from nodes
-  useEffect(() => {
-    const onConnectStart = (e: Event) => {
-      const detail = (e as CustomEvent<{ nodeId: string; startX: number; startY: number }>).detail;
-      startConnection(detail.nodeId);
-    };
-    window.addEventListener('mindmapp:connectstart', onConnectStart);
-    return () => window.removeEventListener('mindmapp:connectstart', onConnectStart);
-  }, [startConnection]);
-
-  // Connect mode: handle mouseup to complete or cancel connection
-  useEffect(() => {
-    const onMouseUp = (e: MouseEvent) => {
-      if (!connectMode || !pendingConnection) return;
-      // Check if mouse is over a node (hit test)
-      const canvas = document.querySelector('.canvas') as HTMLElement;
-      if (!canvas) { cancelConnection(); return; }
-      const nodes = document.querySelectorAll('.node[data-node-id]');
-      for (const nodeEl of nodes) {
-        const rect = nodeEl.getBoundingClientRect();
-        if (e.clientX >= rect.left && e.clientX <= rect.right &&
-            e.clientY >= rect.top && e.clientY <= rect.bottom) {
-          const targetId = nodeEl.getAttribute('data-node-id');
-          if (targetId && targetId !== pendingConnection.fromId) {
-            completeConnection(targetId);
-            return;
-          }
-        }
-      }
-      // Click on empty canvas: cancel
-      if ((e.target as HTMLElement).closest('.canvas') && !(e.target as HTMLElement).closest('.node')) {
-        cancelConnection();
-      }
-    };
-    window.addEventListener('mouseup', onMouseUp);
-    return () => window.removeEventListener('mouseup', onMouseUp);
-  }, [connectMode, pendingConnection, cancelConnection, completeConnection]);
-
-  // Connect mode: handle Escape to cancel
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (connectMode && e.key === 'Escape') {
-        cancelConnection();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [connectMode, cancelConnection]);
 
   useEffect(() => {
     if (focusHistoryHydratedRef.current) return;
@@ -906,7 +831,6 @@ const toggleTagPicker = () => {
           <button title={focusHistoryCount > 1 ? 'Reset focus history to current node (Alt+Shift+Q)' : 'Focus history already reset'} aria-keyshortcuts="Alt+Shift+Q" onClick={resetFocusHistoryNow} disabled={focusHistoryCount <= 1}>Reset Hist</button>
           <button title="Toggle grid overlay (Shift+G)" aria-pressed={showGrid} aria-keyshortcuts="Shift+G" onClick={() => setShowGrid(v => !v)}>{showGrid ? 'Grid On' : 'Grid Off'}</button>
           <button title="Toggle Canvas Renderer (better performance for large maps)" aria-pressed={useCanvasRenderer} onClick={() => setUseCanvasRenderer(v => !v)}>{useCanvasRenderer ? "Canvas" : "SVG"}</button>
-          <button title={connectMode ? "Cancel connect mode (Esc)" : "Connect nodes: drag from one node to another to create parent-child relationship"} aria-pressed={connectMode} onClick={() => connectMode ? cancelConnection() : startConnection(focusId)}>{connectMode ? "Connecting..." : "🔗 Connect"}</button>
           <button
             title={showTagFilter ? 'Hide tag filter (Cmd/Ctrl+Shift+T)' : 'Show tag filter (Cmd/Ctrl+Shift+T)'}
             aria-pressed={showTagFilter}
@@ -1089,7 +1013,7 @@ const toggleTagPicker = () => {
         </div>
       </div>
       <div id="mindmap-canvas" className={`canvas ${showGrid ? 'grid-on' : ''}`} role="application" aria-label="Mind map canvas. Use arrow keys to navigate nodes, Enter to edit, Tab to add child, Delete to remove." tabIndex={-1}>
-        {useCanvasRenderer ? <CanvasEdges nodes={nodes} viewport={viewport} selectedEdgeId={selectedEdgeId} hoveredEdgeId={hoveredEdgeId} connectMode={connectMode} pendingConnection={pendingConnection} onEdgeClick={handleEdgeClick} onEdgeHover={handleEdgeHover} /> : <Edges nodes={nodes} hiddenIds={hiddenNodeIds} />}
+        {useCanvasRenderer ? <CanvasEdges nodes={nodes} viewport={viewport} selectedEdgeId={selectedEdgeId} hoveredEdgeId={hoveredEdgeId} onEdgeClick={handleEdgeClick} onEdgeHover={handleEdgeHover} /> : <Edges nodes={nodes} hiddenIds={hiddenNodeIds} />}
         {Object.values(nodes).filter(n => !shouldVirtualize || visibleNodeIds.has(n.id)).filter(n => !hiddenNodeIds.has(n.id)).map(n => {
           const filterState = useMindMapStore.getState();
           const isFaded = shouldFadeNode(n, {

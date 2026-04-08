@@ -54,8 +54,6 @@ type MindMapState = {
   selectedIds: string[];
   editingId?: string;
   selectedEdgeId?: string;
-  connectMode: boolean;
-  pendingConnection: { fromId: string; toId: string | null } | null;
   past: Snapshot[];
   future: Snapshot[];
   canUndo: boolean;
@@ -70,13 +68,8 @@ type MindMapState = {
   toggleSelection: (id: string) => void;
   clearSelection: () => void;
   deleteEdge: (fromId: string, toId: string) => void;
-  reconnectEdge: (fromId: string, oldToId: string, newToId: string) => void;
   selectEdge: (fromId: string, toId: string) => void;
   clearEdgeSelection: () => void;
-  setConnectMode: (v: boolean) => void;
-  startConnection: (fromId: string) => void;
-  cancelConnection: () => void;
-  completeConnection: (toId: string) => void;
   selectAll: () => void;
   invertSelection: () => void;
   selectSiblings: () => void;
@@ -175,8 +168,6 @@ const defaultState = {
   focusId: rootId,
   selectedIds: [rootId],
   selectedEdgeId: undefined,
-  connectMode: false,
-  pendingConnection: null,
   editingId: undefined,
   past: [] as Snapshot[],
   future: [] as Snapshot[],
@@ -245,35 +236,6 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
   clearSelection: () => set({ selectedIds: [], selectedEdgeId: undefined }),
   selectEdge: (fromId, toId) => set({ selectedEdgeId: `${fromId}:${toId}` }),
   clearEdgeSelection: () => set({ selectedEdgeId: undefined }),
-  setConnectMode: (v) => set({ connectMode: v }),
-  startConnection: (fromId) => set({ connectMode: true, pendingConnection: { fromId, toId: null } }),
-  cancelConnection: () => set({ connectMode: false, pendingConnection: null }),
-  completeConnection: (toId) => set(state => {
-    if (!state.pendingConnection) return {};
-    const fromId = state.pendingConnection.fromId;
-    if (toId === fromId || state.nodes[toId]?.parentId === fromId) {
-      // Prevent self-loops and direct parent-child duplicates
-      return { connectMode: false, pendingConnection: null };
-    }
-    // Check if edge already exists
-    const existingNode = state.nodes[fromId];
-    if (existingNode?.children.includes(toId)) {
-      return { connectMode: false, pendingConnection: null };
-    }
-    const updated: Record<string, Node> = {};
-    // Add to parent's children
-    const parentNode = state.nodes[fromId];
-    updated[fromId] = { ...parentNode, children: [...parentNode.children, toId] };
-    // Update child's parentId
-    const childNode = state.nodes[toId];
-    // Remove from old parent if exists
-    if (childNode.parentId && state.nodes[childNode.parentId]) {
-      const oldParent = state.nodes[childNode.parentId];
-      updated[childNode.parentId] = { ...oldParent, children: oldParent.children.filter(c => c !== toId) };
-    }
-    updated[toId] = { ...childNode, parentId: fromId };
-    return { ...withHistory(state), nodes: updated, connectMode: false, pendingConnection: null };
-  }),
   deleteEdge: (fromId, toId) =>
     set(state => {
       const edgeKey = `${fromId}:${toId}`;
@@ -290,29 +252,6 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
           delete updated[cur];
         }
       }
-      return { ...withHistory(state), nodes: updated, selectedEdgeId: undefined };
-    }),
-  reconnectEdge: (fromId, oldToId, newToId) =>
-    set(state => {
-      if (fromId === newToId) return {}; // Can't connect to self
-      if (oldToId === newToId) return {}; // No change
-      const updated = { ...state.nodes };
-      const from = updated[fromId];
-      const child = updated[oldToId];
-      const target = updated[newToId];
-      if (!from || !child || !target) return {};
-      // Check for circular reference
-      let checkId = newToId;
-      while (checkId) {
-        if (checkId === fromId) return {};
-        checkId = updated[checkId]?.parentId ?? null;
-      }
-      // Remove from old parent
-      updated[fromId] = { ...from, children: from.children.filter(c => c !== oldToId) };
-      // Add to new parent
-      updated[fromId] = { ...updated[fromId], children: [...updated[fromId].children, newToId] };
-      // Update child's parent
-      updated[oldToId] = { ...child, parentId: fromId };
       return { ...withHistory(state), nodes: updated, selectedEdgeId: undefined };
     }),
   selectAll: () =>

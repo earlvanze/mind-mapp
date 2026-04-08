@@ -6,7 +6,6 @@
 
 ## P1 — High Priority
 - [ ] Supabase auth integration
-- [ ] Add edge CRUD + drag/drop (click-select + Delete done; creation + drag-drop pending)
 - [ ] Save/load projects to Supabase
 - [ ] Export JSON + PNG/SVG
 
@@ -28,3 +27,11 @@
 - [x] Layout mode UI toggle (tree/radial/force)
 - [x] handwriting.js OCR integration (tesseract.js v7, drawing canvas, recognize + insert)
 - [x] Cron timeout fix (testTimeout 600s → 120s)
+- [x] Edge CRUD + drag/drop:
+  - Click-select edges (hit test on bezier midpoints)
+  - Delete selected edge (Delete key)
+  - Connect mode (click Connect button, drag from node to node)
+  - Canvas-based edge rendering (CanvasEdges) for performance
+  - Edge drag-reconnection: drag edge arrow to reconnect to another node
+  - Pending connection preview line (dashed blue bezier)
+  - `reconnectEdge` action in store with circular reference protection
