@@ -54,6 +54,8 @@ export default function App() {
   const [presentationOpen, setPresentationOpen] = useState(false);
   const [presentationIndex, setPresentationIndex] = useState(0);
   const [presentationNodes, setPresentationNodes] = useState<string[]>([]);
+  const [zoomIntoState, setZoomIntoState] = useState<{ originX: number; originY: number; scale: number } | null>(null);
+  const zoomedNodeIdRef = useRef<string | null>(null);
   const [showTagFilter, setShowTagFilter] = useState(false);
   const [shortcutSettingsOpen, setShortcutSettingsOpen] = useState(false);
   const [handwritingOpen, setHandwritingOpen] = useState(false);
@@ -466,6 +468,38 @@ export default function App() {
     });
   };
 
+  const zoomIntoFocusedNode = () => {
+    const node = nodes[focusId];
+    if (!node) return;
+    const el = document.querySelector('.canvas') as HTMLElement | null;
+    const panZoom = (window as any).__mindmappPanZoom;
+    if (!el || !panZoom?.setView || !panZoom?.getView) return;
+
+    const rect = el.getBoundingClientRect();
+    const current = panZoom.getView();
+    const targetScale = 1.5;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    panZoom.setView({
+      originX: centerX - node.x * targetScale,
+      originY: centerY - node.y * targetScale,
+      scale: targetScale,
+    });
+    setZoomIntoState({ originX: current.originX ?? 0, originY: current.originY ?? 0, scale: current.scale ?? 1 });
+    zoomedNodeIdRef.current = focusId;
+  };
+
+  const resetZoomedView = () => {
+    if (!zoomIntoState) return;
+    const el = document.querySelector('.canvas') as HTMLElement | null;
+    const panZoom = (window as any).__mindmappPanZoom;
+    if (!el || !panZoom?.setView) return;
+    panZoom.setView(zoomIntoState);
+    setZoomIntoState(null);
+    zoomedNodeIdRef.current = null;
+  };
+
   const [themeDialogOpen, setThemeDialogOpen] = useState(false);
 
   const handleToggleTheme = () => {
@@ -521,6 +555,7 @@ const toggleTagPicker = () => {
     onFitSubtree: () => fitFocusedSubtree(),
     onZoomIn: () => zoomBy(getKeyboardPref('zoomIn')),
     onZoomOut: () => zoomBy(getKeyboardPref('zoomOut')),
+    onZoomInto: () => zoomIntoState ? resetZoomedView() : zoomIntoFocusedNode(),
     onResetView: () => (window as any).__mindmappResetView?.(),
     onCenterFocus: () => centerOnNode(focusId),
     onCenterSelection: () => centerSelection(),
@@ -567,6 +602,7 @@ const toggleTagPicker = () => {
       onFitSubtree: () => fitFocusedSubtree(),
       onZoomIn: () => zoomBy(getKeyboardPref('zoomIn')),
       onZoomOut: () => zoomBy(getKeyboardPref('zoomOut')),
+      onZoomInto: () => zoomIntoState ? resetZoomedView() : zoomIntoFocusedNode(),
       onResetView: () => (window as any).__mindmappResetView?.(),
       onCenterFocus: () => centerOnNode(focusId),
       onCenterSelection: () => centerSelection(),
@@ -655,6 +691,7 @@ const toggleTagPicker = () => {
   const canFocusHistoryEnd = !!historyEndTargetId && historyEndStep.state.index !== focusHistoryState.index;
   const focusHistoryCount = focusHistoryState.entries.length;
   const focusHistoryPosition = focusHistoryState.index + 1;
+  const isZoomedInto = !!zoomIntoState && !!zoomedNodeIdRef.current;
 
   const exportJson = () => exportJsonData(nodes);
 
@@ -978,6 +1015,14 @@ const toggleTagPicker = () => {
             onClick={toggleVersionHistory}
           >
             {versionHistoryOpen ? 'Versions On' : 'Versions'}
+          </button>
+          <button
+            title={isZoomedInto ? 'Exit zoom (Z) — return to previous view' : 'Zoom into focused node (Z) — Prezi-style pan/zoom'}
+            aria-pressed={isZoomedInto}
+            aria-keyshortcuts="Z"
+            onClick={() => zoomIntoState ? resetZoomedView() : zoomIntoFocusedNode()}
+          >
+            {isZoomedInto ? '🔍 Exit Zoom' : '🔍 Zoom In'}
           </button>
           | <button
             title="Handwriting input (draw to add text)"

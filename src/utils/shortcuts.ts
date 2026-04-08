@@ -100,6 +100,7 @@ export const SHORTCUTS: Shortcut[] = [
   { key: '=/+', desc: 'zoom in by configurable factor' },
   { key: '-', desc: 'zoom out by configurable factor' },
   { key: '0', desc: 'reset pan/zoom view' },
+  { key: 'Z', desc: 'zoom into focused node (Prezi-style) / exit zoom' },
   { key: 'Cmd/Ctrl+1', desc: 'apply color preset 1 (Default)' },
   { key: 'Cmd/Ctrl+2', desc: 'apply color preset 2 (Primary)' },
   { key: 'Cmd/Ctrl+3', desc: 'apply color preset 3 (Success)' },

@@ -41,6 +41,7 @@ export type ShortcutAction =
   | 'zoomIn'
   | 'zoomOut'
   | 'resetView'
+  | 'zoomInto'
   | 'exportPng'
   | 'exportMarkdown'
   | 'exportJson'
@@ -134,6 +135,7 @@ export const DEFAULT_SHORTCUT_BINDINGS: ShortcutBinding[] = [
   { action: 'zoomIn',            desc: 'Zoom in',                              defaultKey: '=',            defaultModifiers: {} },
   { action: 'zoomOut',          desc: 'Zoom out',                             defaultKey: '-',            defaultModifiers: {} },
   { action: 'resetView',         desc: 'Reset pan/zoom',                      defaultKey: '0',            defaultModifiers: {} },
+  { action: 'zoomInto',          desc: 'Zoom into focused node (Prezi-style)',   defaultKey: 'Z',            defaultModifiers: {} },
   // Export
   { action: 'exportPng',         desc: 'Export PNG',                           defaultKey: 'Cmd+Shift+S',  defaultModifiers: { meta: true, shift: true } },
   { action: 'exportMarkdown',   desc: 'Export Markdown',                    defaultKey: 'Cmd+Shift+M',  defaultModifiers: { meta: true, shift: true } },
@@ -331,6 +333,7 @@ export const ACTION_TO_HANDLER: Record<ShortcutAction, string> = {
   zoomIn:              'onZoomIn',
   zoomOut:             'onZoomOut',
   resetView:           'onResetView',
+  zoomInto:            'onZoomInto',
   exportPng:           'onExportPng',
   exportMarkdown:      'onExportMarkdown',
   exportJson:          'onExportJson',

@@ -18,6 +18,7 @@ type Props = {
   onZoomIn: () => void;
   onZoomOut: () => void;
   onResetView: () => void;
+  onZoomInto: () => void;
   onCenterFocus: () => void;
   onCenterSelection: () => void;
   onCenterSubtree: () => void;
@@ -59,7 +60,7 @@ type Props = {
   handlers?: Partial<Record<string, () => void>>;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onTagPicker, onTagFilter, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, onToggleCollapse, onCollapseAll, onExpandAll, onVersionHistory, onPresentation, suspended = false, handlers = {} }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onTagPicker, onTagFilter, onZoomIn, onZoomOut, onResetView, onZoomInto, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, onToggleCollapse, onCollapseAll, onExpandAll, onVersionHistory, onPresentation, suspended = false, handlers = {} }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, deleteEdge, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, editingId, startEditing, setSelectedStyle, selectedIds, selectedEdgeId, clearEdgeSelection, toggleNodeCollapsed, collapseAll, expandAll } = useMindMapStore();
 
   useEffect(() => {
@@ -167,6 +168,7 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onT
       if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'c' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); onCenterSelection(); return; }
       if ((e.key === '=' || e.key === '+') && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onZoomIn(); return; }
       if (e.key === '-' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onZoomOut(); return; }
+      if (e.key === 'z' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onZoomInto(); return; }
       if (e.key === '0' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onResetView(); return; }
       if (e.key === 'f' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) { e.preventDefault(); onFit(); return; }
       if (e.key === 'c' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) { e.preventDefault(); onCenterFocus(); return; }
@@ -246,5 +248,5 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onT
 
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [focusId, editingId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, onSearch, onFit, onFitSelection, onFitSubtree, onTagPicker, onTagFilter, onZoomIn, onZoomOut, onResetView, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, startEditing, setSelectedStyle, selectedIds, selectedEdgeId, clearEdgeSelection, deleteEdge, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, onToggleCollapse, onCollapseAll, onExpandAll, onPresentation, suspended, handlers]);
+  }, [focusId, editingId, addSibling, addChild, promoteNode, deleteSelected, duplicateSelected, moveFocus, selectParent, setFocus, onSearch, onFit, onFitSelection, onFitSubtree, onTagPicker, onTagFilter, onZoomIn, onZoomOut, onResetView, onZoomInto, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, startEditing, setSelectedStyle, selectedIds, selectedEdgeId, clearEdgeSelection, deleteEdge, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, onToggleCollapse, onCollapseAll, onExpandAll, onPresentation, suspended, handlers]);
 }
