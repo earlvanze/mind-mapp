@@ -1013,7 +1013,7 @@ const toggleTagPicker = () => {
         </div>
       </div>
       <div id="mindmap-canvas" className={`canvas ${showGrid ? 'grid-on' : ''}`} role="application" aria-label="Mind map canvas. Use arrow keys to navigate nodes, Enter to edit, Tab to add child, Delete to remove." tabIndex={-1}>
-        {useCanvasRenderer ? <CanvasEdges nodes={nodes} viewport={viewport} selectedEdgeId={selectedEdgeId} hoveredEdgeId={hoveredEdgeId} onEdgeClick={handleEdgeClick} onEdgeHover={handleEdgeHover} /> : <Edges nodes={nodes} />}
+        {useCanvasRenderer ? <CanvasEdges nodes={nodes} viewport={viewport} selectedEdgeId={selectedEdgeId} hoveredEdgeId={hoveredEdgeId} onEdgeClick={handleEdgeClick} onEdgeHover={handleEdgeHover} /> : <Edges nodes={nodes} hiddenIds={hiddenNodeIds} />}
         {Object.values(nodes).filter(n => !shouldVirtualize || visibleNodeIds.has(n.id)).filter(n => !hiddenNodeIds.has(n.id)).map(n => {
           const filterState = useMindMapStore.getState();
           const isFaded = shouldFadeNode(n, {

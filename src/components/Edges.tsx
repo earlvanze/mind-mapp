@@ -2,10 +2,17 @@ import { memo } from 'react';
 import { Node } from '../store/useMindMapStore';
 import { edgePath } from '../utils/edgePath';
 
-function Edges({ nodes }: { nodes: Record<string, Node> }) {
+type Props = {
+  nodes: Record<string, Node>;
+  hiddenIds?: Set<string>;
+};
+
+function Edges({ nodes, hiddenIds = new Set() }: Props) {
   const paths: { d: string; key: string }[] = [];
   Object.values(nodes).forEach((n) => {
+    if (hiddenIds.has(n.id)) return;
     n.children.forEach((cid) => {
+      if (hiddenIds.has(cid)) return;
       const child = nodes[cid];
       if (!child) return;
       paths.push({
@@ -51,6 +58,9 @@ export default memo(Edges, (prev, next) => {
       if (prevNode.children[i] !== node.children[i]) return false;
     }
   }
+  
+  // Hidden IDs changed?
+  if (JSON.stringify([...prev.hiddenIds ?? []]) !== JSON.stringify([...next.hiddenIds ?? []])) return false;
   
   return true; // No relevant changes
 });

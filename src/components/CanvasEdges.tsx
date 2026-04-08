@@ -78,7 +78,7 @@ function CanvasEdges({ nodes, viewport = { x: 0, y: 0, scale: 1 }, selectedEdgeI
 
     const hit = hitTest(worldX, worldY);
     if (onEdgeHover) {
-      onEdgeHover(hit ? hit.fromId + ':' + hit.toId : null);
+      onEdgeHover(hit ? hit.fromId : null, hit ? hit.toId : null);
     }
   }, [viewport, hitTest, onEdgeHover]);
 

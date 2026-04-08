@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, memo, useCallback } from 'react';
 import { Node, useMindMapStore } from '../store/useMindMapStore';
 import { resolveStyle, resolvePreset } from '../utils/nodeStyles';
 import { loadTheme } from '../utils/theme';
+import { getHiddenNodeIds } from '../utils/virtualization';
 
 type Props = {
   nodes: Record<string, Node>;
@@ -34,6 +35,9 @@ function CanvasRenderer({
 
   const theme = loadTheme();
 
+  // Compute nodes hidden by collapsed ancestors — recalculate when nodes change
+  const hiddenIds = getHiddenNodeIds(nodes);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -55,8 +59,8 @@ function CanvasRenderer({
       ctx.translate(viewport.x, viewport.y);
       ctx.scale(viewport.scale, viewport.scale);
 
-      drawEdges(ctx, nodes);
-      drawNodes(ctx, nodes, focusId, selectedIds, editingId, hitMapRef.current, theme);
+      drawEdges(ctx, nodes, hiddenIds);
+      drawNodes(ctx, nodes, focusId, selectedIds, editingId, hitMapRef.current, theme, hiddenIds);
 
       ctx.restore();
     };
@@ -66,7 +70,7 @@ function CanvasRenderer({
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [nodes, viewport, focusId, selectedIds, editingId, theme]);
+  }, [nodes, viewport, focusId, selectedIds, editingId, theme, hiddenIds]);
 
   const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -78,6 +82,7 @@ function CanvasRenderer({
 
     // Check link hit area first (overrides node click)
     for (const [id, linkBounds] of linkHitMapRef.current.entries()) {
+      if (hiddenIds.has(id)) continue;
       if (x >= linkBounds.x && x <= linkBounds.x + linkBounds.width &&
           y >= linkBounds.y && y <= linkBounds.y + linkBounds.height) {
         onLinkClick(linkBounds.url);
@@ -86,13 +91,14 @@ function CanvasRenderer({
     }
     // Then check node hit area
     for (const [id, bounds] of hitMapRef.current.entries()) {
+      if (hiddenIds.has(id)) continue;
       if (x >= bounds.x && x <= bounds.x + bounds.width &&
           y >= bounds.y && y <= bounds.y + bounds.height) {
         onNodeClick(id, e.metaKey, e.ctrlKey);
         return;
       }
     }
-  }, [viewport, onNodeClick]);
+  }, [viewport, onNodeClick, hiddenIds]);
 
   const handleCanvasDoubleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -103,13 +109,14 @@ function CanvasRenderer({
     const y = (e.clientY - rect.top - viewport.y) / viewport.scale;
 
     for (const [id, bounds] of hitMapRef.current.entries()) {
+      if (hiddenIds.has(id)) continue;
       if (x >= bounds.x && x <= bounds.x + bounds.width &&
           y >= bounds.y && y <= bounds.y + bounds.height) {
         onNodeDoubleClick(id);
         return;
       }
     }
-  }, [viewport, onNodeDoubleClick]);
+  }, [viewport, onNodeDoubleClick, hiddenIds]);
 
   const handleCanvasMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (e.shiftKey || editingId) return;
@@ -122,6 +129,7 @@ function CanvasRenderer({
     const y = (e.clientY - rect.top - viewport.y) / viewport.scale;
 
     for (const [id, bounds] of hitMapRef.current.entries()) {
+      if (hiddenIds.has(id)) continue;
       if (x >= bounds.x && x <= bounds.x + bounds.width &&
           y >= bounds.y && y <= bounds.y + bounds.height) {
         if (!e.metaKey && !e.ctrlKey) {
@@ -130,7 +138,7 @@ function CanvasRenderer({
         return;
       }
     }
-  }, [viewport, editingId, onDragStart]);
+  }, [viewport, editingId, onDragStart, hiddenIds]);
 
   return (
     <>
@@ -183,7 +191,7 @@ function CanvasRenderer({
   );
 }
 
-function drawEdges(ctx: CanvasRenderingContext2D, nodes: Record<string, Node>) {
+function drawEdges(ctx: CanvasRenderingContext2D, nodes: Record<string, Node>, hiddenIds: Set<string>) {
   const edgeColor = getComputedStyle(document.documentElement).getPropertyValue('--color-border').trim() || '#9aa4b2';
 
   ctx.strokeStyle = edgeColor;
@@ -192,7 +200,9 @@ function drawEdges(ctx: CanvasRenderingContext2D, nodes: Record<string, Node>) {
   ctx.lineJoin = 'round';
 
   Object.values(nodes).forEach((node) => {
+    if (hiddenIds.has(node.id)) return;
     node.children.forEach((childId) => {
+      if (hiddenIds.has(childId)) return;
       const child = nodes[childId];
       if (!child) return;
 
@@ -261,12 +271,14 @@ function drawNodes(
   editingId: string | undefined,
   hitMap: Map<string, { x: number; y: number; width: number; height: number }>,
   theme: 'light' | 'dark',
+  hiddenIds: Set<string>,
 ) {
   const focusColor = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim() || '#4f46e5';
 
   ctx.textBaseline = 'top';
 
   Object.values(nodes).forEach((node) => {
+    if (hiddenIds.has(node.id)) return;
     if (editingId === node.id) return;
 
     const isFocused = focusId === node.id;

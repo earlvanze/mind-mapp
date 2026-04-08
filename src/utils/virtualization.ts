@@ -19,13 +19,14 @@ export type VisibilityResult = {
 };
 
 /**
- * Calculate which nodes are visible in the viewport
- * Includes small buffer zone to prevent pop-in during pan
+ * Calculate which nodes are visible in the viewport.
+ * Optionally exclude nodes hidden by collapsed ancestors.
  */
 export function getVisibleNodes(
   nodes: Record<string, Node>,
   viewport: Viewport,
-  bufferFactor = 1.2
+  bufferFactor = 1.2,
+  hiddenIds?: Set<string>
 ): VisibilityResult {
   const visibleNodes: string[] = [];
   const visibleEdges: Array<{ parentId: string; childId: string }> = [];
@@ -47,8 +48,10 @@ export function getVisibleNodes(
   const nodeWidth = 120;
   const nodeHeight = 40;
 
-  // Check each node
+  // Check each node, excluding hidden (collapsed-ancestor) nodes
   Object.values(nodes).forEach((node) => {
+    if (hiddenIds?.has(node.id)) return;
+
     const nodeRight = node.x + nodeWidth;
     const nodeBottom = node.y + nodeHeight;
 
@@ -64,15 +67,15 @@ export function getVisibleNodes(
   });
 
   // Find edges connecting visible nodes
-  // Include edges where at least one endpoint is visible
+  // Include edges where at least one endpoint is visible and not hidden
   const visibleSet = new Set(visibleNodes);
   Object.values(nodes).forEach((node) => {
+    if (hiddenIds?.has(node.id)) return;
     node.children.forEach((childId) => {
+      if (hiddenIds?.has(childId)) return;
       const child = nodes[childId];
       if (!child) return;
 
-      // Edge is visible if either endpoint is visible
-      // OR if the edge passes through the viewport
       const parentVisible = visibleSet.has(node.id);
       const childVisible = visibleSet.has(childId);
 
@@ -83,6 +86,32 @@ export function getVisibleNodes(
   });
 
   return { visibleNodes, visibleEdges };
+}
+
+/**
+ * Returns a Set of node IDs hidden because an ancestor is collapsed.
+ */
+export function getHiddenNodeIds(nodes: Record<string, Node>): Set<string> {
+  const hidden = new Set<string>();
+
+  function isAncestorCollapsed(nodeId: string): boolean {
+    const node = nodes[nodeId];
+    if (!node) return false;
+    if (node.parentId) {
+      const parent = nodes[node.parentId];
+      if (parent?.isCollapsed) return true;
+      return isAncestorCollapsed(node.parentId);
+    }
+    return false;
+  }
+
+  for (const id of Object.keys(nodes)) {
+    if (isAncestorCollapsed(id)) {
+      hidden.add(id);
+    }
+  }
+
+  return hidden;
 }
 
 /**

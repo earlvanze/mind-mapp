@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Node } from '../store/useMindMapStore';
-import { getVisibleNodes, type Viewport } from '../utils/virtualization';
+import { getVisibleNodes, getHiddenNodeIds, type Viewport } from '../utils/virtualization';
 
 /**
  * Hook for viewport-based virtualization
@@ -22,6 +22,9 @@ export function useVirtualization(
   const [visibleNodeIds, setVisibleNodeIds] = useState<Set<string>>(
     new Set(Object.keys(nodes))
   );
+
+  // Compute collapsed-hidden nodes
+  const hiddenIds = getHiddenNodeIds(nodes);
 
   // Listen for viewport changes
   useEffect(() => {
@@ -60,13 +63,15 @@ export function useVirtualization(
     
     // Only virtualize for large maps
     if (!enabled || nodeCount < threshold) {
-      setVisibleNodeIds(new Set(Object.keys(nodes)));
+      // Still filter out collapsed-hidden nodes even without viewport virtualization
+      const allVisible = Object.keys(nodes).filter(id => !hiddenIds.has(id));
+      setVisibleNodeIds(new Set(allVisible));
       return;
     }
 
-    const { visibleNodes } = getVisibleNodes(nodes, viewport, 1.3);
+    const { visibleNodes } = getVisibleNodes(nodes, viewport, 1.3, hiddenIds);
     setVisibleNodeIds(new Set(visibleNodes));
-  }, [nodes, viewport, enabled, threshold]);
+  }, [nodes, viewport, enabled, threshold, hiddenIds]);
 
   return {
     visibleNodeIds,

@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useId } from 'react';
 import { useMindMapStore } from '../store/useMindMapStore';
 import { COLOR_PRESETS, SHAPE_OPTIONS, FONT_SIZE_OPTIONS, resolveStyle, type ColorPresetName, type Shape } from '../utils/nodeStyles';
 import type { Attachment } from '../store/useMindMapStore';
-import { validateAttachment, buildAttachment, downloadAttachment, formatFileSize, fileToBase64 } from '../utils/attachments';
+import { validateAttachment, buildAttachment, downloadAttachment, formatFileSize, fileToBase64, ALLOWED_MIME_TYPES } from '../utils/attachments';
 import type { Theme } from '../utils/theme';
 
 type Props = {
