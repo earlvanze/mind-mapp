@@ -7,7 +7,7 @@
 ## P1 — High Priority
 - [x] Supabase auth integration
 - [x] Save/load projects to Supabase
-- [ ] Export JSON + PNG/SVG
+- [x] Export JSON + PNG/SVG
 
 ## P2 — Medium Priority
 - [ ] Prezi-style zoom into node (open sub-items)
@@ -42,3 +42,4 @@
   - supabase-schema.sql (RLS policies)
   - .env.example (VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY)
   - Graceful degradation when env vars not set
+- [x] Export JSON + PNG/SVG (via toolbar buttons + keyboard shortcuts)
