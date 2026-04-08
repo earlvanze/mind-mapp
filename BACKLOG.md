@@ -10,7 +10,7 @@
 - [x] Export JSON + PNG/SVG
 
 ## P2 — Medium Priority
-- [ ] Prezi-style zoom into node (open sub-items)
+- [x] Prezi-style zoom into node (open sub-items)
 - [ ] Offline support with sync
 - [ ] Tablet/phablet optimization
 
