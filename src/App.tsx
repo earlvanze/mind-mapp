@@ -26,12 +26,14 @@ const ThemeDialog = lazy(() => import('./components/ThemeDialog'));
 const TagPickerDialog = lazy(() => import('./components/TagPickerDialog'));
 const CommentDialog = lazy(() => import('./components/CommentDialog'));
 import HandwritingCanvas from './components/HandwritingCanvas';
+import CloudMenu from './components/CloudMenu';
 const ShortcutSettingsDialog = lazy(() => import('./components/ShortcutSettingsDialog'));
 const TemplateDialog = lazy(() => import('./components/TemplateDialog'));
 const PresentationOverlay = lazy(() => import('./components/PresentationOverlay'));
 
 export default function App() {
   const [useCanvasRenderer, setUseCanvasRenderer] = useState(false);
+  const [cloudProjectId, setCloudProjectId] = useState<string | undefined>(undefined);
   const { nodes, focusId, selectedIds, editingId, activeTagFilters, matchMode, layoutMode, setLayoutMode, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, selectParent, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, duplicateSelected, importState, resetMap, undo, redo, canUndo, canRedo, toggleNodeCollapsed, collapseAll, expandAll, connectMode, pendingConnection, setConnectMode, startConnection, cancelConnection, completeConnection } = useMindMapStore();
   const { visibleNodeIds, shouldVirtualize } = useVirtualization(nodes, useCanvasRenderer);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | undefined>(undefined);
@@ -985,6 +987,13 @@ const toggleTagPicker = () => {
             ✍️
           </button>
           <StyleToolbar theme={getPresetById(themePresetId)?.isDark ? 'dark' : 'light'} />
+          <CloudMenu
+            mapName="Mind Mapp"
+            mapData={{ nodes, focusId }}
+            cloudProjectId={cloudProjectId}
+            onLoadProject={(data) => { importState(data.nodes as Record<string, Node>); setFocus(data.focusId); resetFocusHistoryTo('n_root', 'Loaded cloud project.'); }}
+            onSaveProject={(id) => { if (id) setCloudProjectId(id); else setCloudProjectId(undefined); }}
+          />
           <button
             title="Clear map"
             aria-label="Clear the entire mind map"

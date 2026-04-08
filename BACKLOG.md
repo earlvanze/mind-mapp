@@ -5,8 +5,8 @@
 - [x] Add handwriting.js integration for OCR input
 
 ## P1 — High Priority
-- [ ] Supabase auth integration
-- [ ] Save/load projects to Supabase
+- [x] Supabase auth integration
+- [x] Save/load projects to Supabase
 - [ ] Export JSON + PNG/SVG
 
 ## P2 — Medium Priority
@@ -35,3 +35,10 @@
   - Edge drag-reconnection: drag edge arrow to reconnect to another node
   - Pending connection preview line (dashed blue bezier)
   - `reconnectEdge` action in store with circular reference protection
+- [x] Supabase auth + project save/load:
+  - AuthDialog (password signup, signin, magic link)
+  - CloudMenu in toolbar (☁️ button with dropdown)
+  - cloudSync.ts lib (list/load/save/delete projects)
+  - supabase-schema.sql (RLS policies)
+  - .env.example (VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY)
+  - Graceful degradation when env vars not set
