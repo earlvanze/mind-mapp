@@ -11,7 +11,7 @@ import { useKeyboard } from './hooks/useKeyboard';
 import { useVirtualization } from './hooks/useVirtualization';
 import { usePanZoom } from './hooks/usePanZoom';
 import { useAutosave } from './hooks/useAutosave';
-import { exportPng, exportJsonData, exportMarkdownData, exportSvg, exportFreemindData, exportPdf, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, parseImportContent, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, getKeyboardPref, APP_VERSION, HELP_TOGGLE_ARIA_KEYSHORTCUTS, SEARCH_TOGGLE_ARIA_KEYSHORTCUTS, encodeShareLink, loadSharedMap, clearShareLink } from './utils';
+import { exportPng, exportJsonData, exportMarkdownData, exportSvg, exportFreemindData, exportOpmlData, exportPdf, fitToView, computeFitView, computeSelectionBounds, formatSelectionText, formatSubtreeOutline, getFocusPathSegments, getParentFocusId, getFirstChildId, getWrappedSiblingId, getFirstLeafId, getLastLeafId, getCycledLeafId, getLeafCycleRootId, getLeafIdsInSubtree, createFocusHistory, recordFocus, resetFocusHistory, findStepFocus, findEdgeFocus, pruneFocusHistory, centerPointInView, confirmAction, parseImportPayload, parseImportContent, sampleMap, loadFocusHistory, saveFocusHistory, loadUiPrefs, saveUiPrefs, getKeyboardPref, APP_VERSION, HELP_TOGGLE_ARIA_KEYSHORTCUTS, SEARCH_TOGGLE_ARIA_KEYSHORTCUTS, encodeShareLink, loadSharedMap, clearShareLink } from './utils';
 import { getHiddenNodeIds } from './utils/collapseUtils';
 import MiniMap from './components/MiniMap';
 import StyleToolbar from './components/StyleToolbar';
@@ -711,6 +711,7 @@ const toggleTagPicker = () => {
     await exportPdf(el, nodes, pdfLayout);
   };
   const exportFreemindClick = () => exportFreemindData(nodes);
+  const exportOpmlClick = () => exportOpmlData(nodes);
 
   const writeClipboard = async (text: string) => {
     if (navigator.clipboard?.writeText) {
@@ -1064,7 +1065,7 @@ const toggleTagPicker = () => {
             Import JSON
             <input
               type="file"
-              accept=".json,.xmind,.mm,.md,application/json,application/xml,text/xml,text/markdown"
+              accept=".json,.xmind,.mm,.md,.opml,application/json,application/xml,text/xml,text/markdown"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) importJson(file);
@@ -1080,6 +1081,7 @@ const toggleTagPicker = () => {
           <button title="Export PNG" aria-keyshortcuts="Control+Shift+S Meta+Shift+S" data-export="png" onClick={exportPngClick}>Export PNG</button>
           <button title="Export SVG (vector)" aria-label="Export as SVG vector file" onClick={exportSvgClick}>Export SVG</button>
           <button title="Export FreeMind (.mm)" aria-label="Export as FreeMind XML file" onClick={exportFreemindClick}>Export FreeMind</button>
+          <button title="Export OPML" aria-label="Export as OPML outline file" onClick={exportOpmlClick}>Export OPML</button>
           <select title="PDF page layout" aria-label="PDF page layout" value={pdfLayout} onChange={e => setPdfLayout(e.target.value as typeof pdfLayout)} style={{ height: "28px", fontSize: "12px" }}>
             <option value="a4-portrait">A4 Portrait</option>
             <option value="a4-landscape">A4 Landscape</option>

@@ -8,6 +8,7 @@ export * from './exportMarkdown';
 export * from './exportPng';
 export * from './exportSvg';
 export * from './exportFreemind';
+export * from './exportOpml';
 export * from './exportPdf';
 export * from './fitToView';
 export * from './fitViewMath';
