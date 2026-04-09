@@ -15,9 +15,6 @@
 - [x] Offline support with sync
 - [x] Tablet/phablet optimization
 
-## P3 — Nice to Have
-- [ ] Realtime collaboration
-
 ## Future
 - (none currently — all backlog items shipped! 🎉)
 
