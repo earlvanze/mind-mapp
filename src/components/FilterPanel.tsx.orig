@@ -296,9 +296,9 @@ export default function FilterPanel({ onClose }: FilterPanelProps) {
               </div>
 
               {/* To date */}
-              <div style={{ marginBottom: 8 }}>
+              <div style={{ marginBottom: 4 }}>
                 <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: 4 }}>To</div>
-                <input type="date" aria-label="To date" value={styleFilterDateTo != null ? new Date(styleFilterDateTo).toISOString().split('T')[0] : ''} onChange={e => setStyleFilterDate(styleFilterDateMode || 'created', styleFilterDateFrom, e.target.value ? new Date(e.target.value).getTime() : undefined)} style={{ width: '100%', padding: '4px 8px', border: '1px solid var(--color-border)', borderRadius: 4, fontSize: '0.75rem', backgroundColor: 'var(--color-input-bg)', color: 'var(--color-text)', boxSizing: 'border-box' }} />
+                <input type="date" aria-label="To date" value={styleFilterDateTo ? new Date(styleFilterDateTo).getTime() : ''} onChange={e => setStyleFilterDate(styleFilterDateMode || 'created', styleFilterDateFrom, e.target.value ? new Date(e.target.value).getTime() : undefined)} style={{ width: '100%', padding: '4px 8px', border: '1px solid var(--color-border)', borderRadius: 4, fontSize: '0.75rem', backgroundColor: 'var(--color-input-bg)', color: 'var(--color-text)', boxSizing: 'border-box' }} />
               </div>
 
               <p style={{ color: 'var(--color-text-muted)', fontSize: '0.7rem', marginTop: 4 }}>Filter nodes by creation or last-modified date.</p>
