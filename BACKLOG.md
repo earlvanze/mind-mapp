@@ -17,9 +17,6 @@
 
 ## P3 — Nice to Have
 - [ ] Realtime collaboration
-- [x] Template library (save/load/apply named node styles, import/export JSON)
-- [x] Keyboard shortcuts (rebindable shortcuts dialog, import/export, conflict detection)
-- [x] OPML import + export (standard outline interchange format, preserves tags, comments, styles, collapse state, cyclesafe)
 
 ## Future
 - (none currently — all backlog items shipped! 🎉)
@@ -40,3 +37,4 @@
 - [x] Template library — save/load/apply named node styles, import/export as JSON, rename/delete custom templates
 - [x] Keyboard shortcuts — fully rebindable shortcuts dialog with conflict detection, import/export/reset, numeric tuning for nudge/zoom
 - [x] OPML export + import — standard outline interchange format, preserves tags, comments, styles, collapse state, cyclesafe
+- [x] Tablet/phablet optimization — bottom toolbar on mobile, touch-friendly hit targets, responsive CSS
