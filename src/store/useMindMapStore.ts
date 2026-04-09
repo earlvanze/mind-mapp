@@ -115,6 +115,7 @@ type MindMapState = {
   setNodeStyle: (id: string, style: Partial<NodeStyle> | undefined) => void;
   setSelectedStyle: (style: Partial<NodeStyle> | undefined) => void;
   restoreSnapshot: (nodes: Record<string, Node>, focusId: string) => void;
+  mergeRemoteNodes: (patches: Record<string, Node | null>) => void;
   addTag: (id: string, tag: string) => void;
   removeTag: (id: string, tag: string) => void;
   addTagToSelected: (tag: string) => void;
@@ -1378,10 +1379,28 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         return { nodes: newNodes };
       });
     },
-}));
+    mergeRemoteNodes: (patches: Record<string, Node | null>) =>
+      set(state => {
+        const nodes = { ...state.nodes };
+        for (const [id, patch] of Object.entries(patches)) {
+          if (patch === null) {
+            delete nodes[id];
+          } else {
+            const existing = nodes[id];
+            nodes[id] = {
+              ...patch,
+              isNew: existing?.isNew ?? false,
+              isDeleting: existing?.isDeleting ?? false,
+            };
+          }
+        }
+        return { nodes };
+      }),
+  }));
 
 // autosave is triggered from hook to debounce localStorage writes
 export function saveState() {
   const state = useMindMapStore.getState();
   saveToStorage({ nodes: state.nodes, focusId: state.focusId });
 }
+
