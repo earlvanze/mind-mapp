@@ -68,10 +68,14 @@ function renderNodePdf(
       } else if (shape === 'diamond') {
         const cx = x + nodeW / 2;
         const cy = y + nodeH / 2;
-        pdf.setFillColor(parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16));
-        pdf.line(cx - nodeW / 2, cy, cx, cy - nodeH / 2, 'F');
-        // fallback rectangle
-        pdf.roundedRect(x, y, nodeW, nodeH, 2, 2, 'F');
+        pdf.path([
+          { op: 'm', c: [cx, cy - nodeH / 2] },
+          { op: 'l', c: [cx + nodeW / 2, cy] },
+          { op: 'l', c: [cx, cy + nodeH / 2] },
+          { op: 'l', c: [cx - nodeW / 2, cy] },
+          { op: 'h' }
+        ]);
+        (pdf.fill as unknown as (style: string) => void)('F');
       } else {
         const r = shape === 'rounded' ? 4 : 0;
         pdf.roundedRect(x, y, nodeW, nodeH, r, r, 'F');
@@ -88,7 +92,6 @@ function renderNodePdf(
       pdf.setDrawColor(parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16));
       pdf.setLineWidth(borderW * 0.3);
       const shape = node.style?.shape || 'rounded';
-      const r = shape === 'rounded' ? 4 : 0;
       if (shape === 'ellipse') {
         pdf.ellipse(x + nodeW / 2, y + nodeH / 2, nodeW / 2, nodeH / 2, 'S');
       } else if (shape === 'diamond') {
@@ -99,6 +102,7 @@ function renderNodePdf(
         pdf.line(cx + nodeW / 2, cy, cx, cy + nodeH / 2);
         pdf.line(cx, cy + nodeH / 2, cx - nodeW / 2, cy);
       } else {
+        const r = shape === 'rounded' ? 4 : 0;
         pdf.roundedRect(x, y, nodeW, nodeH, r, r, 'S');
       }
     }
