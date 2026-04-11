@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import HandwritingCanvas from './HandwritingCanvas';
 
 vi.mock('tesseract.js', () => ({
@@ -26,20 +27,26 @@ describe('HandwritingCanvas', () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it('renders dialog when open', () => {
-    render(<HandwritingCanvas open={true} onClose={vi.fn()} />);
+  it('renders dialog when open', async () => {
+    const user = userEvent.setup();
+    await act(async () => {
+      render(<HandwritingCanvas open={true} onClose={vi.fn()} />);
+    });
     expect(screen.getByText(/handwriting/i)).toBeInTheDocument();
-    // Canvas element should be present
     expect(document.querySelector('canvas')).toBeInTheDocument();
   });
 
-  it('has close button', () => {
-    render(<HandwritingCanvas open={true} onClose={vi.fn()} />);
+  it('has close button', async () => {
+    await act(async () => {
+      render(<HandwritingCanvas open={true} onClose={vi.fn()} />);
+    });
     expect(screen.getByRole('button', { name: /close/i })).toBeInTheDocument();
   });
 
-  it('has clear and recognize buttons', () => {
-    render(<HandwritingCanvas open={true} onClose={vi.fn()} />);
+  it('has clear and recognize buttons', async () => {
+    await act(async () => {
+      render(<HandwritingCanvas open={true} onClose={vi.fn()} />);
+    });
     expect(screen.getByRole('button', { name: /clear/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /recognize/i })).toBeInTheDocument();
   });
