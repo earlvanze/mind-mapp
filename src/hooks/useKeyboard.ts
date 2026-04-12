@@ -57,12 +57,13 @@ type Props = {
   onVersionHistory: () => void;
   onPresentation: () => void;
   onFocusMode: () => void;
+  onToggleNodeNotes: () => void;
   suspended?: boolean;
   /** Map of handler callback props, e.g. { onSearch: fn, onFit: fn } */
   handlers?: Partial<Record<string, () => void>>;
 };
 
-export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onTagPicker, onTagFilter, onZoomIn, onZoomOut, onResetView, onZoomInto, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, onToggleCollapse, onCollapseAll, onExpandAll, onVersionHistory, onPresentation, onFindReplace, suspended = false, handlers = {} }: Props) {
+export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onTagPicker, onTagFilter, onZoomIn, onZoomOut, onResetView, onZoomInto, onCenterFocus, onCenterSelection, onCenterSubtree, onFocusParent, onFocusChild, onFocusPrevSibling, onFocusNextSibling, onFocusSubtreeFirstLeaf, onFocusSubtreeLastLeaf, onFocusPrevLeaf, onFocusNextLeaf, onFocusRoot, onFocusPrevious, onFocusForward, onFocusHistoryStart, onFocusHistoryEnd, onResetFocusHistory, onToggleGrid, onToggleMiniMap, onToggleAdvanced, onToggleTheme, onHelp, onUndo, onRedo, onExportMarkdown, onCopySelection, onCopySubtree, onCopyPath, onCenterRoot, onToggleCollapse, onCollapseAll, onExpandAll, onVersionHistory, onPresentation, onFindReplace, onToggleNodeNotes, suspended = false, handlers = {} }: Props) {
   const { focusId, addSibling, addChild, promoteNode, deleteSelected, deleteEdge, duplicateSelected, moveFocus, selectParent, setFocus, selectAll, invertSelection, selectSiblings, selectChildren, selectLeaves, selectAncestors, selectTopLevel, selectGeneration, clearSelectionSet, expandSelectionToNeighbors, selectSubtree, alignSelection, distributeSelection, layoutSelection, stackSelection, snapSelectionToGrid, mirrorSelection, autoLayoutChildren, autoLayout, setLayoutMode, nudgeSelected, editingId, startEditing, setSelectedStyle, selectedIds, selectedEdgeId, clearEdgeSelection, toggleNodeCollapsed, collapseAll, expandAll } = useMindMapStore();
 
   useEffect(() => {
@@ -180,6 +181,8 @@ export function useKeyboard({ onSearch, onFit, onFitSelection, onFitSubtree, onT
       if (e.key === 'z' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onZoomInto(); return; }
       if (e.key === '0' && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); onResetView(); return; }
       if (e.key === 'f' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) { e.preventDefault(); onFit(); return; }
+      // Shift+N — toggle node notes panel
+      if (e.shiftKey && e.key.toLowerCase() === 'n' && !e.metaKey && !e.ctrlKey && !e.altKey && !typingTarget) { e.preventDefault(); onToggleNodeNotes(); return; }
       if (e.key === 'c' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) { e.preventDefault(); onCenterFocus(); return; }
       if (e.key === 'g' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) { e.preventDefault(); onToggleGrid(); return; }
       if (e.key === 'm' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) { e.preventDefault(); onToggleMiniMap(); return; }

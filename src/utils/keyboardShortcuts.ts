@@ -60,7 +60,8 @@ export type ShortcutAction =
   | 'presentation'
   | 'focusMode'
   | 'undo'
-  | 'redo';
+  | 'redo'
+  | 'toggleNodeNotes';
 
 export type ShortcutBinding = {
   action: ShortcutAction;
@@ -161,6 +162,7 @@ export const DEFAULT_SHORTCUT_BINDINGS: ShortcutBinding[] = [
   // Undo/Redo
   { action: 'undo',              desc: 'Undo',                                defaultKey: 'Cmd+Z',         defaultModifiers: { meta: true } },
   { action: 'redo',             desc: 'Redo',                                 defaultKey: 'Cmd+Shift+Z',  defaultModifiers: { meta: true, shift: true } },
+  { action: 'toggleNodeNotes', desc: 'Open node notes panel',                defaultKey: 'Shift+N',      defaultModifiers: { shift: true } },
 ];
 
 const SHORTCUTS_STORAGE_KEY = 'mindmapp.v0.2.shortcuts';
@@ -355,6 +357,7 @@ export const ACTION_TO_HANDLER: Record<ShortcutAction, string> = {
   focusMode:           'onFocusMode',
   undo:                'onUndo',
   redo:                'onRedo',
+  toggleNodeNotes:     'onToggleNodeNotes',
 };
 
 export function getHandlerNameForAction(action: ShortcutAction): string {

@@ -31,6 +31,7 @@ import CloudMenu from './components/CloudMenu';
 const ShortcutSettingsDialog = lazy(() => import('./components/ShortcutSettingsDialog'));
 const TemplateDialog = lazy(() => import('./components/TemplateDialog'));
 const PresentationOverlay = lazy(() => import('./components/PresentationOverlay'));
+import NodeNotes from './components/NodeNotes';
 
 export default function App() {
   const [useCanvasRenderer, setUseCanvasRenderer] = useState(false);
@@ -54,6 +55,7 @@ export default function App() {
   const [commentNodeId, setCommentNodeId] = useState<string | null>(null);
   const [tagPickerOpen, setTagPickerOpen] = useState(false);
   const [presentationOpen, setPresentationOpen] = useState(false);
+  const [showNodeNotes, setShowNodeNotes] = useState(false);
   const [presentationIndex, setPresentationIndex] = useState(0);
   const [presentationNodes, setPresentationNodes] = useState<string[]>([]);
   const [zoomIntoState, setZoomIntoState] = useState<{ originX: number; originY: number; scale: number } | null>(null);
@@ -604,6 +606,7 @@ const toggleTagPicker = () => {
     onTagPicker: () => toggleTagPicker(),
     onTagFilter: () => setShowTagFilter(v => !v),
     onPresentation: () => setPresentationOpen(prev => !prev),
+    onToggleNodeNotes: () => setShowNodeNotes(v => !v),
     onUndo: () => undo(),
     onRedo: () => redo(),
     onExportMarkdown: () => exportMarkdownData(nodes),
@@ -652,6 +655,7 @@ const toggleTagPicker = () => {
       onTagPicker: () => toggleTagPicker(),
       onTagFilter: () => setShowTagFilter(v => !v),
       onPresentation: () => setPresentationOpen(prev => !prev),
+    onToggleNodeNotes: () => setShowNodeNotes(v => !v),
       onUndo: () => undo(),
       onRedo: () => redo(),
       onExportMarkdown: () => exportMarkdownData(nodes),
@@ -1046,6 +1050,15 @@ const toggleTagPicker = () => {
             onClick={() => setShortcutSettingsOpen(true)}
           >
             ⚙️
+          </button>
+          <button
+            title={showNodeNotes ? 'Hide node notes (Shift+N)' : 'Node notes (Shift+N)'}
+            aria-pressed={showNodeNotes}
+            aria-expanded={showNodeNotes}
+            aria-keyshortcuts="Shift+N"
+            onClick={() => setShowNodeNotes(v => !v)}
+          >
+            {showNodeNotes ? '📝 Notes On' : '📝 Notes'}
           </button>
           <button
             title={versionHistoryOpen ? 'Hide version history (Alt+V)' : 'Version history (Alt+V)'}
