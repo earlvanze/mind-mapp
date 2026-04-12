@@ -20,6 +20,7 @@ import { shouldFadeNode } from './utils/nodeFilters';
 import { getPresentationOrder, getRootId } from './utils/presentationMode';
 
 const SearchDialog = lazy(() => import('./components/SearchDialog'));
+const FindReplaceDialog = lazy(() => import('./components/FindReplaceDialog'));
 const HelpDialog = lazy(() => import('./components/HelpDialog'));
 const VersionHistoryDialogLazy = lazy(() => import('./components/VersionHistoryDialog'));
 const ThemeDialog = lazy(() => import('./components/ThemeDialog'));
@@ -47,6 +48,7 @@ export default function App() {
   const handleEdgeHover = (edgeKey: string | null) => setHoveredEdgeId(edgeKey ?? undefined);
   const hiddenNodeIds = getHiddenNodeIds(nodes);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [findReplaceOpen, setFindReplaceOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
   const [commentNodeId, setCommentNodeId] = useState<string | null>(null);
@@ -516,6 +518,19 @@ export default function App() {
     setSearchOpen(false);
   };
 
+  const closeFindReplaceDialog = () => {
+    setFindReplaceOpen(false);
+  };
+
+  const toggleFindReplaceDialog = () => {
+    setFindReplaceOpen((current) => {
+      const next = !current;
+      if (next) setSearchOpen(false);
+      return next;
+    });
+  };
+
+
   const toggleSearchDialog = () => {
     setSearchOpen((current) => {
       const next = !current;
@@ -556,6 +571,7 @@ const toggleTagPicker = () => {
 
   useKeyboard({
     onSearch: () => toggleSearchDialog(),
+    onFindReplace: () => toggleFindReplaceDialog(),
     onFit: () => fitToView(),
     onFitSelection: () => fitSelection(),
     onFitSubtree: () => fitFocusedSubtree(),
@@ -603,6 +619,7 @@ const toggleTagPicker = () => {
     handlers: {
       // Passthrough for custom shortcut dispatch — mirrors the named props above
       onSearch: () => toggleSearchDialog(),
+    onFindReplace: () => toggleFindReplaceDialog(),
       onHelp: () => toggleHelpDialog(),
       onFit: () => fitToView(),
       onFitSelection: () => fitSelection(),
@@ -1206,6 +1223,7 @@ const toggleTagPicker = () => {
       </div>
       <Suspense fallback={null}>
         <SearchDialog open={searchOpen} onClose={closeSearchDialog} />
+        <FindReplaceDialog open={findReplaceOpen} onClose={closeFindReplaceDialog} />
         <HelpDialog open={helpOpen} onClose={closeHelpDialog} onOpenShortcutSettings={() => { closeHelpDialog(); setShortcutSettingsOpen(true); }} />
         <TemplateDialog
             open={templateDialogOpen}

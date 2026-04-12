@@ -36,3 +36,6 @@
 - [x] Keyboard shortcuts — fully rebindable shortcuts dialog with conflict detection, import/export/reset, numeric tuning for nudge/zoom
 - [x] OPML export + import — standard outline interchange format, preserves tags, comments, styles, collapse state, cyclesafe
 - [x] Tablet/phablet optimization — bottom toolbar on mobile, touch-friendly hit targets, responsive CSS
+
+## P2+ — Additional
+- [x] Find & Replace dialog (Cmd/Ctrl+H) — search all nodes, replace text with regex/case-sensitivity options, per-node replace via double-click

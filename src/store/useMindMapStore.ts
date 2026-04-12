@@ -66,6 +66,7 @@ type MindMapState = {
   setLayoutMode: (mode: LayoutMode) => void;
   setIsTransitioning: (v: boolean) => void;
   setText: (id: string, text: string) => void;
+  findAndReplace: (search: string, replacement: string, flags?: string) => void;
   setFocus: (id: string) => void;
   toggleSelection: (id: string) => void;
   clearSelection: () => void;
@@ -246,6 +247,26 @@ export const useMindMapStore = create<MindMapState>((set, get) => ({
         },
       };
     }),
+  findAndReplace: (search: string, replacement: string, flags?: string) =>
+    set(state => {
+      if (!search) return {};
+      const regex = flags === undefined
+        ? new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')
+        : new RegExp(search, flags.includes('g') ? flags : flags + 'g');
+      const nextNodes = { ...state.nodes };
+      let changed = false;
+      for (const [id, node] of Object.entries(nextNodes)) {
+        if (typeof node.text !== 'string') continue;
+        const newText = node.text.replace(regex, replacement);
+        if (newText !== node.text) {
+          nextNodes[id] = { ...node, text: newText, updatedAt: Date.now() };
+          changed = true;
+        }
+      }
+      if (!changed) return {};
+      return { ...withHistory(state), nodes: nextNodes };
+    }),
+
   setFocus: id => set({ focusId: id, selectedIds: [id], editingId: undefined, selectedEdgeId: undefined }),
   toggleSelection: id =>
     set(state => {
