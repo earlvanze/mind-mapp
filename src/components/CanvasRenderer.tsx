@@ -14,6 +14,7 @@ type Props = {
   onNodeDoubleClick: (id: string) => void;
   onDragStart: (id: string, x: number, y: number) => void;
   onLinkClick: (url: string) => void;
+  showGrid?: boolean;
 };
 
 function CanvasRenderer({
@@ -26,6 +27,7 @@ function CanvasRenderer({
   onNodeDoubleClick,
   onDragStart,
   onLinkClick,
+  showGrid = false,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -59,6 +61,7 @@ function CanvasRenderer({
       ctx.translate(viewport.x, viewport.y);
       ctx.scale(viewport.scale, viewport.scale);
 
+      if (showGrid) drawGrid(ctx, viewport, 20, dpr);
       drawEdges(ctx, nodes, hiddenIds);
       drawNodes(ctx, nodes, focusId, selectedIds, editingId, hitMapRef.current, theme, hiddenIds, linkHitMapRef.current);
 
@@ -70,7 +73,7 @@ function CanvasRenderer({
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [nodes, viewport, focusId, selectedIds, editingId, theme, hiddenIds]);
+  }, [nodes, viewport, focusId, selectedIds, editingId, theme, hiddenIds, showGrid]);
 
   const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -189,6 +192,46 @@ function CanvasRenderer({
       )}
     </>
   );
+}
+
+
+function drawGrid(ctx: CanvasRenderingContext2D, viewport: { x: number; y: number; scale: number }, gridSize = 20, dpr = 1) {
+  const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--color-accent-grid').trim() || 'rgba(79, 70, 229, 0.09)';
+
+  ctx.save();
+  ctx.strokeStyle = gridColor;
+  ctx.lineWidth = 1 / dpr;
+
+  const { x: viewX, y: viewY, scale } = viewport;
+
+  // Visible canvas area in world coordinates
+  const canvas = ctx.canvas;
+  const w = canvas.width / dpr;
+  const h = canvas.height / dpr;
+  const left = -viewX / scale;
+  const top = -viewY / scale;
+  const right = left + w / scale;
+  const bottom = top + h / scale;
+
+  // Align grid to viewport origin (so it appears fixed on screen)
+  const startX = Math.floor(left / gridSize) * gridSize;
+  const startY = Math.floor(top / gridSize) * gridSize;
+
+  // Vertical lines
+  ctx.beginPath();
+  for (let x = startX; x <= right; x += gridSize) {
+    const screenX = x * scale + viewX;
+    ctx.moveTo(screenX, 0);
+    ctx.lineTo(screenX, h);
+  }
+  // Horizontal lines
+  for (let y = startY; y <= bottom; y += gridSize) {
+    const screenY = y * scale + viewY;
+    ctx.moveTo(0, screenY);
+    ctx.lineTo(w, screenY);
+  }
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawEdges(ctx: CanvasRenderingContext2D, nodes: Record<string, Node>, hiddenIds: Set<string>) {

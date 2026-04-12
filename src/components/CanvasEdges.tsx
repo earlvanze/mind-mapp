@@ -10,6 +10,7 @@ type Props = {
   pendingConnection?: { fromId: string; toId: string | null } | null;
   onEdgeClick?: (fromId: string, toId: string) => void;
   onEdgeHover?: (fromId: string | null, toId: string | null) => void;
+  showGrid?: boolean;
 };
 
 /**
@@ -18,7 +19,7 @@ type Props = {
  * - Connect mode (drag from node to node)
  * - Edge drag-reconnection (drag edge arrow to reconnect to another node)
  */
-function CanvasEdges({ nodes, viewport = { x: 0, y: 0, scale: 1 }, selectedEdgeId, hoveredEdgeId, connectMode = false, pendingConnection = null, onEdgeClick, onEdgeHover }: Props) {
+function CanvasEdges({ nodes, viewport = { x: 0, y: 0, scale: 1 }, selectedEdgeId, hoveredEdgeId, connectMode = false, pendingConnection = null, onEdgeClick, onEdgeHover, showGrid = false }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number>();
   const nodesRef = useRef(nodes);
@@ -27,6 +28,43 @@ function CanvasEdges({ nodes, viewport = { x: 0, y: 0, scale: 1 }, selectedEdgeI
   const connectModeRef = useRef(connectMode);
   const pendingConnectionRef = useRef(pendingConnection);
   const pendingMouseRef = useRef<{ x: number; y: number } | null>(null);
+  const showGridRef = useRef(showGrid ?? false);
+  const showGridDepsRef = useRef(showGrid ?? false);
+
+
+function drawGrid(ctx: CanvasRenderingContext2D, viewport: { x: number; y: number; scale: number }, gridSize = 20, dpr = 1) {
+  const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--color-accent-grid').trim() || 'rgba(79, 70, 229, 0.09)';
+
+  ctx.save();
+  ctx.strokeStyle = gridColor;
+  ctx.lineWidth = 1 / dpr;
+
+  const { x: viewX, y: viewY, scale } = viewport;
+  const canvas = ctx.canvas;
+  const w = canvas.width / dpr;
+  const h = canvas.height / dpr;
+  const left = -viewX / scale;
+  const top = -viewY / scale;
+  const right = left + w / scale;
+  const bottom = top + h / scale;
+
+  const startX = Math.floor(left / gridSize) * gridSize;
+  const startY = Math.floor(top / gridSize) * gridSize;
+
+  ctx.beginPath();
+  for (let x = startX; x <= right; x += gridSize) {
+    const screenX = x * scale + viewX;
+    ctx.moveTo(screenX, 0);
+    ctx.lineTo(screenX, h);
+  }
+  for (let y = startY; y <= bottom; y += gridSize) {
+    const screenY = y * scale + viewY;
+    ctx.moveTo(0, screenY);
+    ctx.lineTo(w, screenY);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
 
   // Edge drag-reconnection state
   const isDraggingEdgeRef = useRef(false);
@@ -39,6 +77,7 @@ function CanvasEdges({ nodes, viewport = { x: 0, y: 0, scale: 1 }, selectedEdgeI
   useEffect(() => { hoveredEdgeIdRef.current = hoveredEdgeId; }, [hoveredEdgeId]);
   useEffect(() => { connectModeRef.current = connectMode; }, [connectMode]);
   useEffect(() => { pendingConnectionRef.current = pendingConnection; }, [pendingConnection]);
+  useEffect(() => { showGridRef.current = showGrid ?? false; showGridDepsRef.current = showGrid ?? false; }, [showGrid]);
 
   // Hit test: find edge near point (in world coordinates)
   const hitTest = useCallback((worldX: number, worldY: number) => {
@@ -283,7 +322,7 @@ function CanvasEdges({ nodes, viewport = { x: 0, y: 0, scale: 1 }, selectedEdgeI
     return () => {
       cancelAnimationFrame(rafId);
     };
-  }, [nodes, viewport, selectedEdgeId, hoveredEdgeId, connectMode, pendingConnection]);
+  }, [nodes, viewport, selectedEdgeId, hoveredEdgeId, connectMode, pendingConnection, showGrid]);
 
   return (
     <canvas
