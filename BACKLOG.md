@@ -39,3 +39,5 @@
 
 ## P2+ — Additional
 - [x] Find & Replace dialog (Cmd/Ctrl+H) — search all nodes, replace text with regex/case-sensitivity options, per-node replace via double-click
+
+## 2026-04-13 — All P0/P1/P2 shipped. 860 tests green. 🎉
