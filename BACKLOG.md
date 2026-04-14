@@ -5,10 +5,10 @@
 - [x] Add handwriting.js integration for OCR input
 
 ## P1 — High Priority
-- [ ] Supabase auth integration
-- [x] Add edge CRUD + drag/drop (click-select + Delete done; creation + drag-drop pending)
-- [ ] Save/load projects to Supabase
-- [ ] Export JSON + PNG/SVG
+- [x] Supabase auth integration
+- [x] Add edge CRUD + drag/drop (click-select + Delete done; creation + drag-drop done)
+- [x] Save/load projects to Supabase
+- [x] Export JSON + PNG/SVG (already in UI)
 
 ## P2 — Medium Priority
 - [x] Prezi-style zoom into node (open sub-items)
@@ -32,6 +32,7 @@
 - [x] Edge click-select + Delete to remove edges (canvas mode)
 - [x] Export JSON + PNG/SVG (all working via toolbar buttons)
 - [x] connectNodes store action (cycle-safe edge creation, for drag-drop scaffolding)
+- [x] Node reparenting via drag-and-drop (setNodeParent action with cycle detection, drag handlers, child reparenting)
 - [x] Template library — save/load/apply named node styles, import/export as JSON, rename/delete custom templates
 - [x] Keyboard shortcuts — fully rebindable shortcuts dialog with conflict detection, import/export/reset, numeric tuning for nudge/zoom
 - [x] OPML export + import — standard outline interchange format, preserves tags, comments, styles, collapse state, cyclesafe
@@ -40,4 +41,4 @@
 ## P2+ — Additional
 - [x] Find & Replace dialog (Cmd/Ctrl+H) — search all nodes, replace text with regex/case-sensitivity options, per-node replace via double-click
 
-## 2026-04-13 — All P0/P1/P2 shipped. 860 tests green. 🎉
+## 2026-04-14 — Node reparenting cherry-picked from local feature branch. 866 tests green. 🎉
