@@ -42,3 +42,5 @@
 - [x] Find & Replace dialog (Cmd/Ctrl+H) — search all nodes, replace text with regex/case-sensitivity options, per-node replace via double-click
 
 ## 2026-04-14 — Node reparenting cherry-picked from local feature branch. 866 tests green. 🎉
+
+## 2026-04-14 (07:32 UTC) — All clear. 866 tests green, no uncommitted changes.
