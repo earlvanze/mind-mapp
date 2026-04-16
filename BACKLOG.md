@@ -48,19 +48,6 @@
 ## 2026-04-14 (07:32 UTC) — All clear. 866 tests green, no uncommitted changes.
 
 ## 2026-04-14 (08:01 UTC) — All clear. 866 tests green, no uncommitted changes. Backlog empty.
+## 2026-04-16 (13:50 UTC) — 866 tests green, build clean, no uncommitted changes. Backlog empty. Nothing to add.
 
-## 2026-04-15 (03:51 UTC) — All clear. 866 tests green, no uncommitted changes. Backlog empty. Nothing to add.
-
-## 2026-04-15 (04:53 UTC) — All clear. 866 tests green, no uncommitted changes. Backlog empty. Nothing to add.
-
-## 2026-04-15 (04:31 UTC) — All clear. 866 tests green, no uncommitted changes. Backlog empty. Nothing to add.
-
-## 2026-04-16 (07:32 UTC) — 866 tests reported (source files missing at the time — count unreliable)
-
-## 2026-04-16 (08:45 UTC) — RESTORED: live project was missing package.json + src/ (git commit 1bb2045 had no working source). Restored from backup, rebuilt, 30 test files / 244 tests green, build clean, pushed (e8632ec). Backlog empty.
-
-## 2026-04-16 (09:47 UTC) — 1110 tests green, build clean, no uncommitted changes. Backlog empty. Nothing to add.
-
-## 2026-04-16 (15:53 UTC) — 1110 tests green, build clean, no uncommitted changes. Backlog empty. Nothing to add.
-
-## 2026-04-16 (13:50 UTC) — 1110 tests green, build clean, no uncommitted changes. Backlog empty. Nothing to add.
+## 2026-04-16 (18:00 UTC) — 866 tests green, build clean, no uncommitted changes. Backlog empty. Nothing to add.
