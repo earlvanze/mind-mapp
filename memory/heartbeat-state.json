@@ -1,12 +1,12 @@
 {
   "lastChecks": {
-    "loftyBatch": "2026-04-15T06:08:00Z",
-    "git": "2026-04-16T01:11:00Z",
+    "loftyBatch": "2026-04-16T04:09:00Z",
+    "git": "2026-04-16T04:09:00Z",
     "memory": "2026-04-16T01:11:00Z",
     "calendar": "2026-04-15T06:08:00Z"
   },
-  "pendingLoftyEntries": 32,
+  "pendingLoftyEntries": 20,
   "ohioDistributionsReady": true,
   "ohioDistributionsStatus": "16 properties already disabled, Bowmanville needs manual enable",
-  "notes": "Git clean (only memory/2026-04-16.md untracked). 32 Lofty entries remaining. Late night check — no proactive action."
+  "notes": "20 Lofty property descriptions staged in /tmp/lofty_batch_all.json (not 32 entries - corrected count). Ready for CDP push when reviewed. Git: heartbeat-state.json uncommitted."
 }
