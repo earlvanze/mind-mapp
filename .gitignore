@@ -12,6 +12,9 @@ dist/
 *.log
 npm-debug.log*
 
+# Test artifacts
+test-results/
+
 # Environment
 .env
 .env.local
