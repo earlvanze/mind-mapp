@@ -37,12 +37,34 @@ class MindMap {
         document.getElementById('zoomOut').addEventListener('click', () => this.zoom(0.8));
         document.getElementById('zoomReset').addEventListener('click', () => this.resetView());
         
+        // Color picker
+        document.getElementById('nodeColor').addEventListener('input', (e) => this.applyColorToSelected(e.target.value));
+        
+        // Color presets
+        document.querySelectorAll('.color-preset').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const color = e.target.dataset.color;
+                this.applyColorToSelected(color);
+                document.getElementById('nodeColor').value = color;
+            });
+        });
+        
+        // Style buttons
+        document.querySelectorAll('.style-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const style = e.target.dataset.style;
+                this.applyStyleToSelected(style);
+                
+                document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('selected'));
+                e.target.classList.add('selected');
+            });
+        });
+        
         document.getElementById('save-text').addEventListener('click', () => this.saveNodeText());
         document.getElementById('cancel-edit').addEventListener('click', () => this.hideEditor());
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            // Don't trigger shortcuts when typing in input (except node-text)
             if (e.target.tagName === 'INPUT' && e.target.id !== 'node-text') return;
             
             if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -60,7 +82,6 @@ class MindMap {
                     this.hideEditor();
                 }
             }
-            // Zoom with +/- keys
             if (e.key === '+' || e.key === '=') {
                 this.zoom(1.2);
             }
@@ -102,7 +123,6 @@ class MindMap {
         });
         
         this.canvasContainer.addEventListener('mousedown', (e) => {
-            // Middle mouse button or space+left click to pan
             if (e.button === 1 || (e.button === 0 && spacePressed)) {
                 e.preventDefault();
                 this.isPanning = true;
@@ -128,10 +148,38 @@ class MindMap {
         });
         
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.node') && !e.target.closest('#node-editor') && !e.target.closest('#toolbar button') && !e.target.closest('.zoom-controls')) {
+            if (!e.target.closest('.node') && !e.target.closest('#node-editor') && !e.target.closest('#toolbar button') && !e.target.closest('.zoom-controls') && !e.target.closest('#style-toolbar')) {
                 this.deselectAll();
             }
         });
+    }
+    
+    applyColorToSelected(color) {
+        if (!this.selectedNode) return;
+        
+        const node = this.nodes.find(n => n.id === this.selectedNode);
+        if (node) {
+            node.color = color;
+            this.renderNode(node);
+            if (this.selectedNode === node.id) {
+                document.getElementById(node.id).classList.add('selected');
+            }
+            this.save();
+        }
+    }
+    
+    applyStyleToSelected(style) {
+        if (!this.selectedNode) return;
+        
+        const node = this.nodes.find(n => n.id === this.selectedNode);
+        if (node) {
+            node.style = style;
+            this.renderNode(node);
+            if (this.selectedNode === node.id) {
+                document.getElementById(node.id).classList.add('selected');
+            }
+            this.save();
+        }
     }
     
     zoom(factor) {
@@ -142,7 +190,6 @@ class MindMap {
     zoomAt(factor, x, y) {
         const newScale = Math.max(0.1, Math.min(5, this.scale * factor));
         
-        // Adjust translation to zoom towards the mouse position
         const scaleDiff = newScale / this.scale;
         this.translateX = x - (x - this.translateX) * scaleDiff;
         this.translateY = y - (y - this.translateY) * scaleDiff;
@@ -163,7 +210,6 @@ class MindMap {
         if (content) {
             content.style.transform = `translate(${this.translateX}px, ${this.translateY}px) scale(${this.scale})`;
         }
-        // Also update zoom display
         const zoomDisplay = document.getElementById('zoom-level');
         if (zoomDisplay) {
             zoomDisplay.textContent = `${Math.round(this.scale * 100)}%`;
@@ -181,7 +227,9 @@ class MindMap {
             x,
             y,
             parentId: null,
-            isRoot: this.nodes.length === 0
+            isRoot: this.nodes.length === 0,
+            color: '#4a90d9',
+            style: 'filled'
         };
         
         this.nodes.push(node);
@@ -203,7 +251,9 @@ class MindMap {
             x: parent.x + 150,
             y: parent.y + (this.getChildren(parent.id).length * 60),
             parentId: parent.id,
-            isRoot: false
+            isRoot: false,
+            color: '#4a90d9',
+            style: 'filled'
         };
         
         this.nodes.push(node);
@@ -237,13 +287,39 @@ class MindMap {
         this.save();
     }
     
+    getColorClass(color) {
+        const colorMap = {
+            '#4a90d9': 'blue',
+            '#5cb85c': 'green',
+            '#ff6b6b': 'red',
+            '#f0ad4e': 'orange',
+            '#9b59b6': 'purple',
+            '#34495e': 'dark'
+        };
+        return colorMap[color] || 'white';
+    }
+    
     renderNode(node) {
         const existing = document.getElementById(node.id);
         if (existing) existing.remove();
         
         const div = document.createElement('div');
         div.id = node.id;
-        div.className = `node${node.isRoot ? ' root' : ''}`;
+        
+        let classes = 'node';
+        if (node.isRoot) classes += ' root';
+        if (this.selectedNode === node.id) classes += ' selected';
+        
+        const colorClass = this.getColorClass(node.color);
+        if (colorClass !== 'white') {
+            classes += ` color-${colorClass}`;
+        }
+        
+        if (node.style && node.style !== 'filled') {
+            classes += ` style-${node.style}`;
+        }
+        
+        div.className = classes;
         div.textContent = node.text;
         div.style.left = `${node.x}px`;
         div.style.top = `${node.y}px`;
@@ -331,7 +407,19 @@ class MindMap {
     selectNode(nodeId) {
         this.deselectAll();
         this.selectedNode = nodeId;
-        document.getElementById(nodeId).classList.add('selected');
+        const nodeEl = document.getElementById(nodeId);
+        nodeEl.classList.add('selected');
+        
+        // Update color picker to match selected node
+        const node = this.nodes.find(n => n.id === nodeId);
+        if (node) {
+            document.getElementById('nodeColor').value = node.color || '#4a90d9';
+            
+            // Update style buttons
+            document.querySelectorAll('.style-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.style === (node.style || 'filled'));
+            });
+        }
     }
     
     deselectAll() {

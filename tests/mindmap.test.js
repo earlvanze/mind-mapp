@@ -8,6 +8,7 @@ test.describe('Mind Mapp', () => {
     test('loads without errors', async ({ page }) => {
         await expect(page.locator('#toolbar')).toBeVisible();
         await expect(page.locator('#addNode')).toBeVisible();
+        await expect(page.locator('#style-toolbar')).toBeVisible();
     });
 
     test('can add a node', async ({ page }) => {
@@ -34,15 +35,12 @@ test.describe('Mind Mapp', () => {
     });
 
     test('zoom controls work', async ({ page }) => {
-        // Initial state is 100%
         await expect(page.locator('#zoom-level')).toHaveText('100%');
         
-        // Zoom in should increase
         await page.click('#zoomIn');
         const zoomInText = await page.locator('#zoom-level').textContent();
         expect(parseInt(zoomInText)).toBeGreaterThan(100);
         
-        // Zoom out should decrease
         await page.click('#zoomOut');
         const zoomOutText = await page.locator('#zoom-level').textContent();
         expect(parseInt(zoomOutText)).toBeLessThan(parseInt(zoomInText));
@@ -53,5 +51,43 @@ test.describe('Mind Mapp', () => {
         await page.click('#zoomIn');
         await page.click('#zoomReset');
         await expect(page.locator('#zoom-level')).toHaveText('100%');
+    });
+
+    test('can apply color to node', async ({ page }) => {
+        await page.click('#addNode');
+        await page.click('#save-text');
+        await page.click('.node');
+        
+        // Click green color preset
+        await page.click('.color-preset[data-color="#5cb85c"]');
+        
+        // Verify node has green class
+        await expect(page.locator('.node.color-green')).toBeVisible();
+    });
+
+    test('can apply style to node', async ({ page }) => {
+        await page.click('#addNode');
+        await page.click('#save-text');
+        await page.click('.node');
+        
+        // Click outline style button
+        await page.click('.style-btn[data-style="outline"]');
+        
+        // Verify node has outline style
+        await expect(page.locator('.node.style-outline')).toBeVisible();
+    });
+
+    test('colors persist on save/load', async ({ page }) => {
+        await page.click('#addNode');
+        await page.click('#save-text');
+        await page.click('.node');
+        await page.click('.color-preset[data-color="#ff6b6b"]');
+        
+        // Save and reload
+        await page.click('#save');
+        await page.click('#load');
+        
+        // Node should still be red
+        await expect(page.locator('.node.color-red')).toBeVisible();
     });
 });
