@@ -1,18 +1,16 @@
 {
-  "name": "mind-mapp",
-  "version": "1.0.0",
-  "description": "A mind mapping tool for structured thinking and idea visualization",
-  "main": "index.js",
+  "name": "mind-mapp-temp",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "test": "npx playwright test",
-    "test:headed": "npx playwright test --headed"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "keywords": ["mindmap", "productivity", "visualization"],
-  "author": "",
-  "license": "MIT",
-  "type": "commonjs",
   "devDependencies": {
-    "@playwright/test": "^1.40.0",
-    "playwright": "^1.40.0"
+    "@playwright/test": "^1.59.1",
+    "playwright": "^1.59.1",
+    "vite": "^8.0.10"
   }
 }

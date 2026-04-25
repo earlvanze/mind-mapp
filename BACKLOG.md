@@ -6,11 +6,11 @@ A minimal, browser-based mind mapping tool. Nodes, connections, pan/zoom canvas.
 ## Backlog (ordered by priority)
 
 ### P0 — Foundation
-- [x] Initialize project (Vite + vanilla JS)
-- [x] Canvas setup with pan/zoom
-- [x] Render a basic node on canvas
-- [x] Add new node via click on canvas
-- [x] Drag nodes to reposition
+- [ ] Initialize project (Vite + vanilla JS/TS or React)
+- [ ] Canvas setup with pan/zoom
+- [ ] Render a basic node on canvas
+- [ ] Add new node via click on canvas
+- [ ] Drag nodes to reposition
 
 ### P1 — Core Features
 - [x] Connect two nodes with an edge
@@ -25,8 +25,9 @@ A minimal, browser-based mind mapping tool. Nodes, connections, pan/zoom canvas.
 ### P3 — Polish
 - [x] Export as PNG
 - [x] Minimap overview
-- [x] Keyboard shortcuts (Del, Escape, A, C, E)
+- [x] Keyboard shortcuts (Del, Escape, etc.)
 
 ---
 
-_Last updated: 2026-04-25 — All items complete!_
+_Completed P0/P1/P2/P3 on 2026-04-25
+_Last updated: 2026-04-25_
