@@ -16,6 +16,7 @@ const state = {
   hoveredEdge: null,
   lastId: 0,
   lastEdgeId: 0,
+  edgeLabels: {},  // edge id -> label string
 }
 
 const STORAGE_KEY = 'mind-mapp-v1'
@@ -30,6 +31,7 @@ function historySnapshot() {
     edges: state.edges,
     lastId: state.lastId,
     lastEdgeId: state.lastEdgeId,
+    edgeLabels: state.edgeLabels,
   })
 }
 
@@ -262,10 +264,11 @@ function drawEdge(ctx, e) {
   if (!from || !to) return
   const [ax, ay, bx, by] = endpoints(from, to)
   const isHovered = state.hoveredEdge && state.hoveredEdge.id === e.id
-  drawEdgeLine(ctx, ax, ay, bx, by, isHovered ? '#aa3bff' : '#6b6375', false, isHovered)
+  const label = state.edgeLabels[e.id] || null
+  drawEdgeLine(ctx, ax, ay, bx, by, isHovered ? '#aa3bff' : '#6b6375', false, isHovered, label)
 }
 
-function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false) {
+function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false, label = null) {
   ctx.strokeStyle = color
   ctx.lineWidth = (highlighted ? 3 : 2) / state.view.scale
   ctx.setLineDash(dashed ? [6 / state.view.scale, 4 / state.view.scale] : [])
@@ -284,6 +287,22 @@ function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false) {
   ctx.lineTo(bx - headLen * Math.cos(angle + Math.PI / 6), by - headLen * Math.sin(angle + Math.PI / 6))
   ctx.closePath()
   ctx.fill()
+
+  // Draw edge label
+  if (label) {
+    const mx = (ax + bx) / 2
+    const my = (ay + by) / 2
+    const fontSize = 12 / state.view.scale
+    ctx.font = `${fontSize}px system-ui, sans-serif`
+    ctx.fillStyle = '#fff'
+    ctx.strokeStyle = color
+    ctx.lineWidth = 3 / state.view.scale
+    const metrics = ctx.measureText(label)
+    const padW = 6 / state.view.scale
+    const padH = 3 / state.view.scale
+    ctx.strokeText(label, mx - metrics.width / 2, my + fontSize / 3)
+    ctx.fillText(label, mx - metrics.width / 2, my + fontSize / 3)
+  }
 }
 
 function drawNode(ctx, n) {
@@ -339,6 +358,76 @@ function roundRect(ctx, x, y, w, h, r) {
 // ─── In-place text editing ─────────────────────────────────────────────────────
 let editInput = null
 let editCommitting = false
+let edgeEditInput = null
+let edgeEditEdgeId = null
+
+// ─── Edge label editing ─────────────────────────────────────────────────────────
+function startEdgeLabelEdit(edge, ax, ay, bx, by) {
+  if (edgeEditInput) return
+  edgeEditEdgeId = edge.id
+  edgeEditInput = document.createElement('input')
+  edgeEditInput.type = 'text'
+  edgeEditInput.className = 'edge-edit-input'
+  edgeEditInput.value = state.edgeLabels[edge.id] || ''
+  const mx = (ax + bx) / 2, my = (ay + by) / 2
+  const screen = worldToScreen(mx, my)
+  edgeEditInput.style.cssText = `
+    position:fixed;
+    left:\${screen.x - 60}px;
+    top:\${screen.y - 12}px;
+    width:120px;
+    font-size:\${12 * state.view.scale}px;
+    font-family:system-ui,sans-serif;
+    padding:4px 6px;
+    box-sizing:border-box;
+    border:2px solid #aa3bff;
+    border-radius:4px;
+    outline:none;
+    background:#fff;
+    color:#08060d;
+    z-index:1000;
+    text-align:center;
+  `
+  document.body.appendChild(edgeEditInput)
+  edgeEditInput.focus()
+  edgeEditInput.select()
+  edgeEditInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      commitEdgeLabel()
+    }
+    if (e.key === 'Escape') {
+      cancelEdgeLabel()
+    }
+  })
+  edgeEditInput.addEventListener('blur', commitEdgeLabel)
+  edgeEditInput.addEventListener('click', e => e.stopPropagation())
+}
+
+function commitEdgeLabel() {
+  if (!edgeEditInput) return
+  const label = edgeEditInput.value.trim()
+  if (edgeEditEdgeId !== null) {
+    if (label) {
+      state.edgeLabels[edgeEditEdgeId] = label
+    } else {
+      delete state.edgeLabels[edgeEditEdgeId]
+    }
+    historyCommit()
+    save()
+  }
+  if (edgeEditInput && edgeEditInput.parentNode) edgeEditInput.remove()
+  edgeEditInput = null
+  edgeEditEdgeId = null
+  render()
+}
+
+function cancelEdgeLabel() {
+  if (edgeEditInput && edgeEditInput.parentNode) edgeEditInput.remove()
+  edgeEditInput = null
+  edgeEditEdgeId = null
+  render()
+}
 
 function startEditing(node) {
   state.editing = node.id
@@ -449,10 +538,8 @@ canvas.addEventListener('mousedown', e => {
   } else {
     const edge = edgeAt(mx, my)
     if (edge) {
-      state.selected = null
-      state.edges = state.edges.filter(e => e.id !== edge.id)
-      historyCommit()
-      save()
+      state.selected = edge.id
+      state.connecting = null
     } else {
       state.selected = null
       state.connecting = null
@@ -498,7 +585,7 @@ canvas.addEventListener('mouseup', e => {
 })
 
 canvas.addEventListener('dblclick', e => {
-  if (state.editing) return
+  if (state.editing || edgeEditInput) return
   const rect = canvas.getBoundingClientRect()
   const mx = e.clientX - rect.left
   const my = e.clientY - rect.top
@@ -508,13 +595,24 @@ canvas.addEventListener('dblclick', e => {
   if (existing) {
     startEditing(existing)
   } else {
-    const node = newNode(world.x, world.y)
-    state.nodes.push(node)
-    state.selected = node.id
-    historyCommit()
-    save()
-    render()
-    setTimeout(() => startEditing(node), 50)
+    // Check if double-clicked on an edge
+    const edge = edgeAt(mx, my)
+    if (edge) {
+      const from = state.nodes.find(n => n.id === fromId(edge))
+      const to = state.nodes.find(n => n.id === toId(edge))
+      if (from && to) {
+        const [ax, ay, bx, by] = endpoints(from, to)
+        setTimeout(() => startEdgeLabelEdit(edge, ax, ay, bx, by), 10)
+      }
+    } else {
+      const node = newNode(world.x, world.y)
+      state.nodes.push(node)
+      state.selected = node.id
+      historyCommit()
+      save()
+      render()
+      setTimeout(() => startEditing(node), 50)
+    }
   }
 })
 
@@ -550,8 +648,15 @@ document.addEventListener('keydown', e => {
 
   if (e.key === 'Delete' || e.key === 'Backspace') {
     if (state.selected !== null) {
-      state.nodes = state.nodes.filter(n => n.id !== state.selected)
-      state.edges = state.edges.filter(e => e.from !== state.selected && e.to !== state.selected)
+      const sel = state.selected
+      const isEdge = state.edges.some(e => e.id === sel)
+      if (isEdge) {
+        delete state.edgeLabels[sel]
+        state.edges = state.edges.filter(e => e.id !== sel)
+      } else {
+        state.nodes = state.nodes.filter(n => n.id !== sel)
+        state.edges = state.edges.filter(e => e.from !== sel && e.to !== sel)
+      }
       state.selected = null
       historyCommit()
       save()
