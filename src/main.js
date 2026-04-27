@@ -5,6 +5,7 @@ const state = {
   nodes: [],
   edges: [],
   selected: null,
+  selectedType: null,
   connecting: null,
   dragging: null,
   panning: false,
@@ -16,7 +17,7 @@ const state = {
   hoveredEdge: null,
   lastId: 0,
   lastEdgeId: 0,
-  edgeLabels: {},  // edge id -> label string
+  edgeLabels: {},
 }
 
 const STORAGE_KEY = 'mind-mapp-v1'
@@ -62,7 +63,9 @@ function applySnapshot(snap) {
     state.edges = data.edges
     state.lastId = data.lastId
     state.lastEdgeId = data.lastEdgeId
+    state.edgeLabels = data.edgeLabels || {}
     state.selected = null
+    state.selectedType = null
     state.connecting = null
     state.editing = null
     save()
@@ -81,6 +84,7 @@ app.innerHTML = `
   <button id="btn-add" title="Add node (A)">+ Node</button>
   <button id="btn-connect" title="Connect mode (C)">⬌ Connect</button>
   <button id="btn-export" title="Export PNG (E)">📷 Export</button>
+  <button id="btn-fit" title="Fit view (F)">⛶ Fit</button>
   <span id="undo-redo-btns">
     <button id="btn-undo" title="Undo (Ctrl+Z)">↩ Undo</button>
     <button id="btn-redo" title="Redo (Ctrl+Y)">↪ Redo</button>
@@ -98,6 +102,7 @@ const mctx = minimapCanvas.getContext('2d')
 const btnAdd = document.getElementById('btn-add')
 const btnConnect = document.getElementById('btn-connect')
 const btnExport = document.getElementById('btn-export')
+const btnFit = document.getElementById('btn-fit')
 const btnUndo = document.getElementById('btn-undo')
 const btnRedo = document.getElementById('btn-redo')
 
@@ -189,6 +194,7 @@ function save() {
     edges: state.edges,
     lastId: state.lastId,
     lastEdgeId: state.lastEdgeId,
+    edgeLabels: state.edgeLabels,
   }))
 }
 
@@ -200,6 +206,7 @@ function load() {
       state.edges = data.edges || []
       state.lastId = data.lastId || 0
       state.lastEdgeId = data.lastEdgeId || 0
+      state.edgeLabels = data.edgeLabels || {}
     }
   } catch (e) { /* ignore */ }
 }
@@ -263,7 +270,7 @@ function drawEdge(ctx, e) {
   const to = state.nodes.find(n => n.id === toId(e))
   if (!from || !to) return
   const [ax, ay, bx, by] = endpoints(from, to)
-  const isHovered = state.hoveredEdge && state.hoveredEdge.id === e.id
+  const isHovered = state.hoveredEdge === e.id
   const label = state.edgeLabels[e.id] || null
   drawEdgeLine(ctx, ax, ay, bx, by, isHovered ? '#aa3bff' : '#6b6375', false, isHovered, label)
 }
@@ -288,7 +295,6 @@ function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false, l
   ctx.closePath()
   ctx.fill()
 
-  // Draw edge label
   if (label) {
     const mx = (ax + bx) / 2
     const my = (ay + by) / 2
@@ -298,15 +304,13 @@ function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false, l
     ctx.strokeStyle = color
     ctx.lineWidth = 3 / state.view.scale
     const metrics = ctx.measureText(label)
-    const padW = 6 / state.view.scale
-    const padH = 3 / state.view.scale
     ctx.strokeText(label, mx - metrics.width / 2, my + fontSize / 3)
     ctx.fillText(label, mx - metrics.width / 2, my + fontSize / 3)
   }
 }
 
 function drawNode(ctx, n) {
-  const isSelected = state.selected === n.id
+  const isSelected = state.selectedType === 'node' && state.selected === n.id
   const isEditing = state.editing === n.id
   const isHovered = state.hoveredNode === n.id
   const isConnecting = state.connecting === n.id
@@ -358,10 +362,10 @@ function roundRect(ctx, x, y, w, h, r) {
 // ─── In-place text editing ─────────────────────────────────────────────────────
 let editInput = null
 let editCommitting = false
+
 let edgeEditInput = null
 let edgeEditEdgeId = null
 
-// ─── Edge label editing ─────────────────────────────────────────────────────────
 function startEdgeLabelEdit(edge, ax, ay, bx, by) {
   if (edgeEditInput) return
   edgeEditEdgeId = edge.id
@@ -369,14 +373,15 @@ function startEdgeLabelEdit(edge, ax, ay, bx, by) {
   edgeEditInput.type = 'text'
   edgeEditInput.className = 'edge-edit-input'
   edgeEditInput.value = state.edgeLabels[edge.id] || ''
-  const mx = (ax + bx) / 2, my = (ay + by) / 2
+  const mx = (ax + bx) / 2
+  const my = (ay + by) / 2
   const screen = worldToScreen(mx, my)
   edgeEditInput.style.cssText = `
     position:fixed;
-    left:\${screen.x - 60}px;
-    top:\${screen.y - 12}px;
+    left:${screen.x - 60}px;
+    top:${screen.y - 12}px;
     width:120px;
-    font-size:\${12 * state.view.scale}px;
+    font-size:${12 * state.view.scale}px;
     font-family:system-ui,sans-serif;
     padding:4px 6px;
     box-sizing:border-box;
@@ -406,26 +411,27 @@ function startEdgeLabelEdit(edge, ax, ay, bx, by) {
 
 function commitEdgeLabel() {
   if (!edgeEditInput) return
-  const label = edgeEditInput.value.trim()
-  if (edgeEditEdgeId !== null) {
-    if (label) {
-      state.edgeLabels[edgeEditEdgeId] = label
-    } else {
-      delete state.edgeLabels[edgeEditEdgeId]
-    }
+  const input = edgeEditInput
+  const edgeId = edgeEditEdgeId
+  edgeEditInput = null
+  edgeEditEdgeId = null
+  const label = input.value.trim()
+  if (edgeId !== null) {
+    if (label) state.edgeLabels[edgeId] = label
+    else delete state.edgeLabels[edgeId]
     historyCommit()
     save()
   }
-  if (edgeEditInput && edgeEditInput.parentNode) edgeEditInput.remove()
-  edgeEditInput = null
-  edgeEditEdgeId = null
+  if (input.parentNode) input.remove()
   render()
 }
 
 function cancelEdgeLabel() {
-  if (edgeEditInput && edgeEditInput.parentNode) edgeEditInput.remove()
+  if (!edgeEditInput) return
+  const input = edgeEditInput
   edgeEditInput = null
   edgeEditEdgeId = null
+  if (input.parentNode) input.remove()
   render()
 }
 
@@ -488,9 +494,9 @@ function commitEdit() {
     node.width = size.width
     node.height = size.height
   }
-  // Guard: only remove if still in DOM (blur may have already removed it)
-  if (!editCommitting && editInput.parentNode) editInput.remove()
+  const input = editInput
   editInput = null
+  if (input.parentNode) input.remove()
   state.editing = null
   historyCommit()
   save()
@@ -500,10 +506,11 @@ function commitEdit() {
 
 function cancelEdit() {
   if (!editInput || editCommitting) return
-  if (editInput.parentNode) editInput.remove()
+  const input = editInput
   editInput = null
   state.editing = null
   editCommitting = false
+  if (input.parentNode) input.remove()
   render()
 }
 
@@ -525,6 +532,7 @@ canvas.addEventListener('mousedown', e => {
   const node = nodeAt(mx, my)
   if (node) {
     state.selected = node.id
+    state.selectedType = 'node'
     if (state.connecting && state.connecting !== node.id) {
       const id = ++state.lastEdgeId
       state.edges.push({ id, from: state.connecting, to: node.id })
@@ -533,15 +541,18 @@ canvas.addEventListener('mousedown', e => {
       historyCommit()
       save()
     } else {
-      state.dragging = { id: node.id, offsetX: mx / state.view.scale - node.x, offsetY: my / state.view.scale - node.y }
+      const world = screenToWorld(mx, my)
+      state.dragging = { id: node.id, offsetX: world.x - node.x, offsetY: world.y - node.y }
     }
   } else {
     const edge = edgeAt(mx, my)
     if (edge) {
       state.selected = edge.id
+      state.selectedType = 'edge'
       state.connecting = null
     } else {
       state.selected = null
+      state.selectedType = null
       state.connecting = null
       btnConnect.classList.remove('active')
       state.panning = true
@@ -560,8 +571,9 @@ canvas.addEventListener('mousemove', e => {
   if (state.dragging) {
     const node = state.nodes.find(n => n.id === state.dragging.id)
     if (node) {
-      node.x = mx / state.view.scale - state.dragging.offsetX
-      node.y = my / state.view.scale - state.dragging.offsetY
+      const world = screenToWorld(mx, my)
+      node.x = world.x - state.dragging.offsetX
+      node.y = world.y - state.dragging.offsetY
     }
   } else if (state.panning) {
     state.view.x = mx - state.panStart.x
@@ -595,7 +607,6 @@ canvas.addEventListener('dblclick', e => {
   if (existing) {
     startEditing(existing)
   } else {
-    // Check if double-clicked on an edge
     const edge = edgeAt(mx, my)
     if (edge) {
       const from = state.nodes.find(n => n.id === fromId(edge))
@@ -604,15 +615,17 @@ canvas.addEventListener('dblclick', e => {
         const [ax, ay, bx, by] = endpoints(from, to)
         setTimeout(() => startEdgeLabelEdit(edge, ax, ay, bx, by), 10)
       }
-    } else {
-      const node = newNode(world.x, world.y)
-      state.nodes.push(node)
-      state.selected = node.id
-      historyCommit()
-      save()
-      render()
-      setTimeout(() => startEditing(node), 50)
+      return
     }
+
+    const node = newNode(world.x, world.y)
+    state.nodes.push(node)
+    state.selected = node.id
+    state.selectedType = 'node'
+    historyCommit()
+    save()
+    render()
+    setTimeout(() => startEditing(node), 50)
   }
 })
 
@@ -648,14 +661,16 @@ document.addEventListener('keydown', e => {
 
   if (e.key === 'Delete' || e.key === 'Backspace') {
     if (state.selected !== null) {
-      const sel = state.selected
-      const isEdge = state.edges.some(e => e.id === sel)
-      if (isEdge) {
-        delete state.edgeLabels[sel]
-        state.edges = state.edges.filter(e => e.id !== sel)
+      const selectedId = state.selected
+      if (state.selectedType === 'edge') {
+        delete state.edgeLabels[selectedId]
+        state.edges = state.edges.filter(e => e.id !== selectedId)
       } else {
-        state.nodes = state.nodes.filter(n => n.id !== sel)
-        state.edges = state.edges.filter(e => e.from !== sel && e.to !== sel)
+        for (const edge of state.edges) {
+          if (fromId(edge) === selectedId || toId(edge) === selectedId) delete state.edgeLabels[edge.id]
+        }
+        state.nodes = state.nodes.filter(n => n.id !== selectedId)
+        state.edges = state.edges.filter(e => fromId(e) !== selectedId && toId(e) !== selectedId)
       }
       state.selected = null
       historyCommit()
@@ -665,6 +680,7 @@ document.addEventListener('keydown', e => {
   }
   if (e.key === 'Escape') {
     state.selected = null
+    state.selectedType = null
     state.connecting = null
     btnConnect.classList.remove('active')
     render()
@@ -675,6 +691,7 @@ document.addEventListener('keydown', e => {
     const node = newNode(world.x, world.y)
     state.nodes.push(node)
     state.selected = node.id
+    state.selectedType = 'node'
     historyCommit()
     save()
     render()
@@ -693,6 +710,9 @@ document.addEventListener('keydown', e => {
   if (e.key === 'e' || e.key === 'E') {
     exportPNG()
   }
+  if (e.key === 'f' || e.key === 'F') {
+    fitToContent()
+  }
 })
 
 // Buttons
@@ -702,6 +722,7 @@ btnAdd.addEventListener('click', () => {
   const node = newNode(world.x, world.y)
   state.nodes.push(node)
   state.selected = node.id
+  state.selectedType = 'node'
   historyCommit()
   save()
   render()
@@ -712,7 +733,7 @@ btnConnect.addEventListener('click', () => {
   if (state.connecting) {
     state.connecting = null
     btnConnect.classList.remove('active')
-  } else if (state.selected !== null) {
+  } else if (state.selectedType === 'node' && state.selected !== null) {
     state.connecting = state.selected
     btnConnect.classList.add('active')
   }
@@ -720,6 +741,7 @@ btnConnect.addEventListener('click', () => {
 })
 
 btnExport.addEventListener('click', exportPNG)
+btnFit.addEventListener('click', fitToContent)
 
 btnUndo.addEventListener('click', () => {
   if (state.editing) return
@@ -730,6 +752,31 @@ btnRedo.addEventListener('click', () => {
   if (state.editing) return
   historyRedo()
 })
+
+
+function contentBounds(pad = 80) {
+  if (state.nodes.length === 0) return null
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+  for (const n of state.nodes) {
+    minX = Math.min(minX, n.x)
+    minY = Math.min(minY, n.y)
+    maxX = Math.max(maxX, n.x + n.width)
+    maxY = Math.max(maxY, n.y + n.height)
+  }
+  return { minX: minX - pad, minY: minY - pad, maxX: maxX + pad, maxY: maxY + pad }
+}
+
+function fitToContent() {
+  const bounds = contentBounds()
+  if (!bounds) return
+  const worldW = Math.max(1, bounds.maxX - bounds.minX)
+  const worldH = Math.max(1, bounds.maxY - bounds.minY)
+  const scale = Math.max(0.1, Math.min(5, Math.min(canvas.width / worldW, canvas.height / worldH)))
+  state.view.scale = scale
+  state.view.x = (canvas.width - worldW * scale) / 2 - bounds.minX * scale
+  state.view.y = (canvas.height - worldH * scale) / 2 - bounds.minY * scale
+  render()
+}
 
 function exportPNG() {
   const savedView = { ...state.view }
@@ -831,7 +878,7 @@ function drawMinimap() {
   }
 
   for (const n of state.nodes) {
-    const isSelected = state.selected === n.id
+    const isSelected = state.selectedType === 'node' && state.selected === n.id
     mctx.fillStyle = isSelected ? '#aa3bff' : '#fff'
     mctx.strokeStyle = isSelected ? '#7c2db8' : '#c4bfcc'
     mctx.lineWidth = 1

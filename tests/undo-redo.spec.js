@@ -7,7 +7,7 @@ test('undo/redo buttons exist and are clickable', async ({ page }) => {
   })
   page.on('pageerror', err => errors.push(err.message))
 
-  await page.goto('http://localhost:4173')
+  await page.goto('/')
   await page.waitForTimeout(500)
 
   // undo/redo buttons should exist

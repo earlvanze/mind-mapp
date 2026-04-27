@@ -80,6 +80,7 @@ canvas.grabbing { cursor: grabbing; }
 #minimap-container:hover { border-color: var(--accent); }
 #minimap { display: block; }
 
+
 .edge-edit-input {
   position: fixed;
   font-size: 12px;

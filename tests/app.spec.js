@@ -7,7 +7,7 @@ test('app loads without console errors', async ({ page }) => {
   })
   page.on('pageerror', err => errors.push(err.message))
 
-  await page.goto('http://localhost:4173')
+  await page.goto('/')
   await page.waitForTimeout(1000)
 
   // canvas should exist
@@ -18,6 +18,7 @@ test('app loads without console errors', async ({ page }) => {
   await expect(page.locator('#btn-add')).toBeVisible()
   await expect(page.locator('#btn-connect')).toBeVisible()
   await expect(page.locator('#btn-export')).toBeVisible()
+  await expect(page.locator('#btn-fit')).toBeVisible()
 
   // no console errors
   expect(errors).toHaveLength(0)

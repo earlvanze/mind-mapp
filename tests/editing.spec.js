@@ -1,0 +1,68 @@
+import { test, expect } from '@playwright/test'
+
+test('committing node edits removes the textarea editor', async ({ page }) => {
+  await page.goto('/')
+
+  await page.locator('#btn-add').click()
+  const editor = page.locator('.node-edit-input')
+  await expect(editor).toBeVisible()
+
+  await editor.fill('Committed node')
+  await page.keyboard.press('Enter')
+
+  await expect(page.locator('.node-edit-input')).toHaveCount(0)
+})
+
+test('dragging nodes remains stable after panning the canvas', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('mind-mapp-v1', JSON.stringify({
+      nodes: [{ id: 1, x: 100, y: 100, text: 'Node', width: 80, height: 40 }],
+      edges: [],
+      lastId: 1,
+      lastEdgeId: 0,
+    }))
+  })
+  await page.goto('/')
+  const canvas = page.locator('#canvas')
+
+  // Pan the canvas 100px to the right.
+  await canvas.dragTo(canvas, {
+    sourcePosition: { x: 700, y: 500 },
+    targetPosition: { x: 800, y: 500 },
+  })
+
+  // The node is now visually shifted right by the pan. Drag it 50px more.
+  await canvas.dragTo(canvas, {
+    sourcePosition: { x: 240, y: 120 },
+    targetPosition: { x: 290, y: 120 },
+  })
+
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
+  expect(saved.nodes[0].x).toBeGreaterThan(145)
+  expect(saved.nodes[0].x).toBeLessThan(155)
+})
+
+
+test('delete key removes selected node even when an edge shares its id', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('mind-mapp-v1', JSON.stringify({
+      nodes: [
+        { id: 1, x: 100, y: 100, text: 'Node 1', width: 80, height: 40 },
+        { id: 2, x: 300, y: 100, text: 'Node 2', width: 80, height: 40 },
+      ],
+      edges: [{ id: 1, from: 1, to: 2 }],
+      edgeLabels: { 1: 'same id' },
+      lastId: 2,
+      lastEdgeId: 1,
+    }))
+  })
+  await page.goto('/')
+
+  await page.locator('#canvas').click({ position: { x: 140, y: 120 } })
+  await page.keyboard.press('Delete')
+
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
+  expect(saved.nodes.map(node => node.id)).toEqual([2])
+  expect(saved.edges).toEqual([])
+  expect(saved.edgeLabels).toEqual({})
+})
