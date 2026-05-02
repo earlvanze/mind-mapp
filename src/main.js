@@ -920,8 +920,29 @@ function bestPredictionText(predictions) {
 async function recognizeHandwritingFromStrokes(strokes) {
   if (window.mindMappRecognizeHandwriting) return window.mindMappRecognizeHandwriting(strokes)
 
+  const image = detailsDrawing.toDataURL('image/png')
+  try {
+    const response = await fetch('/api/recognize-handwriting', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ image, strokes }),
+    })
+    if (response.ok) {
+      const data = await response.json()
+      const text = String(data.text || '').trim()
+      if (text) return text
+      throw new Error('No handwriting text recognized.')
+    }
+    if (response.status !== 404 && response.status !== 405) {
+      const data = await response.json().catch(() => ({}))
+      throw new Error(data.error || 'Handwriting recognition service failed.')
+    }
+  } catch (error) {
+    if (error.message && !error.message.includes('Failed to fetch')) throw error
+  }
+
   if (!navigator.createHandwritingRecognizer) {
-    throw new Error('Handwriting recognition is not available in this browser yet.')
+    throw new Error('Handwriting recognition is not available in this browser, and the Ollama recognition service is not reachable.')
   }
 
   const recognizer = await navigator.createHandwritingRecognizer({ languages: ['en'] })
