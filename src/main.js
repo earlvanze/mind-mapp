@@ -18,9 +18,98 @@ const state = {
   lastId: 0,
   lastEdgeId: 0,
   edgeLabels: {},
+  notebook: { pages: [], activePageId: null, lastPageId: 0 },
 }
 
 const STORAGE_KEY = 'mind-mapp-v1'
+
+// ─── Notebook pages ──────────────────────────────────────────────────────────
+function createPage(title = null) {
+  const id = ++state.notebook.lastPageId
+  return { id, title: title || `Page ${id}`, nodes: [], edges: [], lastId: 0, lastEdgeId: 0, edgeLabels: {}, view: { x: 0, y: 0, scale: 1 } }
+}
+
+function activePage() {
+  return state.notebook.pages.find(page => page.id === state.notebook.activePageId) || null
+}
+
+function syncCurrentPage() {
+  const page = activePage()
+  if (!page) return
+  page.nodes = state.nodes
+  page.edges = state.edges
+  page.lastId = state.lastId
+  page.lastEdgeId = state.lastEdgeId
+  page.edgeLabels = state.edgeLabels
+  page.view = { ...state.view }
+}
+
+function loadPageIntoState(page) {
+  state.nodes = page.nodes || []
+  state.edges = page.edges || []
+  state.lastId = page.lastId || 0
+  state.lastEdgeId = page.lastEdgeId || 0
+  state.edgeLabels = page.edgeLabels || {}
+  state.view = page.view ? { ...page.view } : { x: 0, y: 0, scale: 1 }
+  state.selected = null
+  state.selectedType = null
+  state.connecting = null
+  state.dragging = null
+  state.panning = false
+  state.editing = null
+  if (typeof btnConnect !== 'undefined') btnConnect.classList.remove('active')
+}
+
+function resetHistoryForCurrentPage() {
+  history.stack = []
+  history.index = -1
+  historyPush()
+}
+
+function renderPageTabs() {
+  if (typeof pageSelect === 'undefined') return
+  pageSelect.innerHTML = ''
+  for (const page of state.notebook.pages) {
+    const option = document.createElement('option')
+    option.value = String(page.id)
+    option.textContent = page.title
+    pageSelect.appendChild(option)
+  }
+  pageSelect.value = String(state.notebook.activePageId)
+}
+
+function switchPage(pageId) {
+  if (pageId === state.notebook.activePageId) return
+  if (state.editing) commitEdit()
+  if (edgeEditInput) commitEdgeLabel()
+  syncCurrentPage()
+  const page = state.notebook.pages.find(p => p.id === pageId)
+  if (!page) return
+  state.notebook.activePageId = page.id
+  loadPageIntoState(page)
+  resetHistoryForCurrentPage()
+  save()
+  renderPageTabs()
+  resize()
+}
+
+function addNotebookPage() {
+  btnNewPage?.blur()
+  if (state.editing) commitEdit()
+  if (edgeEditInput) commitEdgeLabel()
+  syncCurrentPage()
+  const page = createPage(`Page ${state.notebook.pages.length + 1}`)
+  state.notebook.pages.push(page)
+  state.notebook.activePageId = page.id
+  loadPageIntoState(page)
+  const center = screenToWorld(canvas.width / 2, canvas.height / 2)
+  state.nodes.push(newNode(center.x, center.y, page.title))
+  syncCurrentPage()
+  resetHistoryForCurrentPage()
+  save()
+  renderPageTabs()
+  render()
+}
 
 // ─── History (undo/redo) ─────────────────────────────────────────────────────
 const MAX_HISTORY = 50
@@ -33,6 +122,7 @@ function historySnapshot() {
     lastId: state.lastId,
     lastEdgeId: state.lastEdgeId,
     edgeLabels: state.edgeLabels,
+    view: state.view,
   })
 }
 
@@ -64,6 +154,8 @@ function applySnapshot(snap) {
     state.lastId = data.lastId
     state.lastEdgeId = data.lastEdgeId
     state.edgeLabels = data.edgeLabels || {}
+    state.view = data.view ? { ...data.view } : state.view
+    syncCurrentPage()
     state.selected = null
     state.selectedType = null
     state.connecting = null
@@ -81,6 +173,11 @@ function historyCommit() {
 const app = document.getElementById('app')
 app.innerHTML = `
 <div class="toolbar">
+  <span class="notebook-controls">
+    <strong>Notebook</strong>
+    <select id="page-select" title="Current page"></select>
+    <button id="btn-new-page" title="New notebook page">+ Page</button>
+  </span>
   <button id="btn-add" title="Add node (A)">+ Node</button>
   <button id="btn-connect" title="Connect mode (C)">⬌ Connect</button>
   <button id="btn-export" title="Export PNG (E)">📷 Export</button>
@@ -99,6 +196,8 @@ const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
 const minimapCanvas = document.getElementById('minimap')
 const mctx = minimapCanvas.getContext('2d')
+const pageSelect = document.getElementById('page-select')
+const btnNewPage = document.getElementById('btn-new-page')
 const btnAdd = document.getElementById('btn-add')
 const btnConnect = document.getElementById('btn-connect')
 const btnExport = document.getElementById('btn-export')
@@ -191,26 +290,51 @@ function newNode(x, y, text = 'New Node') {
 }
 
 function save() {
+  syncCurrentPage()
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    version: 2,
+    notebook: state.notebook,
+    // Active-page mirror keeps older tests/tools and simple exports readable.
     nodes: state.nodes,
     edges: state.edges,
     lastId: state.lastId,
     lastEdgeId: state.lastEdgeId,
     edgeLabels: state.edgeLabels,
+    view: state.view,
   }))
 }
 
 function load() {
+  let migrated = false
   try {
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY))
-    if (data) {
-      state.nodes = data.nodes || []
-      state.edges = data.edges || []
-      state.lastId = data.lastId || 0
-      state.lastEdgeId = data.lastEdgeId || 0
-      state.edgeLabels = data.edgeLabels || {}
+    if (data?.notebook?.pages?.length) {
+      state.notebook = {
+        pages: data.notebook.pages,
+        activePageId: data.notebook.activePageId || data.notebook.pages[0].id,
+        lastPageId: data.notebook.lastPageId || Math.max(...data.notebook.pages.map(page => page.id)),
+      }
+    } else if (data) {
+      const page = createPage('Page 1')
+      page.nodes = data.nodes || []
+      page.edges = data.edges || []
+      page.lastId = data.lastId || 0
+      page.lastEdgeId = data.lastEdgeId || 0
+      page.edgeLabels = data.edgeLabels || {}
+      page.view = data.view || { x: 0, y: 0, scale: 1 }
+      state.notebook = { pages: [page], activePageId: page.id, lastPageId: page.id }
+      migrated = true
     }
   } catch (e) { /* ignore */ }
+
+  if (state.notebook.pages.length === 0) {
+    const page = createPage('Page 1')
+    state.notebook.pages.push(page)
+    state.notebook.activePageId = page.id
+  }
+
+  loadPageIntoState(activePage())
+  if (migrated) save()
 }
 
 // ─── Drawing ─────────────────────────────────────────────────────────────────
@@ -654,8 +778,8 @@ canvas.addEventListener('pointerup', e => {
   }
   if (state.dragging) {
     historyCommit()
-    save()
   }
+  save()
   state.dragging = null
   state.panning = false
   mouseState.down = false
@@ -715,6 +839,7 @@ canvas.addEventListener('wheel', e => {
   state.view.x = mx - (mx - state.view.x) * (newScale / state.view.scale)
   state.view.y = my - (my - state.view.y) * (newScale / state.view.scale)
   state.view.scale = newScale
+  save()
   render()
 }, { passive: false })
 
@@ -792,7 +917,11 @@ document.addEventListener('keydown', e => {
 })
 
 // Buttons
+pageSelect.addEventListener('change', () => switchPage(Number(pageSelect.value)))
+btnNewPage.addEventListener('click', addNotebookPage)
+
 btnAdd.addEventListener('click', () => {
+  btnAdd.blur()
   const cx = canvas.width / 2, cy = canvas.height / 2
   const world = screenToWorld(cx, cy)
   const node = newNode(world.x, world.y)
@@ -851,6 +980,7 @@ function fitToContent() {
   state.view.scale = scale
   state.view.x = (canvas.width - worldW * scale) / 2 - bounds.minX * scale
   state.view.y = (canvas.height - worldH * scale) / 2 - bounds.minY * scale
+  save()
   render()
 }
 
@@ -932,6 +1062,7 @@ minimapCanvas.addEventListener('click', e => {
   const world = minimapToWorld(e.clientX - rect.left, e.clientY - rect.top, metrics)
   state.view.x = canvas.width / 2 - world.x * state.view.scale
   state.view.y = canvas.height / 2 - world.y * state.view.scale
+  save()
   render()
 })
 
@@ -985,12 +1116,14 @@ function render() {
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 load()
+renderPageTabs()
 // Initialize history after load
 historyPush()
 
 if (state.nodes.length === 0) {
   const center = screenToWorld(canvas.width / 2, canvas.height / 2)
-  state.nodes.push(newNode(center.x, center.y, 'Mind Map'))
+  state.nodes.push(newNode(center.x, center.y, activePage()?.title || 'Mind Map'))
   historyCommit()
+  save()
 }
 render()
