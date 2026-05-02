@@ -24,7 +24,36 @@ const state = {
 
 const STORAGE_KEY = 'mind-mapp-v1'
 
-const PROJECT_KANBAN_VERSION = 1
+const PROJECT_KANBAN_VERSION = 2
+const COMMIT_BASE_URL = ''
+const KANBAN_COMMITS = {
+  root: ['db7630c', 'Current Kanban page behavior'],
+  Done: ['eacec40', 'Project Kanban generator'],
+  'In Progress': ['5d4cef4', 'Ollama handwriting/API workstream'],
+  'Blocked / Risk': ['e8b06f2', 'Dual-brain deployment blocker'],
+  Next: ['db7630c', 'Current page creation workflow'],
+  'Initialize Vite + vanilla JS project': ['758a393', 'Initial project scaffold'],
+  'Canvas pan/zoom and resize redraw': ['27daa89', 'Canvas resize redraw reliability'],
+  'Node create, edit, drag, delete': ['7636a8e', 'Canvas dragging reliability'],
+  'Edge create, label, select, delete': ['eb9dcb7', 'Edge labels and connection editing'],
+  'localStorage persistence and legacy migration': ['f882754', 'Notebook migration and persistence'],
+  'PNG export, minimap, fit view': ['f68c865', 'Minimap transform reliability'],
+  'Keyboard shortcuts and undo/redo': ['bb4c202', 'Undo/redo and keyboard history'],
+  'Notebook pages with isolated maps': ['f882754', 'Notebook pages'],
+  'Node details panel: description + drawing': ['01f4b2b', 'Node details panel'],
+  'Autosave node descriptions while typing': ['471a2a8', 'Description autosave'],
+  'Map delete button and eraser mode': ['9bb560b', 'Deletion and eraser tools'],
+  'Drawing pen/eraser tools': ['9bb560b', 'Drawing eraser tools'],
+  'Ollama handwriting API wiring': ['5d4cef4', 'Ollama handwriting endpoint'],
+  'Tune handwriting recognition quality on qwen2.5vl': ['5d4cef4', 'Vision model handwriting API'],
+  'Validate live Cloudflare/Tailscale route from canonical host': ['6739911', 'ollama-cyber provider endpoint'],
+  'Dual-brain deployment: app currently served from Cyber WSL, canonical host should be Umbrel': ['e8b06f2', 'Dual-brain deployment blocker'],
+  'Keep Ollama on Cyber CUDA only, do not expose Ollama directly to public internet': ['6739911', 'Cyber Ollama endpoint routing'],
+  'Move Mind Mapp serving to Umbrel': ['e8b06f2', 'Canonical host blocker'],
+  'Route Umbrel app/API to Cyber Ollama over tailnet provider URL': ['6739911', 'ollama-cyber provider endpoint'],
+  'Add durable service config for Mind Mapp server/tunnel': ['5d4cef4', 'Node server entrypoint'],
+  'Add provider fallback or stronger OCR if Ollama handwriting is weak': ['bc39aa2', 'Handwriting recognition fallback wiring'],
+}
 const PROJECT_KANBAN_COLUMNS = [
   {
     title: 'Done',
@@ -76,11 +105,17 @@ function createPage(title = null) {
 }
 
 
+function commitDetailsFor(text) {
+  const [hash, label] = KANBAN_COMMITS[text] || KANBAN_COMMITS.root
+  const url = COMMIT_BASE_URL ? `${COMMIT_BASE_URL}/${hash}` : 'local repo, no remote URL configured'
+  return `Git commit: ${hash} (${label})\nCommit URL: ${url}`
+}
+
 function makeNodeForPage(page, x, y, text, detailsText = '') {
   const previousLastId = state.lastId
   state.lastId = page.lastId || 0
   const node = newNode(x, y, text)
-  node.details.text = detailsText
+  node.details.text = [detailsText, commitDetailsFor(text)].filter(Boolean).join('\n\n')
   page.lastId = state.lastId
   state.lastId = previousLastId
   return node

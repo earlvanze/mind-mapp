@@ -28,7 +28,7 @@ test('project kanban button creates a new kanban page without renaming page 1', 
   expect(saved.notebook.pages[0].nodes[0].text).toBe('Keep me')
   const kanban = saved.notebook.pages[1]
   expect(kanban.title).toBe('Project Kanban')
-  expect(kanban.kanbanSeedVersion).toBe(1)
+  expect(kanban.kanbanSeedVersion).toBe(2)
   expect(kanban.nodes.map(node => node.text)).toEqual(expect.arrayContaining([
     'Mind Mapp Project Kanban',
     'Done',
@@ -39,6 +39,10 @@ test('project kanban button creates a new kanban page without renaming page 1', 
     'Dual-brain deployment: app currently served from Cyber WSL, canonical host should be Umbrel',
   ]))
   expect(kanban.edges.length).toBe(kanban.nodes.length - 1)
+  for (const node of kanban.nodes) {
+    expect(node.details.text).toContain('Git commit:')
+    expect(node.details.text).toContain('Commit URL:')
+  }
   expect(Object.values(kanban.edgeLabels)).toEqual(expect.arrayContaining(['Done', 'Next']))
   expect(saved.notebook.activePageId).toBe(kanban.id)
 })
