@@ -184,3 +184,14 @@ canvas.grabbing { cursor: grabbing; }
   cursor: crosshair;
   touch-action: none;
 }
+
+.details-draw-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.recognition-status {
+  min-height: 18px;
+  font-size: 12px;
+  color: var(--text);
+}

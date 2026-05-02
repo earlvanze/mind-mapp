@@ -207,9 +207,13 @@ app.innerHTML = `
     <textarea id="details-text" placeholder="Add context, requirements, links, acceptance notes..."></textarea>
     <div class="details-draw-header">
       <span class="details-label">Drawing</span>
-      <button id="btn-clear-drawing" title="Clear drawing">Clear</button>
+      <span class="details-draw-actions">
+        <button id="btn-recognize-handwriting" title="Recognize handwriting from drawing">Recognize</button>
+        <button id="btn-clear-drawing" title="Clear drawing">Clear</button>
+      </span>
     </div>
     <canvas id="details-drawing" width="320" height="220"></canvas>
+    <div id="recognition-status" class="recognition-status" aria-live="polite"></div>
   </aside>
 </div>
 `
@@ -233,6 +237,8 @@ const detailsDrawing = document.getElementById('details-drawing')
 const detailsCtx = detailsDrawing.getContext('2d')
 const btnCloseDetails = document.getElementById('btn-close-details')
 const btnClearDrawing = document.getElementById('btn-clear-drawing')
+const btnRecognizeHandwriting = document.getElementById('btn-recognize-handwriting')
+const recognitionStatus = document.getElementById('recognition-status')
 
 
 // ─── Sizing ───────────────────────────────────────────────────────────────────
@@ -685,9 +691,10 @@ function selectedNode() {
 }
 
 function ensureNodeDetails(node) {
-  if (!node.details) node.details = { text: '', drawing: null }
+  if (!node.details) node.details = { text: '', drawing: null, strokes: [] }
   if (typeof node.details.text !== 'string') node.details.text = ''
   if (!('drawing' in node.details)) node.details.drawing = null
+  if (!Array.isArray(node.details.strokes)) node.details.strokes = []
   return node.details
 }
 
@@ -714,6 +721,7 @@ function showDetailsForNode(node) {
   detailsPanel.classList.remove('hidden')
   detailsTitle.textContent = node.text || 'Node details'
   detailsText.value = node.details.text
+  recognitionStatus.textContent = ''
   renderDetailsDrawing(node)
   resize()
 }
@@ -759,6 +767,7 @@ function persistDetailsDrawing() {
 
 let drawingDetails = false
 let lastDetailsPoint = null
+let currentDetailsStroke = null
 
 function detailsPoint(e) {
   const rect = detailsDrawing.getBoundingClientRect()
@@ -774,6 +783,7 @@ function beginDetailsDrawing(e) {
   detailsDrawing.setPointerCapture?.(e.pointerId)
   drawingDetails = true
   lastDetailsPoint = detailsPoint(e)
+  currentDetailsStroke = [{ ...lastDetailsPoint, t: Date.now() }]
 }
 
 function moveDetailsDrawing(e) {
@@ -788,6 +798,7 @@ function moveDetailsDrawing(e) {
   detailsCtx.moveTo(lastDetailsPoint.x, lastDetailsPoint.y)
   detailsCtx.lineTo(point.x, point.y)
   detailsCtx.stroke()
+  currentDetailsStroke?.push({ ...point, t: Date.now() })
   lastDetailsPoint = point
 }
 
@@ -795,8 +806,79 @@ function endDetailsDrawing(e) {
   if (!drawingDetails) return
   detailsDrawing.releasePointerCapture?.(e.pointerId)
   drawingDetails = false
+  const node = selectedNode()
+  if (node && currentDetailsStroke?.length) ensureNodeDetails(node).strokes.push(currentDetailsStroke)
+  currentDetailsStroke = null
   lastDetailsPoint = null
   persistDetailsDrawing()
+}
+
+
+function strokeBounds(points) {
+  const xs = points.map(point => point.x)
+  const ys = points.map(point => point.y)
+  const left = Math.min(...xs)
+  const top = Math.min(...ys)
+  const right = Math.max(...xs)
+  const bottom = Math.max(...ys)
+  return { left, top, width: right - left, height: bottom - top }
+}
+
+function makeHandwritingStroke(points) {
+  const stroke = {
+    points: points.map(point => ({ x: point.x, y: point.y, t: point.t })),
+    getBoundingBox: () => strokeBounds(points),
+  }
+  return stroke
+}
+
+function bestPredictionText(predictions) {
+  const first = predictions?.[0]
+  if (!first) return ''
+  if (typeof first === 'string') return first
+  return first.text || first.label || first.prediction || first.candidates?.[0]?.text || ''
+}
+
+async function recognizeHandwritingFromStrokes(strokes) {
+  if (window.mindMappRecognizeHandwriting) return window.mindMappRecognizeHandwriting(strokes)
+
+  if (!navigator.createHandwritingRecognizer) {
+    throw new Error('Handwriting recognition is not available in this browser yet.')
+  }
+
+  const recognizer = await navigator.createHandwritingRecognizer({ languages: ['en'] })
+  const drawing = await recognizer.startDrawing({ hints: { recognitionType: 'text' } })
+  for (const stroke of strokes) drawing.addStroke(makeHandwritingStroke(stroke))
+  const predictions = await drawing.getPrediction()
+  recognizer.finish?.()
+  const text = bestPredictionText(predictions)
+  if (!text) throw new Error('No handwriting text recognized.')
+  return text
+}
+
+async function recognizeHandwriting() {
+  const node = selectedNode()
+  if (!node) return
+  const details = ensureNodeDetails(node)
+  if (!details.strokes.length) {
+    recognitionStatus.textContent = 'Draw something first, then recognize.'
+    return
+  }
+
+  btnRecognizeHandwriting.disabled = true
+  recognitionStatus.textContent = 'Recognizing handwriting…'
+  try {
+    const text = (await recognizeHandwritingFromStrokes(details.strokes)).trim()
+    if (!text) throw new Error('No handwriting text recognized.')
+    const prefix = detailsText.value.trim() ? `${detailsText.value.trim()}\n` : ''
+    detailsText.value = `${prefix}${text}`
+    persistDetailsText({ commitHistory: true })
+    recognitionStatus.textContent = `Recognized: “${text}”`
+  } catch (error) {
+    recognitionStatus.textContent = error.message || 'Handwriting recognition failed.'
+  } finally {
+    btnRecognizeHandwriting.disabled = false
+  }
 }
 
 // ─── Events ───────────────────────────────────────────────────────────────────
@@ -1087,7 +1169,18 @@ detailsText.addEventListener('input', scheduleDetailsTextSave)
 detailsText.addEventListener('change', () => persistDetailsText({ commitHistory: false }))
 detailsText.addEventListener('blur', () => persistDetailsText({ commitHistory: false }))
 btnCloseDetails.addEventListener('click', () => { state.selected = null; state.selectedType = null; hideDetails(); render() })
-btnClearDrawing.addEventListener('click', () => { drawDetailsBackground(); persistDetailsDrawing() })
+btnClearDrawing.addEventListener('click', () => {
+  const node = selectedNode()
+  if (node) {
+    const details = ensureNodeDetails(node)
+    details.strokes = []
+    details.drawing = null
+  }
+  drawDetailsBackground()
+  recognitionStatus.textContent = ''
+  persistDetailsDrawing()
+})
+btnRecognizeHandwriting.addEventListener('click', recognizeHandwriting)
 detailsDrawing.addEventListener('pointerdown', beginDetailsDrawing)
 detailsDrawing.addEventListener('pointermove', moveDetailsDrawing)
 detailsDrawing.addEventListener('pointerup', endDetailsDrawing)
