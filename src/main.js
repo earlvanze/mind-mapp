@@ -155,32 +155,15 @@ function buildProjectKanbanPage(page) {
   })
 }
 
-function applyProjectKanbanToPageOne() {
+function applyProjectKanbanToNewPage() {
   persistDetailsText({ commitHistory: false })
   if (state.editing) commitEdit()
   if (edgeEditInput) commitEdgeLabel()
   syncCurrentPage()
 
-  let page = state.notebook.pages[0]
-  if (!page) {
-    page = createPage('Project Kanban')
-    state.notebook.pages.push(page)
-  } else if (pageHasContent(page) && page.kanbanSeedVersion !== PROJECT_KANBAN_VERSION) {
-    const keepExisting = window.confirm('Replace Page 1 with the project kanban? Your current Page 1 will be preserved as a new page.')
-    if (!keepExisting) return false
-    const backup = {
-      ...page,
-      id: ++state.notebook.lastPageId,
-      title: page.title === 'Project Kanban' ? 'Previous Page 1' : `${page.title || 'Page 1'} (saved)`,
-      nodes: [...(page.nodes || [])],
-      edges: [...(page.edges || [])],
-      edgeLabels: { ...(page.edgeLabels || {}) },
-      view: page.view ? { ...page.view } : { x: 0, y: 0, scale: 1 },
-    }
-    state.notebook.pages.splice(1, 0, backup)
-  }
-
+  const page = createPage('Project Kanban')
   buildProjectKanbanPage(page)
+  state.notebook.pages.push(page)
   state.notebook.activePageId = page.id
   loadPageIntoState(page)
   hideDetails()
@@ -368,7 +351,7 @@ app.innerHTML = `
     <select id="page-select" title="Current page"></select>
     <button id="btn-new-page" title="New notebook page">+ Page</button>
     <button id="btn-delete-page" title="Delete current notebook page">Delete Page</button>
-    <button id="btn-project-kanban" title="Put the project kanban on Page 1">Kanban</button>
+    <button id="btn-project-kanban" title="Create a project kanban page">Kanban</button>
   </span>
   <button id="btn-add" title="Add node (A)">+ Node</button>
   <button id="btn-connect" title="Connect mode (C)">⬌ Connect</button>
@@ -1469,7 +1452,7 @@ detailsDrawing.addEventListener('pointercancel', endDetailsDrawing)
 pageSelect.addEventListener('change', () => switchPage(Number(pageSelect.value)))
 btnNewPage.addEventListener('click', addNotebookPage)
 btnDeletePage.addEventListener('click', deleteCurrentPage)
-btnProjectKanban.addEventListener('click', applyProjectKanbanToPageOne)
+btnProjectKanban.addEventListener('click', applyProjectKanbanToNewPage)
 
 btnDelete.addEventListener('click', deleteSelected)
 btnEraser.addEventListener('click', () => setEraserMode(!state.eraserMode))
