@@ -98,6 +98,106 @@ const PROJECT_KANBAN_COLUMNS = [
   },
 ]
 
+
+const TEMPLATE_STORAGE_KEY = 'mind-mapp-v1-style-templates'
+const COLORFUL_PALETTE = [
+  { fill: '#fff7ad', stroke: '#f59e0b', text: '#422006', accent: '#f97316' },
+  { fill: '#bbf7d0', stroke: '#22c55e', text: '#052e16', accent: '#16a34a' },
+  { fill: '#bfdbfe', stroke: '#3b82f6', text: '#0f172a', accent: '#2563eb' },
+  { fill: '#fbcfe8', stroke: '#ec4899', text: '#500724', accent: '#db2777' },
+  { fill: '#ddd6fe', stroke: '#8b5cf6', text: '#2e1065', accent: '#7c3aed' },
+  { fill: '#fed7aa', stroke: '#f97316', text: '#431407', accent: '#ea580c' },
+  { fill: '#a7f3d0', stroke: '#14b8a6', text: '#042f2e', accent: '#0d9488' },
+  { fill: '#fecaca', stroke: '#ef4444', text: '#450a0a', accent: '#dc2626' },
+]
+const DEFAULT_STYLE_TEMPLATES = [
+  { id: 'tpl-neon-pop', name: 'Neon Pop', fill: '#f0abfc', stroke: '#c026d3', text: '#3b0764', accent: '#e879f9', shadow: '#d946ef' },
+  { id: 'tpl-sunrise', name: 'Sunrise', fill: '#fde68a', stroke: '#f97316', text: '#431407', accent: '#fb7185', shadow: '#f59e0b' },
+  { id: 'tpl-ocean', name: 'Ocean', fill: '#bae6fd', stroke: '#0284c7', text: '#082f49', accent: '#06b6d4', shadow: '#0ea5e9' },
+  { id: 'tpl-forest', name: 'Forest', fill: '#bbf7d0', stroke: '#16a34a', text: '#052e16', accent: '#84cc16', shadow: '#22c55e' },
+  { id: 'tpl-grape', name: 'Grape', fill: '#ddd6fe', stroke: '#7c3aed', text: '#2e1065', accent: '#a855f7', shadow: '#8b5cf6' },
+  { id: 'tpl-candy', name: 'Candy', fill: '#fbcfe8', stroke: '#ec4899', text: '#500724', accent: '#fb7185', shadow: '#f472b6' },
+  { id: 'tpl-mint', name: 'Mint', fill: '#ccfbf1', stroke: '#0d9488', text: '#042f2e', accent: '#2dd4bf', shadow: '#14b8a6' },
+]
+
+function cloneStyle(style = {}) {
+  return {
+    fill: style.fill || '#ffffff',
+    stroke: style.stroke || '#e5e4e7',
+    text: style.text || '#08060d',
+    accent: style.accent || style.stroke || '#aa3bff',
+    shadow: style.shadow || style.accent || style.stroke || '#aa3bff',
+  }
+}
+
+function templateToStyle(template) {
+  return cloneStyle(template)
+}
+
+function colorForIndex(index) {
+  return cloneStyle(COLORFUL_PALETTE[index % COLORFUL_PALETTE.length])
+}
+
+function styleNode(node, style) {
+  node.style = cloneStyle(style)
+  return node
+}
+
+function loadCustomTemplates() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(TEMPLATE_STORAGE_KEY) || '[]')
+    return Array.isArray(raw) ? raw.filter(t => t && t.name).map(t => ({ ...cloneStyle(t), id: t.id || `custom-${Date.now()}`, name: String(t.name) })) : []
+  } catch (_) {
+    return []
+  }
+}
+
+function saveCustomTemplates(templates) {
+  localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(templates))
+}
+
+function allStyleTemplates() {
+  return [...DEFAULT_STYLE_TEMPLATES, ...loadCustomTemplates()]
+}
+
+function selectedNodesForTemplate() {
+  if (state.selectedType === 'node' && state.selected !== null) {
+    const node = state.nodes.find(n => n.id === state.selected)
+    return node ? [node] : []
+  }
+  return []
+}
+
+function applyTemplateToNodes(template, nodes) {
+  const targetNodes = nodes?.length ? nodes : []
+  if (!template || !targetNodes.length) return false
+  const style = templateToStyle(template)
+  targetNodes.forEach(node => styleNode(node, style))
+  historyCommit()
+  save()
+  render()
+  return true
+}
+
+function makeMapColorful() {
+  state.nodes.forEach((node, index) => styleNode(node, colorForIndex(index)))
+  state.edges.forEach((edge, index) => {
+    const from = state.nodes.find(node => node.id === fromId(edge))
+    edge.color = from?.style?.accent || COLORFUL_PALETTE[index % COLORFUL_PALETTE.length].accent
+  })
+  historyCommit()
+  save()
+  render()
+}
+
+function colorizePage(page) {
+  page.nodes.forEach((node, index) => styleNode(node, colorForIndex(index)))
+  page.edges.forEach((edge, index) => {
+    const from = page.nodes.find(node => node.id === fromId(edge))
+    edge.color = from?.style?.accent || COLORFUL_PALETTE[index % COLORFUL_PALETTE.length].accent
+  })
+}
+
 // ─── Notebook pages ──────────────────────────────────────────────────────────
 function createPage(title = null) {
   const id = ++state.notebook.lastPageId
@@ -191,6 +291,7 @@ function buildProjectKanbanPage(page) {
       addPageEdge(page, header, card)
     })
   })
+  colorizePage(page)
 }
 
 function applyProjectKanbanToNewPage() {
@@ -299,6 +400,7 @@ function buildTrelloBoardPage(page, board) {
       addPageEdge(page, header, node)
     })
   })
+  colorizePage(page)
 }
 
 function importTrelloBoard(board) {
@@ -457,6 +559,7 @@ function buildObsidianKanbanPage(page, parsed) {
       addPageEdge(page, header, node)
     })
   })
+  colorizePage(page)
 }
 
 function importObsidianKanbanMarkdown(markdown, fileName) {
@@ -601,6 +704,108 @@ function deleteCurrentPage() {
   return true
 }
 
+
+// ─── Color templates ─────────────────────────────────────────────────────────
+let activeTemplateId = DEFAULT_STYLE_TEMPLATES[0].id
+
+function activeTemplate() {
+  return allStyleTemplates().find(template => template.id === activeTemplateId) || allStyleTemplates()[0]
+}
+
+function setTemplateStatus(message) {
+  if (templateStatus) templateStatus.textContent = message || ''
+}
+
+function renderTemplateGrid() {
+  if (!templateGrid) return
+  templateGrid.innerHTML = ''
+  for (const template of allStyleTemplates()) {
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = `template-swatch${template.id === activeTemplateId ? ' active' : ''}`
+    button.dataset.templateId = template.id
+    button.innerHTML = `
+      <span class="template-preview" style="background:${template.fill};border-color:${template.stroke};color:${template.text};box-shadow:0 8px 20px ${template.shadow || template.accent}55">Aa</span>
+      <span class="template-name">${template.name}</span>
+    `
+    button.addEventListener('click', () => {
+      activeTemplateId = template.id
+      renderTemplateGrid()
+      setTemplateStatus(`${template.name} selected.`)
+    })
+    templateGrid.appendChild(button)
+  }
+}
+
+function openTemplateModal() {
+  renderTemplateGrid()
+  setTemplateStatus(selectedNodesForTemplate().length ? 'Pick a template, then apply it to the selected node or the whole map.' : 'No node selected. Pick a template and apply it to all, or select a node first.')
+  templateModal?.classList.remove('hidden')
+}
+
+function closeTemplateModal() {
+  templateModal?.classList.add('hidden')
+}
+
+function saveSelectedNodeAsTemplate() {
+  const node = selectedNodesForTemplate()[0]
+  if (!node) {
+    setTemplateStatus('Select a styled node first, then save it as a template.')
+    return false
+  }
+  const name = window.prompt('Template name?', node.text ? `${node.text} Style` : 'My Template')
+  if (!name?.trim()) return false
+  const templates = loadCustomTemplates()
+  const template = { id: `custom-${Date.now()}`, name: name.trim(), ...cloneStyle(node.style || colorForIndex(templates.length)) }
+  templates.push(template)
+  saveCustomTemplates(templates)
+  activeTemplateId = template.id
+  renderTemplateGrid()
+  setTemplateStatus(`Saved “${template.name}”.`)
+  return true
+}
+
+function exportTemplates() {
+  const custom = loadCustomTemplates()
+  const blob = new Blob([JSON.stringify({ version: 1, templates: custom }, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'mindmapp-color-templates.json'
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+  setTemplateStatus(custom.length ? `Exported ${custom.length} custom template${custom.length === 1 ? '' : 's'}.` : 'Exported an empty custom template set.')
+}
+
+async function importTemplateFile(file) {
+  if (!file) return false
+  try {
+    const parsed = JSON.parse(await file.text())
+    const incoming = Array.isArray(parsed) ? parsed : parsed.templates
+    if (!Array.isArray(incoming)) throw new Error('Expected a templates array or { templates: [...] }.')
+    const existing = loadCustomTemplates()
+    const names = new Set(existing.map(t => t.name.toLowerCase()))
+    let imported = 0
+    for (const raw of incoming) {
+      if (!raw?.name || names.has(String(raw.name).toLowerCase())) continue
+      existing.push({ id: `custom-${Date.now()}-${imported}`, name: String(raw.name), ...cloneStyle(raw) })
+      names.add(String(raw.name).toLowerCase())
+      imported += 1
+    }
+    saveCustomTemplates(existing)
+    renderTemplateGrid()
+    setTemplateStatus(`Imported ${imported} template${imported === 1 ? '' : 's'}.`)
+    return true
+  } catch (error) {
+    setTemplateStatus(`Could not import templates: ${error.message}`)
+    return false
+  } finally {
+    if (templateFileInput) templateFileInput.value = ''
+  }
+}
+
 // ─── History (undo/redo) ─────────────────────────────────────────────────────
 const MAX_HISTORY = 50
 const history = { stack: [], index: -1 }
@@ -674,6 +879,8 @@ app.innerHTML = `
     <input id="trello-file-input" type="file" accept="application/json,.json" hidden>
     <button id="btn-import-obsidian" title="Import an Obsidian Kanban Markdown file">Import Obsidian</button>
     <input id="obsidian-file-input" type="file" accept="text/markdown,text/plain,.md,.markdown" hidden>
+    <button id="btn-templates" title="Apply, save, import, or export colorful node templates">📋 Templates</button>
+    <button id="btn-colorful" title="Apply a bright color palette to this map">🌈 Colorful</button>
   </span>
   <button id="btn-add" title="Add node (A)">+ Node</button>
   <button id="btn-connect" title="Connect mode (C)">⬌ Connect</button>
@@ -687,6 +894,27 @@ app.innerHTML = `
   </span>
   <span class="toolbar-hint">Double-click canvas to add node. Double-click node to edit. Drag to move.</span>
   <div id="minimap-container"><canvas id="minimap"></canvas></div>
+</div>
+<div id="template-modal" class="template-modal hidden" role="dialog" aria-modal="true" aria-labelledby="template-modal-title">
+  <div class="template-card">
+    <div class="template-header">
+      <div>
+        <h2 id="template-modal-title">Color Templates</h2>
+        <p>Apply bright node styles, save a selected node as a reusable template, or move templates between browsers.</p>
+      </div>
+      <button id="btn-close-templates" title="Close templates">×</button>
+    </div>
+    <div id="template-grid" class="template-grid"></div>
+    <div class="template-actions">
+      <button id="btn-template-apply-selected">Apply to Selected</button>
+      <button id="btn-template-apply-all">Apply to All</button>
+      <button id="btn-template-save-selected">Save Selected as Template</button>
+      <button id="btn-template-export">Export Templates</button>
+      <button id="btn-template-import">Import Templates</button>
+      <input id="template-file-input" type="file" accept="application/json,.json" hidden>
+    </div>
+    <p id="template-status" class="template-status" aria-live="polite"></p>
+  </div>
 </div>
 <div class="workspace">
   <canvas id="canvas"></canvas>
@@ -727,6 +955,18 @@ const btnImportTrello = document.getElementById('btn-import-trello')
 const trelloFileInput = document.getElementById('trello-file-input')
 const btnImportObsidian = document.getElementById('btn-import-obsidian')
 const obsidianFileInput = document.getElementById('obsidian-file-input')
+const btnTemplates = document.getElementById('btn-templates')
+const btnColorful = document.getElementById('btn-colorful')
+const templateModal = document.getElementById('template-modal')
+const templateGrid = document.getElementById('template-grid')
+const templateStatus = document.getElementById('template-status')
+const btnCloseTemplates = document.getElementById('btn-close-templates')
+const btnTemplateApplySelected = document.getElementById('btn-template-apply-selected')
+const btnTemplateApplyAll = document.getElementById('btn-template-apply-all')
+const btnTemplateSaveSelected = document.getElementById('btn-template-save-selected')
+const btnTemplateExport = document.getElementById('btn-template-export')
+const btnTemplateImport = document.getElementById('btn-template-import')
+const templateFileInput = document.getElementById('template-file-input')
 const btnAdd = document.getElementById('btn-add')
 const btnConnect = document.getElementById('btn-connect')
 const btnDelete = document.getElementById('btn-delete')
@@ -999,7 +1239,7 @@ function drawEdge(ctx, e) {
   const [ax, ay, bx, by] = endpoints(from, to)
   const isHovered = state.hoveredEdge === e.id
   const label = state.edgeLabels[e.id] || null
-  drawEdgeLine(ctx, ax, ay, bx, by, isHovered ? '#aa3bff' : '#6b6375', false, isHovered, label)
+  drawEdgeLine(ctx, ax, ay, bx, by, isHovered ? '#aa3bff' : (e.color || from.style?.accent || '#6b6375'), false, isHovered, label)
 }
 
 function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false, label = null) {
@@ -1042,11 +1282,13 @@ function drawNode(ctx, n) {
   const isHovered = state.hoveredNode === n.id
   const isConnecting = state.connecting === n.id
 
-  ctx.shadowColor = 'rgba(0,0,0,0.15)'
+  const nodeStyle = cloneStyle(n.style || {})
+
+  ctx.shadowColor = isSelected ? `${nodeStyle.shadow}66` : 'rgba(0,0,0,0.15)'
   ctx.shadowBlur = 8 / state.view.scale
   ctx.shadowOffsetY = 3 / state.view.scale
 
-  ctx.fillStyle = isSelected ? '#aa3bff' : isConnecting ? '#c084fc' : isHovered ? '#f4f3ec' : '#fff'
+  ctx.fillStyle = isSelected ? nodeStyle.accent : isConnecting ? nodeStyle.shadow : isHovered ? lightenColor(nodeStyle.fill, 0.14) : nodeStyle.fill
   roundRect(ctx, n.x, n.y, n.width, n.height, 8 / state.view.scale)
   ctx.fill()
 
@@ -1054,13 +1296,13 @@ function drawNode(ctx, n) {
   ctx.shadowBlur = 0
   ctx.shadowOffsetY = 0
 
-  ctx.strokeStyle = isSelected ? '#7c2db8' : '#e5e4e7'
+  ctx.strokeStyle = isSelected ? nodeStyle.shadow : nodeStyle.stroke
   ctx.lineWidth = (isSelected || isHovered ? 2 : 1) / state.view.scale
   roundRect(ctx, n.x, n.y, n.width, n.height, 8 / state.view.scale)
   ctx.stroke()
 
   if (!isEditing) {
-    ctx.fillStyle = isSelected ? '#fff' : '#08060d'
+    ctx.fillStyle = isSelected ? '#fff' : nodeStyle.text
     ctx.font = `16px system-ui, sans-serif`
     const lines = n.text.split('\n')
     const lineHeight = 16 * 1.4
@@ -1070,6 +1312,16 @@ function drawNode(ctx, n) {
       ctx.fillText(lines[i], n.x + 12, startY + i * lineHeight)
     }
   }
+}
+
+function lightenColor(hex, amount = 0.12) {
+  const value = String(hex || '#ffffff').replace('#', '')
+  if (value.length !== 6) return hex || '#ffffff'
+  const n = parseInt(value, 16)
+  const r = Math.min(255, Math.round(((n >> 16) & 255) + 255 * amount))
+  const g = Math.min(255, Math.round(((n >> 8) & 255) + 255 * amount))
+  const b = Math.min(255, Math.round((n & 255) + 255 * amount))
+  return `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`
 }
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -1783,6 +2035,24 @@ btnImportTrello.addEventListener('click', () => trelloFileInput.click())
 trelloFileInput.addEventListener('change', () => importTrelloFile(trelloFileInput.files?.[0]))
 btnImportObsidian.addEventListener('click', () => obsidianFileInput.click())
 obsidianFileInput.addEventListener('change', () => importObsidianKanbanFile(obsidianFileInput.files?.[0]))
+btnTemplates.addEventListener('click', openTemplateModal)
+btnColorful.addEventListener('click', makeMapColorful)
+btnCloseTemplates.addEventListener('click', closeTemplateModal)
+templateModal.addEventListener('click', e => { if (e.target === templateModal) closeTemplateModal() })
+btnTemplateApplySelected.addEventListener('click', () => {
+  const template = activeTemplate()
+  if (applyTemplateToNodes(template, selectedNodesForTemplate())) setTemplateStatus(`Applied ${template.name} to selected node.`)
+  else setTemplateStatus('Select a node first, or use Apply to All.')
+})
+btnTemplateApplyAll.addEventListener('click', () => {
+  const template = activeTemplate()
+  if (applyTemplateToNodes(template, state.nodes)) setTemplateStatus(`Applied ${template.name} to every node on this page.`)
+  else setTemplateStatus('This page has no nodes yet.')
+})
+btnTemplateSaveSelected.addEventListener('click', saveSelectedNodeAsTemplate)
+btnTemplateExport.addEventListener('click', exportTemplates)
+btnTemplateImport.addEventListener('click', () => templateFileInput.click())
+templateFileInput.addEventListener('change', () => importTemplateFile(templateFileInput.files?.[0]))
 
 btnDelete.addEventListener('click', deleteSelected)
 btnEraser.addEventListener('click', () => setEraserMode(!state.eraserMode))
