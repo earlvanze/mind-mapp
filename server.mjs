@@ -254,9 +254,6 @@ async function handleOrganizeMindMap(req, res) {
   }
 }
 
-async function handleOrganizeKanban(req, res) {
-  return handleOrganizeMindMap(req, res)
-}
 
 async function serveStatic(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`)
@@ -280,7 +277,6 @@ async function serveStatic(req, res) {
 const server = createServer((req, res) => {
   if (req.method === 'POST' && req.url === '/api/recognize-handwriting') return handleRecognition(req, res)
   if (req.method === 'POST' && req.url === '/api/organize-mind-map') return handleOrganizeMindMap(req, res)
-  if (req.method === 'POST' && req.url === '/api/organize-kanban') return handleOrganizeKanban(req, res)
   if (req.method === 'GET' || req.method === 'HEAD') return serveStatic(req, res)
   res.writeHead(405)
   res.end('Method not allowed')
