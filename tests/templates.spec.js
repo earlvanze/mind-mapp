@@ -29,4 +29,7 @@ test('colorful button gives imported kanban multiple colors', async ({ page }) =
     return pageData.nodes.map(n => n.style?.fill).filter(Boolean)
   })
   expect(new Set(fills).size).toBeGreaterThan(3)
+  expect(fills).toContain('#dcfce7')
+  expect(fills).toContain('#dbeafe')
+  expect(fills).toContain('#fee2e2')
 })

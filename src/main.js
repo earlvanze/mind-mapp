@@ -110,6 +110,19 @@ const COLORFUL_PALETTE = [
   { fill: '#a7f3d0', stroke: '#14b8a6', text: '#042f2e', accent: '#0d9488' },
   { fill: '#fecaca', stroke: '#ef4444', text: '#450a0a', accent: '#dc2626' },
 ]
+
+const CONCEPT_COLOR_RULES = [
+  { name: 'done', words: ['done', 'complete', 'completed', 'shipped', 'closed'], style: { fill: '#dcfce7', stroke: '#22c55e', text: '#052e16', accent: '#16a34a', shadow: '#22c55e' } },
+  { name: 'active', words: ['active', 'now', 'doing', 'progress', 'execution', 'current'], style: { fill: '#dbeafe', stroke: '#3b82f6', text: '#0f172a', accent: '#2563eb', shadow: '#3b82f6' } },
+  { name: 'blocked', words: ['blocked', 'risk', 'issue', 'bug', 'fix', 'failure', 'timeout'], style: { fill: '#fee2e2', stroke: '#ef4444', text: '#450a0a', accent: '#dc2626', shadow: '#ef4444' } },
+  { name: 'next', words: ['next', 'todo', 'backlog', 'later', 'planned', 'roadmap'], style: { fill: '#fef3c7', stroke: '#f59e0b', text: '#422006', accent: '#d97706', shadow: '#f59e0b' } },
+  { name: 'property', words: ['property', 'real estate', 'guest', 'booking', 'baselane', 'lofty', 'dao', 'pm ', 'rent', 'owner'], style: { fill: '#ccfbf1', stroke: '#14b8a6', text: '#042f2e', accent: '#0d9488', shadow: '#14b8a6' } },
+  { name: 'finance', words: ['finance', 'financial', 'ledger', 'statement', 'stripe', 'payment', 'valuation', 'token', 'coin'], style: { fill: '#bbf7d0', stroke: '#16a34a', text: '#052e16', accent: '#15803d', shadow: '#22c55e' } },
+  { name: 'infra', words: ['infrastructure', 'infra', 'openclaw', 'gateway', 'cloudflare', 'hostinger', 'deploy', 'sync', 'backup', 'server', 'api', 'ollama', 'cyber', 'umbrel'], style: { fill: '#e0e7ff', stroke: '#6366f1', text: '#1e1b4b', accent: '#4f46e5', shadow: '#6366f1' } },
+  { name: 'product', words: ['mind mapp', 'app', 'product', 'feature', 'ux', 'template', 'kanban', 'trello', 'obsidian'], style: { fill: '#fbcfe8', stroke: '#ec4899', text: '#500724', accent: '#db2777', shadow: '#ec4899' } },
+  { name: 'automation', words: ['automation', 'cron', 'agent', 'workflow', 'skill', 'script', 'briefing', 'summary'], style: { fill: '#ede9fe', stroke: '#8b5cf6', text: '#2e1065', accent: '#7c3aed', shadow: '#8b5cf6' } },
+]
+
 const DEFAULT_STYLE_TEMPLATES = [
   { id: 'tpl-neon-pop', name: 'Neon Pop', fill: '#f0abfc', stroke: '#c026d3', text: '#3b0764', accent: '#e879f9', shadow: '#d946ef' },
   { id: 'tpl-sunrise', name: 'Sunrise', fill: '#fde68a', stroke: '#f97316', text: '#431407', accent: '#fb7185', shadow: '#f59e0b' },
@@ -179,23 +192,65 @@ function applyTemplateToNodes(template, nodes) {
   return true
 }
 
-function makeMapColorful() {
-  state.nodes.forEach((node, index) => styleNode(node, colorForIndex(index)))
-  state.edges.forEach((edge, index) => {
-    const from = state.nodes.find(node => node.id === fromId(edge))
+function normalizeConceptText(value) {
+  return compactText(value).toLowerCase()
+}
+
+function conceptStyleForText(text, fallbackIndex = 0) {
+  const normalized = normalizeConceptText(text)
+  const rule = CONCEPT_COLOR_RULES.find(candidate => candidate.words.some(word => normalized.includes(word)))
+  return rule ? cloneStyle(rule.style) : colorForIndex(fallbackIndex)
+}
+
+function primaryConceptStyleForNode(node, parentStyle, fallbackIndex = 0) {
+  const ownText = `${node?.text || ''} ${node?.details?.text || ''}`
+  const ownStyle = conceptStyleForText(ownText, fallbackIndex)
+  const matchedOwn = CONCEPT_COLOR_RULES.some(rule => rule.words.some(word => normalizeConceptText(ownText).includes(word)))
+  return matchedOwn || !parentStyle ? ownStyle : cloneStyle(parentStyle)
+}
+
+function applyConceptColorsToNodeTree(nodes, edges) {
+  const incoming = new Set(edges.map(edge => toId(edge)))
+  const childIds = new Map(nodes.map(node => [node.id, []]))
+  for (const edge of edges) {
+    const from = fromId(edge)
+    const to = toId(edge)
+    if (childIds.has(from)) childIds.get(from).push(to)
+  }
+  const roots = nodes.filter(node => !incoming.has(node.id)).sort((a, b) => a.y - b.y || a.x - b.x)
+  const visited = new Set()
+
+  function visit(node, parentStyle, siblingIndex) {
+    if (!node || visited.has(node.id)) return
+    visited.add(node.id)
+    const style = primaryConceptStyleForNode(node, parentStyle, siblingIndex)
+    styleNode(node, style)
+    const children = (childIds.get(node.id) || [])
+      .map(id => nodes.find(candidate => candidate.id === id))
+      .filter(Boolean)
+      .sort((a, b) => a.y - b.y || a.x - b.x)
+    children.forEach((child, index) => visit(child, style, index))
+  }
+
+  roots.forEach((root, index) => visit(root, null, index))
+  nodes.forEach((node, index) => {
+    if (!visited.has(node.id)) styleNode(node, conceptStyleForText(`${node.text || ''} ${node.details?.text || ''}`, index))
+  })
+  edges.forEach((edge, index) => {
+    const from = nodes.find(node => node.id === fromId(edge))
     edge.color = from?.style?.accent || COLORFUL_PALETTE[index % COLORFUL_PALETTE.length].accent
   })
+}
+
+function makeMapColorful() {
+  applyConceptColorsToNodeTree(state.nodes, state.edges)
   historyCommit()
   save()
   render()
 }
 
 function colorizePage(page) {
-  page.nodes.forEach((node, index) => styleNode(node, colorForIndex(index)))
-  page.edges.forEach((edge, index) => {
-    const from = page.nodes.find(node => node.id === fromId(edge))
-    edge.color = from?.style?.accent || COLORFUL_PALETTE[index % COLORFUL_PALETTE.length].accent
-  })
+  applyConceptColorsToNodeTree(page.nodes, page.edges)
 }
 
 // ─── Notebook pages ──────────────────────────────────────────────────────────
