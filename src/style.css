@@ -176,6 +176,7 @@ canvas.eraser-mode { cursor: not-allowed; }
 #btn-close-details,
 #btn-clear-drawing,
 #btn-recognize-handwriting,
+#btn-recognize-title,
 #btn-draw-pen,
 #btn-draw-eraser {
   padding: 4px 8px;
@@ -191,14 +192,23 @@ canvas.eraser-mode { cursor: not-allowed; }
   color: var(--text-h);
 }
 
+#details-node-title,
 #details-text {
-  min-height: 140px;
-  resize: vertical;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px;
   font: 14px/1.4 system-ui, sans-serif;
   color: var(--text-h);
+}
+
+#details-node-title {
+  min-height: 0;
+  font-weight: 700;
+}
+
+#details-text {
+  min-height: 140px;
+  resize: vertical;
 }
 
 #details-drawing {

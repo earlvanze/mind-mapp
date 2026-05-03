@@ -37,7 +37,7 @@ function seedLinkedNotebook(page) {
 test('nodes can link to another notebook page and open it with zoom navigation', async ({ page }) => {
   await seedLinkedNotebook(page)
   await page.goto('/')
-  await page.locator('#canvas').click({ position: { x: 160, y: 140 } })
+  await page.locator('#canvas').dblclick({ position: { x: 160, y: 140 } })
   await expect(page.locator('#details-panel')).toBeVisible()
   await page.locator('#details-page-link').selectOption({ label: 'Page 2' })
 
@@ -55,7 +55,7 @@ test('nodes can link to another notebook page and open it with zoom navigation',
 test('linked nodes persist page link metadata', async ({ page }) => {
   await seedLinkedNotebook(page)
   await page.goto('/')
-  await page.locator('#canvas').click({ position: { x: 160, y: 140 } })
+  await page.locator('#canvas').dblclick({ position: { x: 160, y: 140 } })
   await page.locator('#details-page-link').selectOption({ label: 'Page 2' })
 
   const hasLinkedNode = await page.evaluate(() => {
@@ -69,7 +69,7 @@ test('linked nodes persist page link metadata', async ({ page }) => {
 test('zoom back returns to the previous linked page source', async ({ page }) => {
   await seedLinkedNotebook(page)
   await page.goto('/')
-  await page.locator('#canvas').click({ position: { x: 160, y: 140 } })
+  await page.locator('#canvas').dblclick({ position: { x: 160, y: 140 } })
   await page.locator('#details-page-link').selectOption({ label: 'Page 2' })
   await page.locator('#btn-open-linked-page').click()
   await expect(page.locator('#page-select')).toHaveValue('2', { timeout: 2500 })

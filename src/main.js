@@ -1043,7 +1043,7 @@ app.innerHTML = `
     <button id="btn-undo" title="Undo (Ctrl+Z)">↩ Undo</button>
     <button id="btn-redo" title="Redo (Ctrl+Y)">↪ Redo</button>
   </span>
-  <span class="toolbar-hint">Double-click canvas to add node. Double-click node to edit. Drag to move.</span>
+  <span class="toolbar-hint">Double-click canvas to add node. Double-click node to open details. Drag to move.</span>
   <div id="minimap-container"><canvas id="minimap"></canvas></div>
 </div>
 <div id="template-modal" class="template-modal hidden" role="dialog" aria-modal="true" aria-labelledby="template-modal-title">
@@ -1081,6 +1081,8 @@ app.innerHTML = `
       </div>
       <button id="btn-close-details" title="Close details">×</button>
     </div>
+    <label class="details-label" for="details-node-title">Title</label>
+    <input id="details-node-title" type="text" placeholder="Node title">
     <label class="details-label" for="details-text">Description</label>
     <textarea id="details-text" placeholder="Add context, requirements, links, acceptance notes..."></textarea>
     <div class="details-link-row">
@@ -1089,14 +1091,15 @@ app.innerHTML = `
         <select id="details-page-link" title="Linked notebook page"></select>
         <button id="btn-open-linked-page" title="Zoom into this node and open its linked page">Open Link</button>
       </div>
-      <span class="details-link-help">Double-click a linked node to zoom into the linked page.</span>
+      <span class="details-link-help">Use Open Link to zoom into the linked page.</span>
     </div>
     <div class="details-draw-header">
       <span class="details-label">Drawing</span>
       <span class="details-draw-actions">
         <button id="btn-draw-pen" class="active" title="Draw with pen">Pen</button>
         <button id="btn-draw-eraser" title="Erase drawing strokes">Eraser</button>
-        <button id="btn-recognize-handwriting" title="Recognize handwriting from drawing">Recognize</button>
+        <button id="btn-recognize-handwriting" title="Recognize handwriting from drawing into the description">Recognize Note</button>
+        <button id="btn-recognize-title" title="Recognize handwriting from drawing into the node title">Recognize Title</button>
         <button id="btn-clear-drawing" title="Clear drawing">Clear</button>
       </span>
     </div>
@@ -1155,6 +1158,7 @@ const btnUndo = document.getElementById('btn-undo')
 const btnRedo = document.getElementById('btn-redo')
 const detailsPanel = document.getElementById('details-panel')
 const detailsTitle = document.getElementById('details-title')
+const detailsNodeTitle = document.getElementById('details-node-title')
 const detailsText = document.getElementById('details-text')
 const detailsDrawing = document.getElementById('details-drawing')
 const detailsPageLink = document.getElementById('details-page-link')
@@ -1165,6 +1169,7 @@ const btnClearDrawing = document.getElementById('btn-clear-drawing')
 const btnDrawPen = document.getElementById('btn-draw-pen')
 const btnDrawEraser = document.getElementById('btn-draw-eraser')
 const btnRecognizeHandwriting = document.getElementById('btn-recognize-handwriting')
+const btnRecognizeTitle = document.getElementById('btn-recognize-title')
 const recognitionStatus = document.getElementById('recognition-status')
 
 
@@ -1921,6 +1926,7 @@ function showDetailsForNode(node) {
   ensureNodeDetails(node)
   detailsPanel.classList.remove('hidden')
   detailsTitle.textContent = node.text || 'Node details'
+  detailsNodeTitle.value = node.text || ''
   detailsText.value = node.details.text
   recognitionStatus.textContent = ''
   renderDetailsPageLinkOptions()
@@ -1929,7 +1935,10 @@ function showDetailsForNode(node) {
 }
 
 function hideDetails() {
-  if (!detailsPanel.classList.contains('hidden')) persistDetailsText({ commitHistory: false })
+  if (!detailsPanel.classList.contains('hidden')) {
+    persistDetailsTitle({ commitHistory: false })
+    persistDetailsText({ commitHistory: false })
+  }
   detailsPanel.classList.add('hidden')
   renderDetailsPageLinkOptions()
   resize()
@@ -1942,6 +1951,39 @@ function refreshDetailsPanel() {
 }
 
 let detailsTextSaveTimer = null
+let detailsTitleSaveTimer = null
+
+function resizeNodeToTitle(node, title) {
+  const centerX = node.x + node.width / 2
+  const centerY = node.y + node.height / 2
+  const size = measureText(title || 'Untitled')
+  node.text = title || 'Untitled'
+  node.width = size.width
+  node.height = size.height
+  node.x = centerX - size.width / 2
+  node.y = centerY - size.height / 2
+}
+
+function persistDetailsTitle({ commitHistory = true } = {}) {
+  const node = selectedNode()
+  if (!node) return
+  resizeNodeToTitle(node, detailsNodeTitle.value.trim())
+  detailsTitle.textContent = node.text || 'Node details'
+  if (commitHistory) historyCommit()
+  save()
+  render()
+}
+
+function scheduleDetailsTitleSave() {
+  const node = selectedNode()
+  if (!node) return
+  resizeNodeToTitle(node, detailsNodeTitle.value.trim())
+  detailsTitle.textContent = node.text || 'Node details'
+  save()
+  render()
+  clearTimeout(detailsTitleSaveTimer)
+  detailsTitleSaveTimer = setTimeout(() => persistDetailsTitle({ commitHistory: false }), 250)
+}
 
 function persistDetailsText({ commitHistory = true } = {}) {
   const node = selectedNode()
@@ -2098,7 +2140,7 @@ async function recognizeHandwritingFromStrokes(strokes) {
   return text
 }
 
-async function recognizeHandwriting() {
+async function recognizeHandwriting(target = 'description') {
   const node = selectedNode()
   if (!node) return
   const details = ensureNodeDetails(node)
@@ -2108,18 +2150,27 @@ async function recognizeHandwriting() {
   }
 
   btnRecognizeHandwriting.disabled = true
+  btnRecognizeTitle.disabled = true
   recognitionStatus.textContent = 'Recognizing handwriting…'
   try {
     const text = (await recognizeHandwritingFromStrokes(details.strokes)).trim()
     if (!text) throw new Error('No handwriting text recognized.')
-    const prefix = detailsText.value.trim() ? `${detailsText.value.trim()}\n` : ''
-    detailsText.value = `${prefix}${text}`
-    persistDetailsText({ commitHistory: true })
-    recognitionStatus.textContent = `Recognized: “${text}”`
+    if (target === 'title') {
+      detailsNodeTitle.value = text
+      persistDetailsTitle({ commitHistory: true })
+      recognitionStatus.textContent = `Recognized title: “${text}”`
+    } else {
+      const prefix = detailsText.value.trim() ? `${detailsText.value.trim()}
+` : ''
+      detailsText.value = `${prefix}${text}`
+      persistDetailsText({ commitHistory: true })
+      recognitionStatus.textContent = `Recognized: “${text}”`
+    }
   } catch (error) {
     recognitionStatus.textContent = error.message || 'Handwriting recognition failed.'
   } finally {
     btnRecognizeHandwriting.disabled = false
+    btnRecognizeTitle.disabled = false
   }
 }
 
@@ -2207,7 +2258,7 @@ canvas.addEventListener('pointerdown', e => {
     if (state.selected !== node.id || state.selectedType !== 'node') persistDetailsText({ commitHistory: false })
     state.selected = node.id
     state.selectedType = 'node'
-    showDetailsForNode(node)
+    if (!detailsPanel.classList.contains('hidden')) showDetailsForNode(node)
     if (state.connecting && state.connecting !== node.id) {
       const id = ++state.lastEdgeId
       state.edges.push({ id, from: state.connecting, to: node.id })
@@ -2298,11 +2349,10 @@ canvas.addEventListener('dblclick', e => {
 
   const existing = nodeAt(mx, my)
   if (existing) {
-    if (linkedPageForNode(existing)) {
-      openLinkedPageFromNode(existing)
-      return
-    }
-    startEditing(existing)
+    if (state.selected !== existing.id || state.selectedType !== 'node') persistDetailsText({ commitHistory: false })
+    state.selected = existing.id
+    state.selectedType = 'node'
+    showDetailsForNode(existing)
   } else {
     const edge = edgeAt(mx, my)
     if (edge) {
@@ -2412,6 +2462,9 @@ document.addEventListener('keydown', e => {
 })
 
 // Buttons
+detailsNodeTitle.addEventListener('input', scheduleDetailsTitleSave)
+detailsNodeTitle.addEventListener('change', () => persistDetailsTitle({ commitHistory: false }))
+detailsNodeTitle.addEventListener('blur', () => persistDetailsTitle({ commitHistory: false }))
 detailsText.addEventListener('input', scheduleDetailsTextSave)
 detailsText.addEventListener('change', () => persistDetailsText({ commitHistory: false }))
 detailsText.addEventListener('blur', () => persistDetailsText({ commitHistory: false }))
@@ -2431,7 +2484,8 @@ btnClearDrawing.addEventListener('click', () => {
   recognitionStatus.textContent = ''
   persistDetailsDrawing()
 })
-btnRecognizeHandwriting.addEventListener('click', recognizeHandwriting)
+btnRecognizeHandwriting.addEventListener('click', () => recognizeHandwriting('description'))
+btnRecognizeTitle.addEventListener('click', () => recognizeHandwriting('title'))
 detailsDrawing.addEventListener('pointerdown', beginDetailsDrawing)
 detailsDrawing.addEventListener('pointermove', moveDetailsDrawing)
 detailsDrawing.addEventListener('pointerup', endDetailsDrawing)

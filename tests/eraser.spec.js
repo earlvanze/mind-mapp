@@ -56,7 +56,7 @@ test('drawing eraser removes ink from the details canvas', async ({ page }) => {
   })
 
   await page.goto('/')
-  await page.locator('#canvas').click({ position: { x: 160, y: 140 } })
+  await page.locator('#canvas').dblclick({ position: { x: 160, y: 140 } })
   const drawing = page.locator('#details-drawing')
   const box = await drawing.boundingBox()
 

@@ -12,7 +12,7 @@ test('node description persists while typing without requiring blur', async ({ p
     }))
   })
   await page.reload()
-  await page.locator('#canvas').click({ position: { x: 160, y: 140 } })
+  await page.locator('#canvas').dblclick({ position: { x: 160, y: 140 } })
   await page.locator('#details-text').fill('Autosaved description')
 
   await expect.poll(async () => page.evaluate(() => {
@@ -21,6 +21,6 @@ test('node description persists while typing without requiring blur', async ({ p
   })).toBe('Autosaved description')
 
   await page.reload()
-  await page.locator('#canvas').click({ position: { x: 160, y: 140 } })
+  await page.locator('#canvas').dblclick({ position: { x: 160, y: 140 } })
   await expect(page.locator('#details-text')).toHaveValue('Autosaved description')
 })
