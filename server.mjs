@@ -223,7 +223,8 @@ async function handleOrganizeMindMap(req, res) {
       'Return strict JSON only with shape: {"title":"Colored: ...","nodes":[{"sourceId":123,"concept":"short-concept-key","status":"optional status","order":0}],"provider":"sage-router:<model>"}.',
       'Rules: sourceId must match an input node id; concept should be stable and useful for coloring branches; status is optional; do not return markdown; do not invent private facts.',
     ] : [
-      'You are an intelligence layer for a visual mind-mapping app. Intelligently convert Kanban-like boards into a mind map, or restructure a messy mind map into a clearer mind-map tree.',
+      `You are an intelligence layer for a visual mind-mapping app. Apply this AI layout template: ${body.template?.name || 'General Mind Map'}${body.template?.prompt ? ` — ${body.template.prompt}` : ''}.`,
+      'Intelligently convert Kanban-like boards into a mind map, or restructure a messy mind map into a clearer mind-map tree according to the selected template.',
       'You may rewrite grouping and parent-child structure, but preserve source meaning and avoid inventing private facts.',
       'Return strict JSON only with shape: {"title":"Organized: ...","nodes":[{"id":"stable-id","sourceId":123,"title":"...","details":"...","parentId":"stable-parent-id-or-null","concept":"short-concept-key","status":"optional status","order":0,"depth":0}],"provider":"sage-router:<model>"}.',
       'Rules: every node id must be unique and stable; parentId must reference another returned id or null; produce a tree suitable for a radial mind map; do not return markdown.',

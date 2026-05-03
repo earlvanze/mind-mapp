@@ -81,3 +81,30 @@ test('Organize falls back locally when API is unavailable', async ({ page }) => 
   expect(organized.nodes.length).toBe(4)
   expect(organized.edges.length).toBe(3)
 })
+
+test('Templates can generate AI-driven layout pages such as knowledge graphs', async ({ page }) => {
+  await seedLaunchPlan(page)
+  let requestBody = null
+  await page.route('**/api/organize-mind-map', async route => {
+    requestBody = route.request().postDataJSON()
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        title: 'Knowledge Graph: Launch Plan',
+        provider: 'sage-router:test',
+        nodes: [
+          { id: 'root', sourceId: 1, title: 'Launch Plan', parentId: null, concept: 'knowledge', order: 0 },
+          { id: 'entity', sourceId: 2, title: 'Onboarding Entity', parentId: 'root', concept: 'entity', order: 1 },
+        ],
+      }),
+    })
+  })
+  await page.goto('/')
+  await page.locator('#btn-templates').click()
+  await page.locator('[data-layout-template-id="knowledge-graph"]').click()
+  await page.locator('#btn-template-apply-layout').click()
+  await expect(page.locator('#page-select')).toContainText('Knowledge Graph: Launch Plan')
+  expect(requestBody.mode).toBe('organize')
+  expect(requestBody.template.id).toBe('knowledge-graph')
+})

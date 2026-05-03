@@ -781,6 +781,15 @@ function deleteCurrentPage() {
 
 // ─── Color templates ─────────────────────────────────────────────────────────
 let activeTemplateId = DEFAULT_STYLE_TEMPLATES[0].id
+const LAYOUT_TEMPLATES = [
+  { id: 'kanban-to-mind-map', name: 'Kanban → Mind Map', icon: '▦', prompt: 'Convert Kanban columns/cards into a radial mind map with status branches and nested card details.' },
+  { id: 'project-plan', name: 'Project Plan', icon: '◇', prompt: 'Organize as goals, workstreams, milestones, risks, owners, and next actions.' },
+  { id: 'concept-map', name: 'Concept Map', icon: '✦', prompt: 'Group by concepts and sub-concepts with clear conceptual hierarchy.' },
+  { id: 'knowledge-graph', name: 'Knowledge Graph', icon: '⬡', prompt: 'Organize as entities, relationships, evidence, questions, and insights, preserving dense associations as readable hubs.' },
+  { id: 'timeline', name: 'Timeline / Roadmap', icon: '↝', prompt: 'Organize by sequence, phases, dependencies, and future roadmap.' },
+  { id: 'decision-tree', name: 'Decision Tree', icon: '⌬', prompt: 'Organize choices, criteria, tradeoffs, risks, and recommended paths.' },
+]
+let activeLayoutTemplateId = LAYOUT_TEMPLATES[0].id
 
 function activeTemplate() {
   return allStyleTemplates().find(template => template.id === activeTemplateId) || allStyleTemplates()[0]
@@ -788,6 +797,32 @@ function activeTemplate() {
 
 function setTemplateStatus(message) {
   if (templateStatus) templateStatus.textContent = message || ''
+}
+
+function activeLayoutTemplate() {
+  return LAYOUT_TEMPLATES.find(template => template.id === activeLayoutTemplateId) || LAYOUT_TEMPLATES[0]
+}
+
+function renderLayoutTemplateGrid() {
+  if (!layoutTemplateGrid) return
+  layoutTemplateGrid.innerHTML = ''
+  for (const template of LAYOUT_TEMPLATES) {
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = `layout-template${template.id === activeLayoutTemplateId ? ' active' : ''}`
+    button.dataset.layoutTemplateId = template.id
+    button.innerHTML = `
+      <span class="layout-template-icon">${template.icon}</span>
+      <span class="layout-template-name">${template.name}</span>
+      <span class="layout-template-help">${template.prompt}</span>
+    `
+    button.addEventListener('click', () => {
+      activeLayoutTemplateId = template.id
+      renderLayoutTemplateGrid()
+      setTemplateStatus(`${template.name} layout selected.`)
+    })
+    layoutTemplateGrid.appendChild(button)
+  }
 }
 
 function renderTemplateGrid() {
@@ -813,7 +848,8 @@ function renderTemplateGrid() {
 
 function openTemplateModal() {
   renderTemplateGrid()
-  setTemplateStatus(selectedNodesForTemplate().length ? 'Pick a template, then apply it to the selected node or the whole map.' : 'No node selected. Pick a template and apply it to all, or select a node first.')
+  renderLayoutTemplateGrid()
+  setTemplateStatus(selectedNodesForTemplate().length ? 'Pick a style, or choose an AI layout template to generate a new organized page.' : 'Pick a style, or choose an AI layout template to generate a new organized page.')
   templateModal?.classList.remove('hidden')
 }
 
@@ -990,18 +1026,22 @@ app.innerHTML = `
   <div class="template-card">
     <div class="template-header">
       <div>
-        <h2 id="template-modal-title">Color Templates</h2>
-        <p>Apply bright node styles, save a selected node as a reusable template, or move templates between browsers.</p>
+        <h2 id="template-modal-title">Templates</h2>
+        <p>Apply color styles, or use AI layout templates to generate new mind-map structures.</p>
       </div>
       <button id="btn-close-templates" title="Close templates">×</button>
     </div>
+    <h3 class="template-section-title">Color styles</h3>
     <div id="template-grid" class="template-grid"></div>
+    <h3 class="template-section-title">AI layout templates</h3>
+    <div id="layout-template-grid" class="layout-template-grid"></div>
     <div class="template-actions">
       <button id="btn-template-apply-selected">Apply to Selected</button>
       <button id="btn-template-apply-all">Apply to All</button>
       <button id="btn-template-save-selected">Save Selected as Template</button>
       <button id="btn-template-export">Export Templates</button>
       <button id="btn-template-import">Import Templates</button>
+      <button id="btn-template-apply-layout">Generate Layout Page</button>
       <input id="template-file-input" type="file" accept="application/json,.json" hidden>
     </div>
     <p id="template-status" class="template-status" aria-live="polite"></p>
@@ -1060,6 +1100,7 @@ const btnColorful = document.getElementById('btn-colorful')
 const btnAiKanban = document.getElementById('btn-ai-kanban')
 const templateModal = document.getElementById('template-modal')
 const templateGrid = document.getElementById('template-grid')
+const layoutTemplateGrid = document.getElementById('layout-template-grid')
 const templateStatus = document.getElementById('template-status')
 const btnCloseTemplates = document.getElementById('btn-close-templates')
 const btnTemplateApplySelected = document.getElementById('btn-template-apply-selected')
@@ -1067,6 +1108,7 @@ const btnTemplateApplyAll = document.getElementById('btn-template-apply-all')
 const btnTemplateSaveSelected = document.getElementById('btn-template-save-selected')
 const btnTemplateExport = document.getElementById('btn-template-export')
 const btnTemplateImport = document.getElementById('btn-template-import')
+const btnTemplateApplyLayout = document.getElementById('btn-template-apply-layout')
 const templateFileInput = document.getElementById('template-file-input')
 const btnAdd = document.getElementById('btn-add')
 const btnConnect = document.getElementById('btn-connect')
@@ -2343,6 +2385,7 @@ btnTemplateApplyAll.addEventListener('click', () => {
 btnTemplateSaveSelected.addEventListener('click', saveSelectedNodeAsTemplate)
 btnTemplateExport.addEventListener('click', exportTemplates)
 btnTemplateImport.addEventListener('click', () => templateFileInput.click())
+btnTemplateApplyLayout.addEventListener('click', generateSelectedLayoutTemplate)
 templateFileInput.addEventListener('change', () => importTemplateFile(templateFileInput.files?.[0]))
 
 btnDelete.addEventListener('click', deleteSelected)
@@ -2764,9 +2807,10 @@ function buildOrganizedMindMapPage(page, plan) {
   })
 }
 
-function mindMapPayload(mode) {
+function mindMapPayload(mode, layoutTemplate = null) {
   return {
     mode,
+    template: layoutTemplate ? { id: layoutTemplate.id, name: layoutTemplate.name, prompt: layoutTemplate.prompt } : null,
     title: activePage()?.title || rootNodeForExport()?.text || 'Mind Map',
     nodes: state.nodes.map(nodeSummaryForAi),
     edges: state.edges.map(edge => ({ from: fromId(edge), to: toId(edge), label: state.edgeLabels?.[edge.id] || '' })),
@@ -2787,12 +2831,12 @@ async function requestMindMapColoring() {
   }
 }
 
-async function requestMindMapOrganization() {
+async function requestMindMapOrganization(layoutTemplate = null) {
   try {
     const response = await fetch('/api/organize-mind-map', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(mindMapPayload('organize')),
+      body: JSON.stringify(mindMapPayload('organize', layoutTemplate)),
     })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
     return sanitizeMindMapStructure(await response.json())
@@ -2801,7 +2845,7 @@ async function requestMindMapOrganization() {
   }
 }
 
-async function organizeCurrentMindMap() {
+async function organizeCurrentMindMap(layoutTemplate = null) {
   if (!state.nodes.length) {
     window.alert('Add or import a mind map first, then Organize can structure and color it.')
     return false
@@ -2813,9 +2857,9 @@ async function organizeCurrentMindMap() {
   replaceCurrentHistorySnapshot()
   const originalText = btnAiKanban.textContent
   btnAiKanban.disabled = true
-  btnAiKanban.textContent = 'Organizing…'
+  btnAiKanban.textContent = layoutTemplate ? `Generating ${layoutTemplate.name}…` : 'Organizing…'
   try {
-    const plan = await requestMindMapOrganization()
+    const plan = await requestMindMapOrganization(layoutTemplate)
     const page = createPage(plan.title)
     buildOrganizedMindMapPage(page, plan)
     state.notebook.pages.push(page)
@@ -2834,6 +2878,17 @@ async function organizeCurrentMindMap() {
     btnAiKanban.disabled = false
     btnAiKanban.textContent = originalText
   }
+}
+
+async function generateSelectedLayoutTemplate() {
+  const template = activeLayoutTemplate()
+  setTemplateStatus(`Generating ${template.name} layout…`)
+  const ok = await organizeCurrentMindMap(template)
+  if (ok) {
+    setTemplateStatus(`Generated ${template.name} as a new page.`)
+    closeTemplateModal()
+  }
+  return ok
 }
 
 function exportCurrentPageAsTrelloJson() {
