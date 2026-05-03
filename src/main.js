@@ -1412,6 +1412,10 @@ function renderScene(ctx) {
     drawNode(ctx, n)
   }
 
+  for (const e of state.edges) {
+    drawEdgeArrow(ctx, e)
+  }
+
   ctx.restore()
 }
 
@@ -1448,7 +1452,45 @@ function drawEdge(ctx, e) {
   const isHovered = state.hoveredEdge === e.id
   const isFirstOrganizedBranch = Boolean(activePage()?.organizedMindMapVersion && from.organizedDepth === 0 && to.organizedDepth === 1)
   const label = state.edgeLabels[e.id] || (isFirstOrganizedBranch ? to.text : null)
-  drawEdgeLine(ctx, ax, ay, bx, by, isHovered ? '#aa3bff' : (e.color || from.style?.accent || '#6b6375'), false, isHovered, label, { emphasizeLabel: isFirstOrganizedBranch })
+  drawEdgeLine(ctx, ax, ay, bx, by, isHovered ? '#aa3bff' : (e.color || from.style?.accent || '#6b6375'), false, isHovered, label, { emphasizeLabel: isFirstOrganizedBranch, drawArrow: false })
+}
+
+function nodeBoundaryToward(node, towardX, towardY) {
+  const cx = node.x + node.width / 2
+  const cy = node.y + node.height / 2
+  const dx = towardX - cx
+  const dy = towardY - cy
+  if (!Number.isFinite(dx) || !Number.isFinite(dy) || (dx === 0 && dy === 0)) return { x: cx, y: cy }
+  const halfW = Math.max(1, node.width / 2)
+  const halfH = Math.max(1, node.height / 2)
+  const tx = dx === 0 ? Infinity : halfW / Math.abs(dx)
+  const ty = dy === 0 ? Infinity : halfH / Math.abs(dy)
+  const t = Math.min(tx, ty)
+  return { x: cx + dx * t, y: cy + dy * t }
+}
+
+function drawEdgeArrow(ctx, e) {
+  const from = state.nodes.find(n => n.id === fromId(e))
+  const to = state.nodes.find(n => n.id === toId(e))
+  if (!from || !to) return
+  const [ax, ay, bx, by] = endpoints(from, to)
+  const tip = nodeBoundaryToward(to, ax, ay)
+  const isHovered = state.hoveredEdge === e.id
+  const color = isHovered ? '#aa3bff' : (e.color || from.style?.accent || '#6b6375')
+  drawArrowHead(ctx, ax, ay, tip.x, tip.y, color)
+}
+
+function drawArrowHead(ctx, ax, ay, bx, by, color) {
+  const angle = Math.atan2(by - ay, bx - ax)
+  if (!Number.isFinite(angle)) return
+  const headLen = 10 / state.view.scale
+  ctx.fillStyle = color
+  ctx.beginPath()
+  ctx.moveTo(bx, by)
+  ctx.lineTo(bx - headLen * Math.cos(angle - Math.PI / 6), by - headLen * Math.sin(angle - Math.PI / 6))
+  ctx.lineTo(bx - headLen * Math.cos(angle + Math.PI / 6), by - headLen * Math.sin(angle + Math.PI / 6))
+  ctx.closePath()
+  ctx.fill()
 }
 
 function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false, label = null, options = {}) {
@@ -1461,15 +1503,7 @@ function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false, l
   ctx.stroke()
   ctx.setLineDash([])
 
-  const angle = Math.atan2(by - ay, bx - ax)
-  const headLen = 10 / state.view.scale
-  ctx.fillStyle = color
-  ctx.beginPath()
-  ctx.moveTo(bx, by)
-  ctx.lineTo(bx - headLen * Math.cos(angle - Math.PI / 6), by - headLen * Math.sin(angle - Math.PI / 6))
-  ctx.lineTo(bx - headLen * Math.cos(angle + Math.PI / 6), by - headLen * Math.sin(angle + Math.PI / 6))
-  ctx.closePath()
-  ctx.fill()
+  if (options.drawArrow !== false) drawArrowHead(ctx, ax, ay, bx, by, color)
 
   if (label) {
     const emphasized = Boolean(options.emphasizeLabel)
