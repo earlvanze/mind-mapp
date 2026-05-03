@@ -593,8 +593,8 @@ function buildObsidianKanbanPage(page, parsed) {
   page.obsidianKanbanImportVersion = 1
   page.view = { x: 330, y: 220, scale: 0.38 }
 
-  const centerX = 760
-  const centerY = 560
+  const centerX = 1100
+  const centerY = 820
   const root = makeNodeForPage(page, centerX, centerY, page.title, 'Imported from Obsidian Markdown/Kanban file.')
   root.width = Math.max(root.width, 270)
   root.height = Math.max(root.height, 58)
@@ -2756,6 +2756,78 @@ function sanitizeMindMapStructure(plan) {
   }
 }
 
+
+function nodeRect(node, pad = 42) {
+  return {
+    left: node.x - pad,
+    top: node.y - pad,
+    right: node.x + node.width + pad,
+    bottom: node.y + node.height + pad,
+    cx: node.x + node.width / 2,
+    cy: node.y + node.height / 2,
+  }
+}
+
+function rectanglesOverlap(a, b) {
+  return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
+}
+
+function pushNodesApart(nodes, options = {}) {
+  const pad = options.pad ?? 46
+  const maxPasses = options.maxPasses ?? 140
+  const anchoredIds = new Set(options.anchoredIds || [])
+  if (nodes.length < 2) return
+  for (let pass = 0; pass < maxPasses; pass += 1) {
+    let moved = false
+    for (let i = 0; i < nodes.length; i += 1) {
+      for (let j = i + 1; j < nodes.length; j += 1) {
+        const a = nodes[i]
+        const b = nodes[j]
+        const ar = nodeRect(a, pad)
+        const br = nodeRect(b, pad)
+        if (!rectanglesOverlap(ar, br)) continue
+        const overlapX = Math.min(ar.right - br.left, br.right - ar.left)
+        const overlapY = Math.min(ar.bottom - br.top, br.bottom - ar.top)
+        const dx = br.cx === ar.cx ? (j % 2 ? 1 : -1) : Math.sign(br.cx - ar.cx)
+        const dy = br.cy === ar.cy ? (j % 2 ? 1 : -1) : Math.sign(br.cy - ar.cy)
+        const moveX = overlapX < overlapY
+        const amount = (moveX ? overlapX : overlapY) / 2 + 10
+        const aAnchored = anchoredIds.has(a.id)
+        const bAnchored = anchoredIds.has(b.id)
+        if (moveX) {
+          if (!aAnchored) a.x -= bAnchored ? dx * amount * 2 : dx * amount
+          if (!bAnchored) b.x += aAnchored ? dx * amount * 2 : dx * amount
+        } else {
+          if (!aAnchored) a.y -= bAnchored ? dy * amount * 2 : dy * amount
+          if (!bAnchored) b.y += aAnchored ? dy * amount * 2 : dy * amount
+        }
+        moved = true
+      }
+    }
+    if (!moved) break
+  }
+}
+
+function centerPageViewOnContent(page, targetWidth = 1920, targetHeight = 1200) {
+  if (!page?.nodes?.length) return
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
+  for (const node of page.nodes) {
+    minX = Math.min(minX, node.x)
+    minY = Math.min(minY, node.y)
+    maxX = Math.max(maxX, node.x + node.width)
+    maxY = Math.max(maxY, node.y + node.height)
+  }
+  const pad = 180
+  const worldW = Math.max(1, maxX - minX + pad * 2)
+  const worldH = Math.max(1, maxY - minY + pad * 2)
+  const scale = Math.max(0.18, Math.min(0.72, Math.min(targetWidth / worldW, targetHeight / worldH)))
+  page.view = {
+    x: (targetWidth - worldW * scale) / 2 - (minX - pad) * scale,
+    y: (targetHeight - worldH * scale) / 2 - (minY - pad) * scale,
+    scale,
+  }
+}
+
 function buildOrganizedMindMapPage(page, plan) {
   const parsed = sanitizeMindMapStructure(plan)
   page.nodes = []
@@ -2770,8 +2842,8 @@ function buildOrganizedMindMapPage(page, plan) {
   page.sourcePageId = activePage()?.id || null
   page.view = { x: 330, y: 220, scale: 0.38 }
 
-  const centerX = 760
-  const centerY = 560
+  const centerX = 1100
+  const centerY = 820
   const children = new Map(parsed.nodes.map(node => [node.id, []]))
   parsed.nodes.forEach(node => { if (node.parentId && children.has(node.parentId)) children.get(node.parentId).push(node) })
   const roots = parsed.nodes.filter(node => !node.parentId)
@@ -2798,17 +2870,22 @@ function buildOrganizedMindMapPage(page, plan) {
     const node = createOrganizedNode(item, point.x, point.y, depth, siblingIndex)
     if (parentNode) addPageEdge(page, parentNode, node, item.concept || '')
     const kids = (children.get(item.id) || []).sort((a, b) => a.order - b.order)
-    const fanStep = Math.PI / Math.max(10, kids.length + 3)
+    const fanStep = Math.PI / Math.max(7, kids.length + 2)
+    const baseRadius = 380 + depth * 90
+    const radiusStep = 135
     kids.forEach((child, index) => {
       const offset = (index - (kids.length - 1) / 2) * fanStep
-      placeBranch(child, node, angle + offset, 260 + (index % 3) * 95, depth + 1, index)
+      placeBranch(child, node, angle + offset, baseRadius + (index % 4) * radiusStep, depth + 1, index)
     })
   }
 
   roots.forEach((root, index) => {
     const angle = -Math.PI / 2 + index * (Math.PI * 2 / rootCount)
-    placeBranch(root, null, angle, rootCount === 1 ? 0 : 390, 0, index)
+    placeBranch(root, null, angle, rootCount === 1 ? 0 : 560, 0, index)
   })
+  const rootNodes = page.nodes.filter(node => roots.some(root => root.title === node.text))
+  pushNodesApart(page.nodes, { pad: 56, anchoredIds: rootNodes.map(node => node.id) })
+  centerPageViewOnContent(page)
   page.edges.forEach((edge, index) => {
     const from = page.nodes.find(node => node.id === fromId(edge))
     edge.color = from?.style?.accent || COLORFUL_PALETTE[index % COLORFUL_PALETTE.length].accent

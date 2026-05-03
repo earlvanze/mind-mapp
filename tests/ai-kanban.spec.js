@@ -108,3 +108,40 @@ test('Templates can generate AI-driven layout pages such as knowledge graphs', a
   expect(requestBody.mode).toBe('organize')
   expect(requestBody.template.id).toBe('knowledge-graph')
 })
+
+test('Organize lays out dense AI trees without overlapping nodes', async ({ page }) => {
+  await seedLaunchPlan(page)
+  await page.route('**/api/organize-mind-map', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      title: 'Organized: Dense Plan',
+      provider: 'sage-router:test',
+      nodes: [
+        { id: 'root', title: 'Dense Plan', parentId: null, concept: 'project', order: 0 },
+        ...Array.from({ length: 18 }, (_, index) => ({
+          id: `child-${index}`,
+          title: `Readable Branch ${index + 1}`,
+          parentId: 'root',
+          concept: index % 2 ? 'concept' : 'kanban',
+          order: index + 1,
+        })),
+      ],
+    }),
+  }))
+  await page.goto('/')
+  await page.locator('#btn-ai-kanban').click()
+  const nodes = await page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
+    return saved.notebook.pages.find(p => p.title === 'Organized: Dense Plan').nodes
+  })
+  const pad = 12
+  for (let i = 0; i < nodes.length; i += 1) {
+    for (let j = i + 1; j < nodes.length; j += 1) {
+      const a = nodes[i]
+      const b = nodes[j]
+      const overlaps = a.x - pad < b.x + b.width && a.x + a.width + pad > b.x && a.y - pad < b.y + b.height && a.y + a.height + pad > b.y
+      expect(overlaps, `${a.text} overlaps ${b.text}`).toBe(false)
+    }
+  }
+})
