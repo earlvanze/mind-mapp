@@ -1218,24 +1218,10 @@ function edgeAt(mx, my) {
 function fromId(e) { return Array.isArray(e) ? e[0] : e.from }
 function toId(e) { return Array.isArray(e) ? e[1] : e.to }
 
-function rectangleEdgePoint(node, toward) {
-  const cx = node.x + node.width / 2
-  const cy = node.y + node.height / 2
-  const dx = toward.x - cx
-  const dy = toward.y - cy
-  if (dx === 0 && dy === 0) return { x: cx, y: cy }
-  const halfW = Math.max(1, node.width / 2)
-  const halfH = Math.max(1, node.height / 2)
-  const scale = Math.min(halfW / Math.abs(dx || Number.EPSILON), halfH / Math.abs(dy || Number.EPSILON))
-  return { x: cx + dx * scale, y: cy + dy * scale }
-}
-
 function endpoints(a, b) {
-  const ac = { x: a.x + a.width / 2, y: a.y + a.height / 2 }
-  const bc = { x: b.x + b.width / 2, y: b.y + b.height / 2 }
-  const start = rectangleEdgePoint(a, bc)
-  const end = rectangleEdgePoint(b, ac)
-  return [start.x, start.y, end.x, end.y]
+  const ax = a.x + a.width / 2, ay = a.y + a.height / 2
+  const bx = b.x + b.width / 2, by = b.y + b.height / 2
+  return [ax, ay, bx, by]
 }
 
 
