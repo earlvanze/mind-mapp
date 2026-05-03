@@ -10,7 +10,7 @@ const distDir = path.join(__dirname, 'dist')
 const port = Number(process.env.PORT || 4173)
 const host = process.env.HOST || '127.0.0.1'
 const ollamaProvider = process.env.OLLAMA_PROVIDER || 'ollama-cyber'
-const sageRouterUrl = (process.env.SAGE_ROUTER_URL || '').replace(/\/$/, '')
+const sageRouterUrl = (process.env.SAGE_ROUTER_OPENAI_BASE_URL || process.env.SAGE_ROUTER_BASE_URL || process.env.SAGE_ROUTER_URL || '').replace(/\/$/, '')
 const sageRouterApiKey = process.env.SAGE_ROUTER_API_KEY || process.env.SAGE_API_KEY || ''
 const sageRouterModel = process.env.SAGE_ROUTER_MODEL || 'nvidia/llama-3.1-nemotron-70b-instruct'
 
@@ -169,11 +169,13 @@ function safeJsonFromText(text) {
   throw new Error('Sage Router did not return JSON')
 }
 
-function localKanbanFallback(body) {
-  const columns = ['To Do', 'In Progress', 'Blocked / Risk', 'Done'].map(title => ({ title, items: [] }))
-  const byTitle = new Map(columns.map(column => [column.title, column]))
+function localMindMapFallback(body) {
   const incoming = new Set((body.edges || []).map(edge => edge.to))
-  const roots = new Set((body.nodes || []).filter(node => !incoming.has(node.id)).slice(0, 1).map(node => node.id))
+  const childIds = new Map((body.nodes || []).map(node => [node.id, []]))
+  for (const edge of body.edges || []) if (childIds.has(edge.from)) childIds.get(edge.from).push(edge.to)
+  const roots = (body.nodes || []).filter(node => !incoming.has(node.id))
+  const visited = new Set()
+  const output = []
   function status(text) {
     const normalized = String(text || '').toLowerCase()
     if (/\b(done|complete|completed|shipped|closed|resolved|finished)\b/.test(normalized)) return 'Done'
@@ -181,37 +183,57 @@ function localKanbanFallback(body) {
     if (/\b(active|now|doing|progress|current|execution|building|implement|working)\b/.test(normalized)) return 'In Progress'
     return 'To Do'
   }
-  for (const node of body.nodes || []) {
-    if (roots.has(node.id) && (body.nodes || []).length > 1) continue
-    const details = [node.details, node.parents?.length ? `From: ${node.parents.join(' → ')}` : ''].filter(Boolean).join('\n')
-    byTitle.get(status(`${node.title} ${details}`)).items.push({ title: node.title || 'Untitled card', details })
+  function concept(text, fallback) {
+    const normalized = String(text || '').toLowerCase()
+    if (/openclaw|gateway|cloudflare|hostinger|deploy|server|api|infra/.test(normalized)) return 'infra'
+    if (/property|real estate|guest|booking|rent|owner/.test(normalized)) return 'property'
+    if (/finance|payment|ledger|stripe|token|valuation/.test(normalized)) return 'finance'
+    if (/automation|cron|agent|workflow|skill|script/.test(normalized)) return 'automation'
+    if (/kanban|trello|obsidian|ux|feature|product|app/.test(normalized)) return 'product'
+    return fallback || 'general'
   }
-  return { title: `AI Kanban: ${body.title || 'Mind Map'}`, columns: columns.filter(column => column.items.length), provider: 'local heuristic' }
+  function visit(node, parentId = null, depth = 0) {
+    if (!node || visited.has(node.id)) return
+    visited.add(node.id)
+    const text = `${node.title || ''} ${node.details || ''} ${(node.parents || []).join(' ')} ${(node.children || []).join(' ')}`
+    output.push({ id: String(node.id), sourceId: node.id, title: node.title || 'Untitled node', details: node.details || '', parentId: parentId == null ? null : String(parentId), concept: concept(text, status(text).toLowerCase()), status: status(text), order: output.length, depth })
+    for (const childId of childIds.get(node.id) || []) visit((body.nodes || []).find(candidate => candidate.id === childId), node.id, depth + 1)
+  }
+  for (const root of roots) visit(root)
+  for (const node of body.nodes || []) if (!visited.has(node.id)) visit(node)
+  return { title: `Organized: ${body.title || 'Mind Map'}`, nodes: output, provider: 'local heuristic' }
 }
 
-async function handleOrganizeKanban(req, res) {
+function sageChatCompletionsUrl() {
+  if (!sageRouterUrl) return ''
+  if (/\/chat\/completions$/.test(sageRouterUrl)) return sageRouterUrl
+  if (/\/v\d+$/.test(sageRouterUrl) || sageRouterUrl.endsWith('/v1')) return `${sageRouterUrl}/chat/completions`
+  return `${sageRouterUrl}/v1/chat/completions`
+}
+
+async function handleOrganizeMindMap(req, res) {
   try {
     const body = await readRequestJson(req)
-    if (!sageRouterUrl || !sageRouterApiKey) return sendJson(res, 200, localKanbanFallback(body))
+    if (!sageRouterUrl || !sageRouterApiKey) return sendJson(res, 200, localMindMapFallback(body))
 
     const prompt = [
-      'You organize arbitrary mind maps into useful Kanban boards.',
-      'Group cards by workflow status and concept. Prefer columns like To Do, In Progress, Blocked / Risk, Done, or clearer project-specific statuses if obvious.',
-      'Return strict JSON only with shape: {"title":"...","columns":[{"title":"...","items":[{"title":"...","details":"..."}]}],"provider":"sage-router"}.',
-      'Do not invent private facts. Preserve useful source details.',
+      'You are an intelligence layer for a visual mind-mapping app. Organize the provided mind map into a clearer mind-map structure, not a Kanban board.',
+      'Preserve source meaning, group related ideas under useful parent concepts, and assign deterministic concept/status metadata for automatic coloring.',
+      'Return strict JSON only with shape: {"title":"Organized: ...","nodes":[{"id":"stable-id","sourceId":123,"title":"...","details":"...","parentId":"stable-parent-id-or-null","concept":"short-concept-key","status":"optional status","order":0,"depth":0}],"provider":"sage-router:<model>"}.',
+      'Rules: every node id must be unique and stable; parentId must reference another returned id or null; do not return markdown; do not invent private facts; keep details concise; prefer a tree suitable for a radial mind map.',
       `Mind map JSON:\n${JSON.stringify(body).slice(0, 20000)}`,
     ].join('\n\n')
 
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), Number(process.env.SAGE_ROUTER_TIMEOUT_MS || 90000))
     try {
-      const response = await fetch(`${sageRouterUrl}/chat/completions`, {
+      const response = await fetch(sageChatCompletionsUrl(), {
         method: 'POST',
         headers: { 'content-type': 'application/json', authorization: `Bearer ${sageRouterApiKey}` },
         body: JSON.stringify({
           model: sageRouterModel,
           messages: [{ role: 'user', content: prompt }],
-          temperature: 0.2,
+          temperature: 0,
           response_format: { type: 'json_object' },
         }),
         signal: controller.signal,
@@ -228,8 +250,12 @@ async function handleOrganizeKanban(req, res) {
     }
   } catch (error) {
     if (error.name === 'AbortError') return sendJson(res, 504, { error: 'Sage Router organization timed out' })
-    sendJson(res, error.status || 500, { error: error.message || 'Kanban organization failed' })
+    sendJson(res, error.status || 500, { error: error.message || 'Mind-map organization failed' })
   }
+}
+
+async function handleOrganizeKanban(req, res) {
+  return handleOrganizeMindMap(req, res)
 }
 
 async function serveStatic(req, res) {
@@ -253,6 +279,7 @@ async function serveStatic(req, res) {
 
 const server = createServer((req, res) => {
   if (req.method === 'POST' && req.url === '/api/recognize-handwriting') return handleRecognition(req, res)
+  if (req.method === 'POST' && req.url === '/api/organize-mind-map') return handleOrganizeMindMap(req, res)
   if (req.method === 'POST' && req.url === '/api/organize-kanban') return handleOrganizeKanban(req, res)
   if (req.method === 'GET' || req.method === 'HEAD') return serveStatic(req, res)
   res.writeHead(405)
@@ -262,5 +289,5 @@ const server = createServer((req, res) => {
 server.listen(port, host, () => {
   console.log(`Mind Mapp server listening on http://${host}:${port}`)
   console.log(`Handwriting provider: Ollama ${ollamaModel} via ${ollamaProvider}: ${ollamaUrls.join(', ')}`)
-  console.log(`Kanban organizer: ${sageRouterUrl && sageRouterApiKey ? `Sage Router ${sageRouterModel} at ${sageRouterUrl}` : 'local heuristic fallback'}`)
+  console.log(`Mind-map organizer: ${sageRouterUrl && sageRouterApiKey ? `Sage Router OpenAI-compatible ${sageRouterModel} at ${sageChatCompletionsUrl()}` : 'local heuristic fallback'}`)
 })

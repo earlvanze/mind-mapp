@@ -941,7 +941,7 @@ app.innerHTML = `
     <input id="obsidian-file-input" type="file" accept="text/markdown,text/plain,.md,.markdown" hidden>
     <button id="btn-templates" title="Apply, save, import, or export colorful node templates">📋 Templates</button>
     <button id="btn-colorful" title="Apply a bright color palette to this map">🌈 Colorful</button>
-    <button id="btn-ai-kanban" title="Use Sage Router when available, otherwise local intelligence, to turn this mind map into a Kanban page">🤖 AI Kanban</button>
+    <button id="btn-ai-kanban" title="Use Sage Router-compatible intelligence, with local fallback, to organize and color this mind map">🤖 Organize</button>
   </span>
   <button id="btn-add" title="Add node (A)">+ Node</button>
   <button id="btn-connect" title="Connect mode (C)">⬌ Connect</button>
@@ -2299,7 +2299,7 @@ btnImportObsidian.addEventListener('click', () => obsidianFileInput.click())
 obsidianFileInput.addEventListener('change', () => importObsidianKanbanFile(obsidianFileInput.files?.[0]))
 btnTemplates.addEventListener('click', openTemplateModal)
 btnColorful.addEventListener('click', makeMapColorful)
-btnAiKanban.addEventListener('click', organizeCurrentPageAsAiKanban)
+btnAiKanban.addEventListener('click', organizeCurrentMindMap)
 btnCloseTemplates.addEventListener('click', closeTemplateModal)
 templateModal.addEventListener('click', e => { if (e.target === templateModal) closeTemplateModal() })
 btnTemplateApplySelected.addEventListener('click', () => {
@@ -2559,78 +2559,165 @@ function statusForKanbanText(text) {
   return 'To Do'
 }
 
-function localKanbanPlanFromCurrentPage() {
+function localMindMapOrganizationFromCurrentPage() {
   const root = rootNodeForExport()
-  const columns = ['To Do', 'In Progress', 'Blocked / Risk', 'Done'].map(title => ({ title, items: [] }))
-  const columnByTitle = new Map(columns.map(column => [column.title, column]))
-  const roots = new Set([root?.id].filter(Boolean))
-  for (const node of state.nodes) {
-    if (roots.has(node.id) && state.nodes.length > 1) continue
-    const details = [nodeDetailsText(node), nodeSummaryForAi(node).parents.length ? `From: ${nodeSummaryForAi(node).parents.join(' → ')}` : '']
-      .filter(Boolean)
-      .join('\n')
-    const text = `${node.text || ''} ${details}`
-    columnByTitle.get(statusForKanbanText(text)).items.push({ title: compactText(node.text) || 'Untitled card', details })
+  const childMap = childrenByParent()
+  const visited = new Set()
+  const nodes = []
+
+  function visit(node, parentId = null, depth = 0, siblingIndex = 0) {
+    if (!node || visited.has(node.id)) return
+    visited.add(node.id)
+    const summary = nodeSummaryForAi(node)
+    const text = `${summary.title} ${summary.details} ${summary.parents.join(' ')} ${summary.children.join(' ')}`
+    const status = statusForKanbanText(text)
+    const rule = CONCEPT_COLOR_RULES.find(candidate => candidate.words.some(word => normalizeConceptText(text).includes(word)))
+    nodes.push({
+      id: String(node.id),
+      sourceId: node.id,
+      title: summary.title,
+      details: summary.details,
+      parentId: parentId == null ? null : String(parentId),
+      concept: rule?.name || status.toLowerCase(),
+      status,
+      order: nodes.length,
+      depth,
+      siblingIndex,
+    })
+    ;(childMap.get(node.id) || []).forEach((childId, index) => visit(state.nodes.find(candidate => candidate.id === childId), node.id, depth + 1, index))
   }
+
+  if (root) visit(root)
+  state.nodes.forEach((node, index) => {
+    if (!visited.has(node.id)) visit(node, root?.id || null, root ? 1 : 0, index)
+  })
+
   return {
-    title: `AI Kanban: ${root?.text || activePage()?.title || 'Mind Map'}`,
-    columns: columns.filter(column => column.items.length),
+    title: `Organized: ${root?.text || activePage()?.title || 'Mind Map'}`,
+    nodes,
     provider: 'local heuristic',
   }
 }
 
-function sanitizeKanbanPlan(plan) {
-  const fallback = localKanbanPlanFromCurrentPage()
-  const columns = Array.isArray(plan?.columns) ? plan.columns : []
-  const cleanColumns = columns.map(column => ({
-    title: compactText(column?.title) || 'To Do',
-    items: (Array.isArray(column?.items) ? column.items : [])
-      .map(item => ({
-        title: compactText(item?.title || item?.name || item) || 'Untitled card',
-        details: compactText(item?.details || item?.description || item?.concept || ''),
-      }))
-      .filter(item => item.title),
-  })).filter(column => column.items.length)
+function colorForConcept(concept, index = 0) {
+  const normalized = normalizeConceptText(concept)
+  const rule = CONCEPT_COLOR_RULES.find(candidate => candidate.name === normalized || candidate.words.some(word => normalized.includes(word)))
+  if (rule) return cloneStyle(rule.style)
+  let hash = 0
+  for (let i = 0; i < normalized.length; i += 1) hash = ((hash << 5) - hash + normalized.charCodeAt(i)) | 0
+  return colorForIndex(Math.abs(hash || index))
+}
+
+function sanitizeMindMapOrganization(plan) {
+  const fallback = localMindMapOrganizationFromCurrentPage()
+  const rawNodes = Array.isArray(plan?.nodes) ? plan.nodes : []
+  const ids = new Set()
+  const cleanNodes = rawNodes.map((node, index) => {
+    const id = compactText(node?.id || node?.sourceId || `node-${index + 1}`) || `node-${index + 1}`
+    const uniqueId = ids.has(id) ? `${id}-${index + 1}` : id
+    ids.add(uniqueId)
+    return {
+      id: uniqueId,
+      sourceId: node?.sourceId ?? null,
+      title: compactText(node?.title || node?.name || node?.text) || `Node ${index + 1}`,
+      details: compactText(node?.details || node?.description || node?.notes || ''),
+      parentId: node?.parentId == null ? null : compactText(node.parentId),
+      concept: compactText(node?.concept || node?.theme || node?.category || node?.status || 'general') || 'general',
+      status: compactText(node?.status || ''),
+      order: Number.isFinite(Number(node?.order)) ? Number(node.order) : index,
+      depth: Number.isFinite(Number(node?.depth)) ? Number(node.depth) : 0,
+    }
+  }).sort((a, b) => a.order - b.order)
+
+  const validIds = new Set(cleanNodes.map(node => node.id))
+  cleanNodes.forEach(node => { if (node.parentId && !validIds.has(node.parentId)) node.parentId = null })
+
   return {
     title: compactText(plan?.title) || fallback.title,
-    columns: cleanColumns.length ? cleanColumns : fallback.columns,
+    nodes: cleanNodes.length ? cleanNodes : fallback.nodes,
     provider: compactText(plan?.provider) || fallback.provider,
   }
 }
 
-function buildAiKanbanPage(page, plan) {
-  const parsed = sanitizeKanbanPlan(plan)
-  buildObsidianKanbanPage(page, parsed)
+function buildOrganizedMindMapPage(page, plan) {
+  const parsed = sanitizeMindMapOrganization(plan)
+  page.nodes = []
+  page.edges = []
+  page.edgeLabels = {}
+  page.lastId = 0
+  page.lastEdgeId = 0
   page.title = parsed.title
-  page.aiKanbanVersion = 1
-  page.aiKanbanProvider = parsed.provider
-  const root = page.nodes[0]
-  if (root) root.details.text = `Organized as Kanban by ${parsed.provider}.\n\nSource page: ${activePage()?.title || 'Mind Map'}`
-  colorizePage(page)
+  page.organizedMindMapVersion = 1
+  page.organizedMindMapProvider = parsed.provider
+  page.view = { x: 330, y: 220, scale: 0.38 }
+
+  const centerX = 760
+  const centerY = 560
+  const byId = new Map()
+  const children = new Map(parsed.nodes.map(node => [node.id, []]))
+  parsed.nodes.forEach(node => { if (node.parentId && children.has(node.parentId)) children.get(node.parentId).push(node) })
+  const roots = parsed.nodes.filter(node => !node.parentId)
+  const rootCount = Math.max(1, roots.length)
+
+  function createOrganizedNode(item, x, y, depth, siblingIndex) {
+    const details = [item.details, item.concept ? `Concept: ${item.concept}` : '', item.status ? `Status: ${item.status}` : '', `Organized by ${parsed.provider}.`]
+      .filter(Boolean)
+      .join('\n')
+    const node = makeNodeForPage(page, x, y, item.title, details)
+    node.width = Math.max(node.width, depth === 0 ? 250 : 215)
+    node.height = Math.max(node.height, depth === 0 ? 58 : 50)
+    styleNode(node, colorForConcept(item.concept, siblingIndex))
+    page.nodes.push(node)
+    byId.set(item.id, node)
+    return node
+  }
+
+  function placeBranch(item, parentNode, angle, radius, depth, siblingIndex) {
+    const point = depth === 0 && rootCount === 1
+      ? { x: centerX, y: centerY }
+      : branchPoint(parentNode ? parentNode.x + parentNode.width / 2 : centerX, parentNode ? parentNode.y + parentNode.height / 2 : centerY, angle, radius)
+    const node = createOrganizedNode(item, point.x, point.y, depth, siblingIndex)
+    if (parentNode) addPageEdge(page, parentNode, node, item.concept || '')
+    const kids = (children.get(item.id) || []).sort((a, b) => a.order - b.order)
+    const fanStep = Math.PI / Math.max(10, kids.length + 3)
+    kids.forEach((child, index) => {
+      const offset = (index - (kids.length - 1) / 2) * fanStep
+      placeBranch(child, node, angle + offset, 260 + (index % 3) * 95, depth + 1, index)
+    })
+  }
+
+  roots.forEach((root, index) => {
+    const angle = -Math.PI / 2 + index * (Math.PI * 2 / rootCount)
+    placeBranch(root, null, angle, rootCount === 1 ? 0 : 390, 0, index)
+  })
+  page.edges.forEach(edge => {
+    const from = page.nodes.find(node => node.id === fromId(edge))
+    edge.color = from?.style?.accent || edge.color
+  })
 }
 
-async function requestAiKanbanPlan() {
+async function requestMindMapOrganization() {
   const payload = {
     title: activePage()?.title || rootNodeForExport()?.text || 'Mind Map',
     nodes: state.nodes.map(nodeSummaryForAi),
     edges: state.edges.map(edge => ({ from: fromId(edge), to: toId(edge), label: state.edgeLabels?.[edge.id] || '' })),
   }
   try {
-    const response = await fetch('/api/organize-kanban', {
+    const response = await fetch('/api/organize-mind-map', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(payload),
     })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    return sanitizeKanbanPlan(await response.json())
+    return sanitizeMindMapOrganization(await response.json())
   } catch {
-    return localKanbanPlanFromCurrentPage()
+    return localMindMapOrganizationFromCurrentPage()
   }
 }
 
-async function organizeCurrentPageAsAiKanban() {
+async function organizeCurrentMindMap() {
   if (!state.nodes.length) {
-    window.alert('Add or import a mind map first, then AI Kanban can organize it.')
+    window.alert('Add or import a mind map first, then Organize can structure and color it.')
     return false
   }
   persistDetailsText({ commitHistory: false })
@@ -2641,9 +2728,9 @@ async function organizeCurrentPageAsAiKanban() {
   btnAiKanban.disabled = true
   btnAiKanban.textContent = 'Organizing…'
   try {
-    const plan = await requestAiKanbanPlan()
+    const plan = await requestMindMapOrganization()
     const page = createPage(plan.title)
-    buildAiKanbanPage(page, plan)
+    buildOrganizedMindMapPage(page, plan)
     state.notebook.pages.push(page)
     state.notebook.activePageId = page.id
     loadPageIntoState(page)
@@ -2654,7 +2741,7 @@ async function organizeCurrentPageAsAiKanban() {
     resize()
     return true
   } catch (error) {
-    window.alert(`Could not organize Kanban: ${error.message}`)
+    window.alert(`Could not organize mind map: ${error.message}`)
     return false
   } finally {
     btnAiKanban.disabled = false
