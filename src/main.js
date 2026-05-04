@@ -568,9 +568,11 @@ function cleanMarkdownInline(text) {
 function parseObsidianKanbanMarkdown(markdown, fileName = 'Obsidian Kanban.md') {
   const lines = String(markdown || '').replace(/\r\n?/g, '\n').split('\n')
   const titleLine = lines.find(line => /^#\s+/.test(line))
+  const hasMarkdownTable = lines.some((line, index) => line.includes('|') && lines[index + 1] && isMarkdownTableSeparator(lines[index + 1]))
   const title = cleanMarkdownInline(titleLine?.replace(/^#\s+/, '') || fileName.replace(/\.[^.]+$/, '') || 'Obsidian Kanban')
   const columns = []
   const columnByTitle = new Map()
+  let tableItemCount = 0
   let currentSection = 'Cards'
 
   function getColumn(name) {
@@ -610,6 +612,7 @@ function parseObsidianKanbanMarkdown(markdown, fileName = 'Obsidian Kanban.md') 
           .map(header => `${header}: ${row[header]}`)
           .join('\n')
         addItem(currentSection, itemTitle, details, row)
+        tableItemCount += 1
         i += 1
       }
       i -= 1
@@ -617,7 +620,7 @@ function parseObsidianKanbanMarkdown(markdown, fileName = 'Obsidian Kanban.md') 
     }
 
     const bullet = line.match(/^\s*[-*+]\s+(?:\[[ xX-]\]\s*)?(.+)$/)
-    if (bullet && !bullet[1].startsWith('|')) {
+    if (bullet && !bullet[1].startsWith('|') && !hasMarkdownTable) {
       addItem(currentSection, bullet[1])
     }
   }
@@ -625,11 +628,21 @@ function parseObsidianKanbanMarkdown(markdown, fileName = 'Obsidian Kanban.md') 
   return { title, columns: columns.filter(column => column.items.length) }
 }
 
+function splitTaskText(value) {
+  const text = cleanMarkdownInline(value)
+  if (!text) return []
+  const parts = text
+    .split(/;|\n|,(?=\s+[^,]{3,80}(?:,|$))/)
+    .map(cleanMarkdownInline)
+    .filter(part => part && !/^n\/?a$/i.test(part))
+  return parts.length ? parts : [text]
+}
+
 function obsidianTaskTexts(item) {
   const fields = item.fields || {}
   return Object.entries(fields)
     .filter(([key, value]) => value && /note|next|task|todo|control|action|deliverable|milestone/i.test(key))
-    .flatMap(([, value]) => String(value).split(/;|\n/).map(cleanMarkdownInline).filter(Boolean))
+    .flatMap(([, value]) => splitTaskText(value))
 }
 
 function buildObsidianKanbanPage(page, parsed) {
@@ -2925,6 +2938,25 @@ function rectanglesOverlap(a, b) {
   return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
 }
 
+
+function wrapMindMapTitle(title, maxChars = 34) {
+  const words = compactText(title).split(' ').filter(Boolean)
+  if (!words.length) return compactText(title)
+  const lines = []
+  let line = ''
+  words.forEach(word => {
+    const candidate = line ? `${line} ${word}` : word
+    if (candidate.length > maxChars && line) {
+      lines.push(line)
+      line = word
+    } else {
+      line = candidate
+    }
+  })
+  if (line) lines.push(line)
+  return lines.slice(0, 4).join('\n')
+}
+
 function pushNodesApart(nodes, options = {}) {
   const pad = options.pad ?? 46
   const maxPasses = options.maxPasses ?? 140
@@ -2982,6 +3014,20 @@ function centerPageViewOnContent(page, targetWidth = 1920, targetHeight = 1200) 
   }
 }
 
+
+function focusLargeImportedMapOnRoot(page, targetWidth = 1920, targetHeight = 1200) {
+  if (!page?.nodes?.length || page.nodes.length <= 120) return
+  const root = page.nodes.find(node => node.organizedDepth === 0) || page.nodes[0]
+  const scale = 0.34
+  const cx = root.x + root.width / 2
+  const cy = root.y + root.height / 2
+  page.view = {
+    x: targetWidth / 2 - cx * scale,
+    y: targetHeight / 2 - cy * scale,
+    scale,
+  }
+}
+
 function buildOrganizedMindMapPage(page, plan) {
   const parsed = sanitizeMindMapStructure(plan)
   page.nodes = []
@@ -3007,7 +3053,8 @@ function buildOrganizedMindMapPage(page, plan) {
     const details = [item.details, item.concept ? `Concept: ${item.concept}` : '', item.status ? `Status: ${item.status}` : '', `Organized by ${parsed.provider}.`]
       .filter(Boolean)
       .join('\n')
-    const node = makeNodeForPage(page, x, y, item.title, details)
+    const title = depth === 0 ? item.title : wrapMindMapTitle(item.title, depth === 1 ? 30 : 34)
+    const node = makeNodeForPage(page, x, y, title, details)
     node.width = Math.max(node.width, depth === 0 ? 250 : 215)
     node.height = Math.max(node.height, depth === 0 ? 58 : 50)
     styleNode(node, colorForConcept(item.concept, siblingIndex))
@@ -3050,9 +3097,10 @@ function buildOrganizedMindMapPage(page, plan) {
       }
       return
     }
-    const fanStep = Math.PI / Math.max(7, kids.length + 2)
-    const baseRadius = 380 + depth * 90
-    const radiusStep = 135
+    const spread = depth === 1 ? Math.PI * 1.25 : Math.PI
+    const fanStep = spread / Math.max(5, kids.length + 1)
+    const baseRadius = depth === 1 ? 500 : 380 + depth * 90
+    const radiusStep = depth === 1 ? 180 : 135
     kids.forEach((child, index) => {
       const offset = (index - (kids.length - 1) / 2) * fanStep
       placeBranch(child, node, angle + offset, baseRadius + (index % 4) * radiusStep, depth + 1, index)
@@ -3066,8 +3114,9 @@ function buildOrganizedMindMapPage(page, plan) {
   const rootNodes = page.nodes.filter(node => roots.some(root => root.title === node.text))
   const firstLevelNodes = page.nodes.filter(node => node.organizedDepth === 1)
   const anchoredNodes = firstLevelNodes.length > 1 && firstLevelNodes.length <= 96 ? [...rootNodes, ...firstLevelNodes] : rootNodes
-  pushNodesApart(page.nodes, { pad: 56, anchoredIds: anchoredNodes.map(node => node.id) })
+  pushNodesApart(page.nodes, { pad: 72, maxPasses: 420, anchoredIds: anchoredNodes.map(node => node.id) })
   centerPageViewOnContent(page)
+  focusLargeImportedMapOnRoot(page)
   page.edges.forEach((edge, index) => {
     const from = page.nodes.find(node => node.id === fromId(edge))
     edge.color = from?.style?.accent || COLORFUL_PALETTE[index % COLORFUL_PALETTE.length].accent
