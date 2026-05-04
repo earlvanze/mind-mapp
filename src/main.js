@@ -2971,11 +2971,28 @@ function buildOrganizedMindMapPage(page, plan) {
     if (parentNode) addPageEdge(page, parentNode, node, item.concept || '')
     const kids = (children.get(item.id) || []).sort((a, b) => a.order - b.order)
     if (depth === 0 && rootCount === 1 && kids.length > 1) {
-      const childRadius = Math.max(520, 380 + kids.length * 24)
-      kids.forEach((child, index) => {
-        const childAngle = -Math.PI / 2 + index * (Math.PI * 2 / kids.length)
-        placeBranch(child, node, childAngle, childRadius, depth + 1, index)
-      })
+      if (kids.length <= 16) {
+        const childRadius = Math.max(520, 380 + kids.length * 24)
+        kids.forEach((child, index) => {
+          const childAngle = -Math.PI / 2 + index * (Math.PI * 2 / kids.length)
+          placeBranch(child, node, childAngle, childRadius, depth + 1, index)
+        })
+      } else {
+        let placed = 0
+        let ring = 0
+        while (placed < kids.length) {
+          const remaining = kids.length - placed
+          const capacity = Math.min(remaining, 10 + ring * 8)
+          const childRadius = 560 + ring * 360
+          for (let i = 0; i < capacity; i += 1) {
+            const child = kids[placed + i]
+            const childAngle = -Math.PI / 2 + (i + (ring % 2 ? 0.5 : 0)) * (Math.PI * 2 / capacity)
+            placeBranch(child, node, childAngle, childRadius, depth + 1, placed + i)
+          }
+          placed += capacity
+          ring += 1
+        }
+      }
       return
     }
     const fanStep = Math.PI / Math.max(7, kids.length + 2)
@@ -2993,7 +3010,7 @@ function buildOrganizedMindMapPage(page, plan) {
   })
   const rootNodes = page.nodes.filter(node => roots.some(root => root.title === node.text))
   const firstLevelNodes = page.nodes.filter(node => node.organizedDepth === 1)
-  const anchoredNodes = firstLevelNodes.length > 1 && firstLevelNodes.length <= 16 ? [...rootNodes, ...firstLevelNodes] : rootNodes
+  const anchoredNodes = firstLevelNodes.length > 1 && firstLevelNodes.length <= 96 ? [...rootNodes, ...firstLevelNodes] : rootNodes
   pushNodesApart(page.nodes, { pad: 56, anchoredIds: anchoredNodes.map(node => node.id) })
   centerPageViewOnContent(page)
   page.edges.forEach((edge, index) => {

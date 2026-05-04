@@ -60,3 +60,46 @@ test('imports a Trello board JSON export as a new mind-map page', async ({ page 
   expect(card.details.text).not.toContain('Commit URL:')
   expect(saved.notebook.activePageId).toBe(imported.id)
 })
+
+
+test('imports dense Trello boards as readable multi-ring radial mind maps', async ({ page }) => {
+  const denseBoard = {
+    ...trelloBoard,
+    cards: Array.from({ length: 30 }, (_, index) => ({
+      id: 'dense-' + (index + 1),
+      idList: index % 2 ? 'todo' : 'doing',
+      name: 'Project ' + (index + 1),
+      desc: 'Project notes ' + (index + 1),
+      pos: index + 1,
+      closed: false,
+    })),
+    checklists: [],
+  }
+  await page.goto('/')
+  await page.locator('#trello-file-input').setInputFiles({
+    name: 'dense-trello-board.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(denseBoard)),
+  })
+
+  const imported = await page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
+    return saved.notebook.pages.find(p => p.title === 'Launch Plan')
+  })
+  const root = imported.nodes.find(node => node.text === 'Launch Plan')
+  const rootCenter = { x: root.x + root.width / 2, y: root.y + root.height / 2 }
+  const projectRadii = imported.nodes
+    .filter(node => node.organizedDepth === 1)
+    .map(node => Math.round(Math.hypot(node.x + node.width / 2 - rootCenter.x, node.y + node.height / 2 - rootCenter.y) / 100) * 100)
+  expect(new Set(projectRadii).size).toBeGreaterThan(1)
+
+  const pad = 8
+  for (let i = 0; i < imported.nodes.length; i += 1) {
+    for (let j = i + 1; j < imported.nodes.length; j += 1) {
+      const a = imported.nodes[i]
+      const b = imported.nodes[j]
+      const overlap = a.x - pad < b.x + b.width + pad && a.x + a.width + pad > b.x - pad && a.y - pad < b.y + b.height + pad && a.y + a.height + pad > b.y - pad
+      expect(overlap, a.text + ' overlaps ' + b.text).toBe(false)
+    }
+  }
+})
