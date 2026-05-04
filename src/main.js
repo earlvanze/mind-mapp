@@ -342,6 +342,11 @@ function branchPoint(centerX, centerY, angle, radius) {
   }
 }
 
+function stabilizeGeneratedPageLayout(page, anchoredNodes = []) {
+  pushNodesApart(page.nodes, { pad: 96, maxPasses: 220, anchoredIds: anchoredNodes.map(node => node.id) })
+  centerPageViewOnContent(page)
+}
+
 function buildProjectKanbanPage(page) {
   page.nodes = []
   page.edges = []
@@ -371,12 +376,14 @@ function buildProjectKanbanPage(page) {
   const cardRadiusStep = 115
   const fanStep = Math.PI / 16
 
+  const headers = []
   PROJECT_KANBAN_COLUMNS.forEach((column, columnIndex) => {
     const angle = angles[columnIndex] ?? (-Math.PI + columnIndex * (Math.PI * 2 / PROJECT_KANBAN_COLUMNS.length))
     const headerPos = branchPoint(centerX, centerY, angle, headerRadius)
     const header = makeNodeForPage(page, headerPos.x, headerPos.y, column.title, `${column.items.length} cards`, { includeGitDetails: true })
     setMinNodeSize(header, 190, 52)
     page.nodes.push(header)
+    headers.push(header)
     addPageEdge(page, root, header, column.title)
 
     column.items.forEach((item, itemIndex) => {
@@ -390,6 +397,7 @@ function buildProjectKanbanPage(page) {
     })
   })
   colorizePage(page)
+  stabilizeGeneratedPageLayout(page, [root, ...headers])
 }
 
 function applyProjectKanbanToNewPage() {
@@ -474,6 +482,7 @@ function buildTrelloBoardPage(page, board) {
   const cardRadiusStep = 120
   const fanStep = Math.PI / Math.max(18, branchCount * 5)
 
+  const headers = []
   openLists.forEach((list, listIndex) => {
     const angle = -Math.PI / 2 + listIndex * (Math.PI * 2 / branchCount)
     const headerPos = branchPoint(centerX, centerY, angle, headerRadius)
@@ -481,6 +490,7 @@ function buildTrelloBoardPage(page, board) {
     const header = makeNodeForPage(page, headerPos.x, headerPos.y, list.name, `${cards.length} Trello cards`)
     setMinNodeSize(header, 190, 52)
     page.nodes.push(header)
+    headers.push(header)
     addPageEdge(page, root, header, list.name)
 
     cards.forEach((card, cardIndex) => {
@@ -496,6 +506,7 @@ function buildTrelloBoardPage(page, board) {
     })
   })
   colorizePage(page)
+  stabilizeGeneratedPageLayout(page, [root, ...headers])
 }
 
 function importTrelloBoard(board) {
@@ -633,12 +644,14 @@ function buildObsidianKanbanPage(page, parsed) {
   const cardRadiusStep = 125
   const fanStep = Math.PI / Math.max(20, branchCount * 5)
 
+  const headers = []
   parsed.columns.forEach((column, columnIndex) => {
     const angle = -Math.PI / 2 + columnIndex * (Math.PI * 2 / branchCount)
     const headerPos = branchPoint(centerX, centerY, angle, headerRadius)
     const header = makeNodeForPage(page, headerPos.x, headerPos.y, column.title, `${column.items.length} Obsidian items`)
     setMinNodeSize(header, 205, 52)
     page.nodes.push(header)
+    headers.push(header)
     addPageEdge(page, root, header, column.title)
 
     column.items.forEach((item, itemIndex) => {
@@ -652,6 +665,7 @@ function buildObsidianKanbanPage(page, parsed) {
     })
   })
   colorizePage(page)
+  stabilizeGeneratedPageLayout(page, [root, ...headers])
 }
 
 function importObsidianKanbanMarkdown(markdown, fileName) {
@@ -2955,6 +2969,7 @@ function pushNodesApart(nodes, options = {}) {
         const amount = (moveX ? overlapX : overlapY) / 2 + 10
         const aAnchored = anchoredIds.has(a.id)
         const bAnchored = anchoredIds.has(b.id)
+        if (aAnchored && bAnchored) continue
         if (moveX) {
           if (!aAnchored) a.x -= bAnchored ? dx * amount * 2 : dx * amount
           if (!bAnchored) b.x += aAnchored ? dx * amount * 2 : dx * amount
