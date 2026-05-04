@@ -41,21 +41,13 @@ test('Colorful applies intelligent concept coloring without restructuring the cu
   expect(saved.nodes.find(n => n.id === 3).organizedConcept).toBe('finance')
 })
 
-test('Organize can restructure an arbitrary map into a new radial mind-map page', async ({ page }) => {
+test('Organize uses deterministic local structure by default', async ({ page }) => {
   await seedLaunchPlan(page)
-  await page.route('**/api/organize-mind-map', route => route.fulfill({
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({
-      title: 'Organized: Launch Plan',
-      provider: 'sage-router:test',
-      nodes: [
-        { id: 'root', sourceId: 1, title: 'Launch Plan', parentId: null, concept: 'product', order: 0 },
-        { id: 'product', sourceId: 2, title: 'Product Work', parentId: 'root', concept: 'product', order: 1 },
-        { id: 'finance', sourceId: 3, title: 'Finance Blockers', parentId: 'root', concept: 'finance', status: 'blocked', order: 2 },
-      ],
-    }),
-  }))
+  let apiCalls = 0
+  await page.route('**/api/organize-mind-map', route => {
+    apiCalls += 1
+    return route.fulfill({ status: 500, body: 'should not be called for default organize' })
+  })
   await page.goto('/')
   await page.locator('#btn-ai-kanban').click()
   await expect(page.locator('#page-select')).toContainText('Organized: Launch Plan')
@@ -63,12 +55,19 @@ test('Organize can restructure an arbitrary map into a new radial mind-map page'
     const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
     return saved.notebook.pages.find(p => p.title === 'Organized: Launch Plan')
   })
+  expect(apiCalls).toBe(0)
+  expect(organized.organizedMindMapProvider).toBe('local heuristic')
   expect(organized.organizedMindMapMode).toBe('restructure-layout-and-structure')
-  expect(organized.nodes.map(n => n.text)).toEqual(expect.arrayContaining(['Launch Plan', 'Product Work', 'Finance Blockers']))
-  expect(organized.edges.length).toBe(2)
+  expect(organized.nodes.map(n => n.text)).toEqual(expect.arrayContaining([
+    'Launch Plan',
+    'Build onboarding flow',
+    'Blocked payment setup',
+    'Marketing copy done',
+  ]))
+  expect(organized.edges.length).toBe(3)
 })
 
-test('Organize falls back locally when API is unavailable', async ({ page }) => {
+test('Organize stays local when API is unavailable', async ({ page }) => {
   await seedLaunchPlan(page)
   await page.route('**/api/organize-mind-map', route => route.fulfill({ status: 404, body: 'not found' }))
   await page.goto('/')
@@ -109,7 +108,7 @@ test('Templates can generate AI-driven layout pages such as knowledge graphs', a
   expect(requestBody.template.id).toBe('knowledge-graph')
 })
 
-test('Organize lays out dense AI trees without overlapping nodes', async ({ page }) => {
+test('Template-generated layouts place dense AI trees without overlapping nodes', async ({ page }) => {
   await seedLaunchPlan(page)
   await page.route('**/api/organize-mind-map', route => route.fulfill({
     status: 200,
@@ -130,7 +129,9 @@ test('Organize lays out dense AI trees without overlapping nodes', async ({ page
     }),
   }))
   await page.goto('/')
-  await page.locator('#btn-ai-kanban').click()
+  await page.locator('#btn-templates').click()
+  await page.locator('[data-layout-template-id="knowledge-graph"]').click()
+  await page.locator('#btn-template-apply-layout').click()
   await expect.poll(async () => page.evaluate(() => {
     const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
     return Boolean(saved.notebook.pages.find(p => p.title === 'Organized: Dense Plan')?.nodes?.length)

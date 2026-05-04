@@ -2488,7 +2488,7 @@ btnImportObsidian.addEventListener('click', () => obsidianFileInput.click())
 obsidianFileInput.addEventListener('change', () => importObsidianKanbanFile(obsidianFileInput.files?.[0]))
 btnTemplates.addEventListener('click', openTemplateModal)
 btnColorful.addEventListener('click', makeMapColorful)
-btnAiKanban.addEventListener('click', organizeCurrentMindMap)
+btnAiKanban.addEventListener('click', () => organizeCurrentMindMap())
 btnCloseTemplates.addEventListener('click', closeTemplateModal)
 templateModal.addEventListener('click', e => { if (e.target === templateModal) closeTemplateModal() })
 btnTemplateApplySelected.addEventListener('click', () => {
@@ -3031,6 +3031,7 @@ async function requestMindMapColoring() {
 }
 
 async function requestMindMapOrganization(layoutTemplate = null) {
+  if (!layoutTemplate) return sanitizeMindMapStructure(localMindMapOrganizationFromCurrentPage())
   try {
     const response = await fetch('/api/organize-mind-map', {
       method: 'POST',
@@ -3045,6 +3046,7 @@ async function requestMindMapOrganization(layoutTemplate = null) {
 }
 
 async function organizeCurrentMindMap(layoutTemplate = null) {
+  if (layoutTemplate instanceof Event) layoutTemplate = null
   if (!state.nodes.length) {
     window.alert('Add or import a mind map first, then Organize can structure and color it.')
     return false
@@ -3056,7 +3058,7 @@ async function organizeCurrentMindMap(layoutTemplate = null) {
   replaceCurrentHistorySnapshot()
   const originalText = btnAiKanban.textContent
   btnAiKanban.disabled = true
-  btnAiKanban.textContent = layoutTemplate ? `Generating ${layoutTemplate.name}…` : 'Organizing…'
+  btnAiKanban.textContent = layoutTemplate ? `Generating ${layoutTemplate.name}…` : 'Organizing locally…'
   try {
     const plan = await requestMindMapOrganization(layoutTemplate)
     const page = createPage(plan.title)
