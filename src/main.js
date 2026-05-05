@@ -1333,6 +1333,7 @@ function visibleNodes() {
 function visibleEdges() {
   const visible = visibleNodeSet()
   return state.edges.filter(edge => {
+    if (edge.hiddenFromCanvas) return false
     if (!visible.has(fromId(edge)) || !visible.has(toId(edge))) return false
     if (edge.hideWhenTargetCollapsed) {
       const to = state.nodes.find(node => node.id === toId(edge))
@@ -3454,6 +3455,7 @@ function buildOrganizedMindMapPage(page, plan) {
           edge.side = side
           edge.directRoute = true
           edge.hideWhenTargetCollapsed = true
+          edge.hiddenFromCanvas = true
           edge.points = [edgePortForSide(rootNode, side, true), edgePortForSide(result.node, side, false)]
         }
       })

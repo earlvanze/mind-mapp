@@ -183,7 +183,7 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   expect(imported.nodes.filter(node => node.organizedDepth !== 1).every(node => !node.collapsed)).toBe(true)
   const rootEdges = imported.edges.filter(edge => imported.nodes.find(node => node.id === edge.from)?.organizedDepth === 0)
   expect(rootEdges.length).toBeGreaterThan(0)
-  expect(rootEdges.every(edge => edge.directRoute && edge.hideWhenTargetCollapsed && edge.points.length === 2)).toBe(true)
+  expect(rootEdges.every(edge => edge.directRoute && edge.hideWhenTargetCollapsed && edge.hiddenFromCanvas && edge.points.length === 2)).toBe(true)
 
   const pad = 24
   for (let i = 0; i < imported.nodes.length; i += 1) {
