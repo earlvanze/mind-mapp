@@ -1954,7 +1954,7 @@ function startEditing(node) {
       top:${screen.y}px;
       width:${scaledW}px;
       height:${scaledH}px;
-      font-size:${16 * state.view.scale}px;
+      font-size:${(node.fontSize || 16) * state.view.scale}px;
       font-family:system-ui,sans-serif;
       padding:6px;
       box-sizing:border-box;
@@ -2187,7 +2187,7 @@ let detailsTitleSaveTimer = null
 function resizeNodeToTitle(node, title) {
   const centerX = node.x + node.width / 2
   const centerY = node.y + node.height / 2
-  const size = measureText(title || 'Untitled')
+  const size = measureText(title || 'Untitled', node.fontSize || 16)
   node.text = title || 'Untitled'
   node.width = size.width
   node.height = size.height
@@ -3288,9 +3288,11 @@ function buildOrganizedMindMapPage(page, plan) {
       .filter(Boolean)
       .join('\n')
     const title = depth === 0 ? item.title : wrapMindMapTitle(item.title, depth === 1 ? 30 : 34)
+    const fontSize = depth === 0 ? 24 : depth === 1 ? 19 : 16
     const node = makeNodeForPage(page, x, y, title, details)
-    node.width = Math.max(node.width, depth === 0 ? 250 : 215)
-    node.height = Math.max(node.height, depth === 0 ? 58 : 50)
+    node.fontSize = fontSize
+    const measured = measureText(title, fontSize)
+    setMinNodeSize(node, Math.max(measured.width, depth === 0 ? 340 : depth === 1 ? 270 : 215), Math.max(measured.height, depth === 0 ? 78 : depth === 1 ? 62 : 50))
     styleNode(node, colorForConcept(item.concept, siblingIndex))
     node.organizedDepth = depth
     node.organizedConcept = item.concept
@@ -3358,8 +3360,8 @@ function buildOrganizedMindMapPage(page, plan) {
     }
     const firstGap = 720
     const depthGap = 540
-    const laneGap = 150
-    const groupGap = 220
+    const laneGap = 75
+    const groupGap = 110
     const rootItem = roots.slice().sort((a, b) => a.order - b.order)[0]
     const topLevel = rootItem && roots.length === 1
       ? (children.get(rootItem.id) || []).sort((a, b) => a.order - b.order)
