@@ -1530,10 +1530,42 @@ function drawEdge(ctx, e) {
   const from = state.nodes.find(n => n.id === fromId(e))
   const to = state.nodes.find(n => n.id === toId(e))
   if (!from || !to) return
-  const [ax, ay, bx, by] = endpoints(from, to)
   const isHovered = state.hoveredEdge === e.id
   const label = state.edgeLabels[e.id] || null
-  drawEdgeLine(ctx, ax, ay, bx, by, isHovered ? '#aa3bff' : (e.color || from.style?.accent || '#6b6375'), false, isHovered, label)
+  const color = isHovered ? '#aa3bff' : (e.color || from.style?.accent || '#6b6375')
+  if (e.route === 'orthogonal') {
+    drawOrthogonalEdgeLine(ctx, from, to, color, isHovered, label)
+    return
+  }
+  const [ax, ay, bx, by] = endpoints(from, to)
+  drawEdgeLine(ctx, ax, ay, bx, by, color, false, isHovered, label)
+}
+
+function drawOrthogonalEdgeLine(ctx, from, to, color, highlighted = false, label = null) {
+  const ax = from.x + from.width
+  const ay = from.y + from.height / 2
+  const bx = to.x
+  const by = to.y + to.height / 2
+  const midX = ax + Math.max(80, (bx - ax) / 2)
+  ctx.strokeStyle = color
+  ctx.lineWidth = (highlighted ? 3 : 2) / state.view.scale
+  ctx.setLineDash([])
+  ctx.beginPath()
+  ctx.moveTo(ax, ay)
+  ctx.lineTo(midX, ay)
+  ctx.lineTo(midX, by)
+  ctx.lineTo(bx, by)
+  ctx.stroke()
+  if (label) {
+    const fontSize = 12 / state.view.scale
+    ctx.font = `${fontSize}px system-ui, sans-serif`
+    ctx.fillStyle = '#fff'
+    ctx.strokeStyle = color
+    ctx.lineWidth = 3 / state.view.scale
+    const metrics = ctx.measureText(label)
+    ctx.strokeText(label, midX - metrics.width / 2, (ay + by) / 2 + fontSize / 3)
+    ctx.fillText(label, midX - metrics.width / 2, (ay + by) / 2 + fontSize / 3)
+  }
 }
 
 function drawEdgeLine(ctx, ax, ay, bx, by, color, dashed, highlighted = false, label = null) {
@@ -3131,6 +3163,61 @@ function buildOrganizedMindMapPage(page, plan) {
       const offset = (index - (kids.length - 1) / 2) * fanStep
       placeBranch(child, node, angle + offset, baseRadius + (index % 4) * radiusStep, depth + 1, index)
     })
+  }
+
+  function layoutAsSpaciousTree() {
+    const xStart = 320
+    const xGap = 820
+    const yStart = 260
+    const yGap = 170
+    let nextY = yStart
+    const positions = new Map()
+
+    function assignPosition(item, depth, siblingIndex) {
+      const kids = (children.get(item.id) || []).sort((a, b) => a.order - b.order)
+      if (!kids.length) {
+        const y = nextY
+        nextY += yGap
+        positions.set(item.id, { depth, siblingIndex, x: xStart + depth * xGap, y })
+        return y
+      }
+      const childYs = kids.map((child, index) => assignPosition(child, depth + 1, index))
+      const y = (childYs[0] + childYs[childYs.length - 1]) / 2
+      positions.set(item.id, { depth, siblingIndex, x: xStart + depth * xGap, y })
+      return y
+    }
+
+    roots.forEach((root, index) => assignPosition(root, 0, index))
+
+    const nodeByPlanId = new Map()
+    function createTreeNodes(item) {
+      const pos = positions.get(item.id)
+      const node = createOrganizedNode(item, pos.x, pos.y, pos.depth, pos.siblingIndex)
+      nodeByPlanId.set(item.id, node)
+      ;(children.get(item.id) || []).sort((a, b) => a.order - b.order).forEach(createTreeNodes)
+    }
+    roots.forEach(createTreeNodes)
+
+    parsed.nodes.forEach(item => {
+      if (!item.parentId) return
+      const parentNode = nodeByPlanId.get(item.parentId)
+      const node = nodeByPlanId.get(item.id)
+      if (!parentNode || !node) return
+      const edge = addPageEdge(page, parentNode, node, item.edgeLabel ?? item.concept ?? '')
+      edge.route = 'orthogonal'
+    })
+    page.importTreeLayout = true
+    centerPageViewOnContent(page)
+    focusLargeImportedMapOnRoot(page)
+    page.edges.forEach((edge, index) => {
+      const from = page.nodes.find(node => node.id === fromId(edge))
+      edge.color = from?.style?.accent || COLORFUL_PALETTE[index % COLORFUL_PALETTE.length].accent
+    })
+  }
+
+  if (/import/i.test(parsed.provider || '') && parsed.nodes.length > 80) {
+    layoutAsSpaciousTree()
+    return
   }
 
   roots.forEach((root, index) => {

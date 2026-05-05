@@ -125,6 +125,10 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
     buffer: Buffer.from(trello),
   })
 
+  await page.waitForFunction(() => {
+    const saved = JSON.parse(localStorage.getItem('mind-mapp-v1') || 'null')
+    return saved?.notebook?.pages?.some(p => p.title === "Earl's Life Mindmap")
+  })
   const imported = await page.evaluate(() => {
     const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
     return saved.notebook.pages.find(p => p.title === "Earl's Life Mindmap")
@@ -147,5 +151,48 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   expect(opsGroup.organizedDepth).toBe(1)
   expect(mindMapp.organizedDepth).toBe(2)
   expect(imported.edges).toEqual(expect.arrayContaining([expect.objectContaining({ from: opsGroup.id, to: mindMapp.id })]))
+  expect(imported.edges.every(edge => edge.route === 'orthogonal')).toBe(true)
+
+  const pad = 24
+  for (let i = 0; i < imported.nodes.length; i += 1) {
+    for (let j = i + 1; j < imported.nodes.length; j += 1) {
+      const a = imported.nodes[i]
+      const b = imported.nodes[j]
+      const overlap = a.x - pad < b.x + b.width + pad && a.x + a.width + pad > b.x - pad && a.y - pad < b.y + b.height + pad && a.y + a.height + pad > b.y - pad
+      expect(overlap, a.text + ' overlaps ' + b.text).toBe(false)
+    }
+  }
+
+  function segmentIntersectsRect(x1, y1, x2, y2, rect, clearance = 18) {
+    const left = rect.x - clearance
+    const right = rect.x + rect.width + clearance
+    const top = rect.y - clearance
+    const bottom = rect.y + rect.height + clearance
+    if (x1 === x2) {
+      if (x1 < left || x1 > right) return false
+      return Math.max(Math.min(y1, y2), top) <= Math.min(Math.max(y1, y2), bottom)
+    }
+    if (y1 === y2) {
+      if (y1 < top || y1 > bottom) return false
+      return Math.max(Math.min(x1, x2), left) <= Math.min(Math.max(x1, x2), right)
+    }
+    return false
+  }
+
+  for (const edge of imported.edges) {
+    const from = imported.nodes.find(node => node.id === edge.from)
+    const to = imported.nodes.find(node => node.id === edge.to)
+    const ax = from.x + from.width
+    const ay = from.y + from.height / 2
+    const bx = to.x
+    const by = to.y + to.height / 2
+    const midX = ax + Math.max(80, (bx - ax) / 2)
+    const segments = [[ax, ay, midX, ay], [midX, ay, midX, by], [midX, by, bx, by]]
+    for (const node of imported.nodes) {
+      if (node.id === from.id || node.id === to.id) continue
+      const hit = segments.some(segment => segmentIntersectsRect(...segment, node))
+      expect(hit, `edge ${from.text} -> ${to.text} crosses ${node.text}`).toBe(false)
+    }
+  }
   expect(imported.view.scale).toBeGreaterThanOrEqual(0.3)
 })
