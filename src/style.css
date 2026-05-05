@@ -490,3 +490,49 @@ canvas.eraser-mode { cursor: not-allowed; }
     border-radius: 16px 16px 0 0;
   }
 }
+.color-legend {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 20;
+  max-width: min(360px, calc(100vw - 24px));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 9px 10px;
+  border: 1px solid rgba(229, 228, 231, 0.92);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 30px rgba(8, 6, 13, 0.12);
+  backdrop-filter: blur(10px);
+  font-size: 12px;
+  color: var(--text-h);
+}
+.color-legend.hidden { display: none; }
+.color-legend strong {
+  flex-basis: 100%;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text);
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: 160px;
+}
+.legend-swatch {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+}
+.legend-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

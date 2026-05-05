@@ -42,6 +42,45 @@ test('Colorful applies intelligent concept coloring without restructuring the cu
 })
 
 
+
+test('Colorful legend updates when Colorful is re-run', async ({ page }) => {
+  await seedLaunchPlan(page)
+  let run = 0
+  await page.route('**/api/organize-mind-map', route => {
+    run += 1
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        title: 'Colored: Launch Plan',
+        provider: 'sage-router:test',
+        nodes: run === 1
+          ? [
+              { sourceId: 1, concept: 'product', order: 0 },
+              { sourceId: 2, concept: 'product', order: 1 },
+              { sourceId: 3, concept: 'finance', order: 2 },
+              { sourceId: 4, concept: 'product', order: 3 },
+            ]
+          : [
+              { sourceId: 1, concept: 'automation', order: 0 },
+              { sourceId: 2, concept: 'automation', order: 1 },
+              { sourceId: 3, concept: 'property', order: 2 },
+              { sourceId: 4, concept: 'automation', order: 3 },
+            ],
+      }),
+    })
+  })
+  await page.goto('/')
+  await page.locator('#btn-colorful').click()
+  await expect(page.locator('#color-legend')).toContainText('product')
+  await expect(page.locator('#color-legend')).toContainText('finance')
+
+  await page.locator('#btn-colorful').click()
+  await expect(page.locator('#color-legend')).toContainText('automation')
+  await expect(page.locator('#color-legend')).toContainText('property')
+  await expect(page.locator('#color-legend')).not.toContainText('finance')
+})
+
 test('Organize sizes tiers from largest root to smallest third-order descendants', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('mind-mapp-v1', JSON.stringify({

@@ -1196,6 +1196,7 @@ app.innerHTML = `
 </div>
 <div class="workspace">
   <canvas id="canvas"></canvas>
+  <div id="color-legend" class="color-legend hidden" aria-label="Color legend"></div>
   <aside id="details-panel" class="details-panel hidden">
     <div class="details-header">
       <div>
@@ -1234,6 +1235,8 @@ app.innerHTML = `
 
 const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
+const colorLegend = document.getElementById('color-legend')
+let colorLegendSignature = ''
 
 function isNativeAppShell() {
   return Boolean(window.Capacitor) || window.location.protocol === 'capacitor:'
@@ -1694,9 +1697,65 @@ function renderScene(ctx) {
   ctx.restore()
 }
 
+function colorKeyForStyle(style) {
+  if (!style) return null
+  return `${style.fill || ''}|${style.stroke || ''}|${style.accent || ''}`
+}
+
+function legendLabelForNode(node) {
+  if (node.organizedDepth === 1) return compactText(node.text || node.organizedConcept || 'Project')
+  return compactText(node.organizedConcept || node.organizedStatus || '')
+}
+
+function colorLegendEntries() {
+  const entries = new Map()
+  for (const node of visibleNodes()) {
+    const key = colorKeyForStyle(node.style)
+    const label = legendLabelForNode(node)
+    if (!key || !label) continue
+    if (!entries.has(key)) {
+      entries.set(key, {
+        key,
+        fill: node.style.fill || '#fff',
+        stroke: node.style.stroke || node.style.accent || '#aa3bff',
+        accent: node.style.accent || node.style.stroke || '#aa3bff',
+        labels: new Set(),
+        firstOrder: node.organizedDepth === 1,
+      })
+    }
+    const entry = entries.get(key)
+    entry.labels.add(label)
+    entry.firstOrder = entry.firstOrder || node.organizedDepth === 1
+  }
+  return [...entries.values()]
+    .map(entry => ({ ...entry, label: [...entry.labels].slice(0, 2).join(' / ') }))
+    .sort((a, b) => Number(b.firstOrder) - Number(a.firstOrder) || a.label.localeCompare(b.label))
+    .slice(0, 12)
+}
+
+function updateColorLegend() {
+  if (!colorLegend) return
+  const entries = colorLegendEntries()
+  const signature = JSON.stringify(entries.map(entry => [entry.key, entry.label]))
+  if (signature === colorLegendSignature) return
+  colorLegendSignature = signature
+  if (!entries.length) {
+    colorLegend.classList.add('hidden')
+    colorLegend.innerHTML = ''
+    return
+  }
+  colorLegend.classList.remove('hidden')
+  colorLegend.innerHTML = `<strong>Colors</strong>${entries.map(entry => `
+    <span class="legend-item" title="${entry.label.replace(/"/g, '&quot;')}">
+      <span class="legend-swatch" style="background:${entry.fill}; border-color:${entry.stroke}; box-shadow: inset 0 0 0 2px ${entry.accent}22"></span>
+      <span class="legend-label">${entry.label}</span>
+    </span>`).join('')}`
+}
+
 function draw() {
   renderScene(ctx)
   drawMinimap()
+  updateColorLegend()
 }
 
 function drawGrid(ctx) {
