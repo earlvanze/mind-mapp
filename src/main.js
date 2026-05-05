@@ -1524,6 +1524,37 @@ function directFloatingEdgePoints(fromNode, toNode) {
   return [edgePortForSide(fromNode, side, true), edgePortForSide(toNode, side, false)]
 }
 
+function rayPointOnNodeEdge(node, targetNode) {
+  const cx = node.x + node.width / 2
+  const cy = node.y + node.height / 2
+  const tx = targetNode.x + targetNode.width / 2
+  const ty = targetNode.y + targetNode.height / 2
+  const dx = tx - cx
+  const dy = ty - cy
+  if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) return { point: { x: cx, y: cy }, normal: { x: 1, y: 0 } }
+  const halfW = node.width / 2
+  const halfH = node.height / 2
+  const scale = 1 / Math.max(Math.abs(dx) / halfW, Math.abs(dy) / halfH)
+  const x = cx + dx * scale
+  const y = cy + dy * scale
+  if (Math.abs(Math.abs(x - cx) - halfW) < Math.abs(Math.abs(y - cy) - halfH)) {
+    return { point: { x, y }, normal: { x: x >= cx ? 1 : -1, y: 0 } }
+  }
+  return { point: { x, y }, normal: { x: 0, y: y >= cy ? 1 : -1 } }
+}
+
+function rootTreePolylinePoints(fromNode, toNode, side = 'east') {
+  const { point: start, normal } = rayPointOnNodeEdge(fromNode, toNode)
+  const end = edgePortForSide(toNode, side, false)
+  const stub = Math.min(86, Math.max(36, Math.max(Math.abs(end.x - start.x), Math.abs(end.y - start.y)) / 3))
+  if (normal.x) {
+    const x = start.x + normal.x * stub
+    return [start, { x, y: start.y }, { x, y: end.y }, end]
+  }
+  const y = start.y + normal.y * stub
+  return [start, { x: start.x, y }, { x: end.x, y }, end]
+}
+
 function refreshRoutedEdgePoints(edge, fromNode, toNode) {
   if (edge?.route !== 'polyline') return edge?.points || null
   const side = edge.side || toNode?.treeSide || fromNode?.treeSide || 'east'
@@ -1536,6 +1567,12 @@ function refreshRoutedEdgePoints(edge, fromNode, toNode) {
     edge.points = shouldFloat
       ? directFloatingEdgePoints(fromNode, toNode)
       : [edgePortForSide(fromNode, side, true), edgePortForSide(toNode, side, false)]
+  } else if (edge.rootTreeRoute || isRootFirstOrderEdge) {
+    edge.directRoute = false
+    edge.floatingDirectRoute = false
+    edge.horizontalDirectRoute = false
+    edge.rootTreeRoute = true
+    edge.points = rootTreePolylinePoints(fromNode, toNode, side)
   } else if (edge.simpleRoute) {
     edge.points = simpleOrthogonalPoints(fromNode, toNode, side)
   } else {
@@ -3656,7 +3693,8 @@ function buildOrganizedMindMapPage(page, plan) {
           edge.side = side
           edge.directRoute = false
           edge.floatingDirectRoute = false
-          edge.points = orthogonalRoute(rootNode, result.node, side)
+          edge.rootTreeRoute = true
+          edge.points = rootTreePolylinePoints(rootNode, result.node, side)
         }
       })
     }
@@ -3689,9 +3727,10 @@ function buildOrganizedMindMapPage(page, plan) {
         edge.directRoute = false
         edge.floatingDirectRoute = false
         edge.horizontalDirectRoute = false
+        edge.rootTreeRoute = true
       }
       edge.side = shouldFloat ? floatingSideBetween(from, to) : (to.treeSide || from.treeSide || edge.side || 'east')
-      edge.points = shouldFloat ? directFloatingEdgePoints(from, to) : orthogonalRoute(from, to, edge.side)
+      edge.points = shouldFloat ? directFloatingEdgePoints(from, to) : (isRootFirstOrderEdge ? rootTreePolylinePoints(from, to, edge.side) : orthogonalRoute(from, to, edge.side))
     })
     applyProjectConceptColorsToPage(page)
     page.importCompassTreeLayout = true

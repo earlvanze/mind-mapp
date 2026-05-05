@@ -176,11 +176,20 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   expect(new Set(imported.nodes.filter(node => node.organizedDepth === 1).map(node => node.treeSide)).size).toBeGreaterThanOrEqual(8)
   const rootEdges = imported.edges.filter(edge => edge.from === root.id)
   expect(rootEdges.length).toBeGreaterThan(0)
-  expect(rootEdges.every(edge => edge.route === 'polyline' && !edge.directRoute && !edge.floatingDirectRoute)).toBe(true)
+  expect(rootEdges.every(edge => edge.route === 'polyline' && edge.rootTreeRoute && !edge.directRoute && !edge.floatingDirectRoute)).toBe(true)
   const rootEdgeSides = new Set(rootEdges.map(edge => edge.side))
   expect(rootEdges.every(edge => ['east', 'southeast', 'south', 'southwest', 'west', 'northwest', 'north', 'northeast'].includes(edge.side))).toBe(true)
   expect(rootEdgeSides.size).toBeGreaterThanOrEqual(8)
   expect(rootEdges.every(edge => edge.points.length >= 4)).toBe(true)
+  const rootCenter = { x: root.x + root.width / 2, y: root.y + root.height / 2 }
+  const startsAwayFromCardinalMidpoints = rootEdges.some(edge => {
+    const start = edge.points[0]
+    const onHorizontalEdge = Math.abs(start.y - root.y) < 0.1 || Math.abs(start.y - (root.y + root.height)) < 0.1
+    const onVerticalEdge = Math.abs(start.x - root.x) < 0.1 || Math.abs(start.x - (root.x + root.width)) < 0.1
+    const notMidpoint = onHorizontalEdge ? Math.abs(start.x - rootCenter.x) > 1 : Math.abs(start.y - rootCenter.y) > 1
+    return (onHorizontalEdge || onVerticalEdge) && notMidpoint
+  })
+  expect(startsAwayFromCardinalMidpoints).toBe(true)
   const parentIds = new Set(imported.edges.map(edge => edge.from))
   const firstOrderParents = imported.nodes.filter(node => node.organizedDepth === 1 && parentIds.has(node.id))
   expect(firstOrderParents.length).toBeGreaterThan(0)
