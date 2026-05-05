@@ -1400,6 +1400,21 @@ function edgePortForSide(node, side, isSource) {
   return { x: cx, y: cy }
 }
 
+function simpleOrthogonalPoints(fromNode, toNode, side = 'east') {
+  const start = edgePortForSide(fromNode, side, true)
+  const end = edgePortForSide(toNode, side, false)
+  if (side === 'east' || side === 'west') {
+    return [start, { x: end.x, y: start.y }, end]
+  }
+  if (side === 'north' || side === 'south') {
+    return [start, { x: start.x, y: end.y }, end]
+  }
+  if (side === 'northeast' || side === 'southwest') {
+    return [start, { x: end.x, y: start.y }, end]
+  }
+  return [start, { x: start.x, y: end.y }, end]
+}
+
 function routedPolylinePoints(fromNode, toNode, side = 'east') {
   const start = edgePortForSide(fromNode, side, true)
   const end = edgePortForSide(toNode, side, false)
@@ -1438,6 +1453,8 @@ function refreshRoutedEdgePoints(edge, fromNode, toNode) {
   edge.side = side
   if (edge.directRoute) {
     edge.points = [edgePortForSide(fromNode, side, true), edgePortForSide(toNode, side, false)]
+  } else if (edge.simpleRoute) {
+    edge.points = simpleOrthogonalPoints(fromNode, toNode, side)
   } else {
     edge.points = routedPolylinePoints(fromNode, toNode, side)
   }
@@ -3480,7 +3497,8 @@ function buildOrganizedMindMapPage(page, plan) {
           const edge = addPageEdge(page, rootNode, result.node, result.node.organizedConcept || '')
           edge.route = 'polyline'
           edge.side = side
-          edge.points = orthogonalRoute(rootNode, result.node, side)
+          edge.simpleRoute = true
+          edge.points = simpleOrthogonalPoints(rootNode, result.node, side)
         }
       })
     }
@@ -3843,7 +3861,7 @@ function drawMinimap() {
     mctx.stroke()
   }
 
-  for (const n of state.nodes) {
+  for (const n of visibleNodes()) {
     const isSelected = state.selectedType === 'node' && state.selected === n.id
     mctx.fillStyle = isSelected ? '#aa3bff' : '#fff'
     mctx.strokeStyle = isSelected ? '#7c2db8' : '#c4bfcc'
@@ -3854,13 +3872,17 @@ function drawMinimap() {
   }
 
   const viewport = worldToMinimap(-state.view.x / state.view.scale, -state.view.y / state.view.scale, metrics)
-  const vpX = viewport.x
-  const vpY = viewport.y
   const vpW = (canvas.width / state.view.scale) * metrics.scale
   const vpH = (canvas.height / state.view.scale) * metrics.scale
-  mctx.strokeStyle = '#aa3bff'
-  mctx.lineWidth = 1.5
-  mctx.strokeRect(vpX, vpY, vpW, vpH)
+  const vpX = Math.max(0, Math.min(MINIMAP_W, viewport.x))
+  const vpY = Math.max(0, Math.min(MINIMAP_H, viewport.y))
+  const vpRight = Math.max(0, Math.min(MINIMAP_W, viewport.x + vpW))
+  const vpBottom = Math.max(0, Math.min(MINIMAP_H, viewport.y + vpH))
+  if (vpRight > vpX && vpBottom > vpY) {
+    mctx.strokeStyle = '#aa3bff'
+    mctx.lineWidth = 1.5
+    mctx.strokeRect(vpX, vpY, vpRight - vpX, vpBottom - vpY)
+  }
 }
 
 // ─── Render wrapper ────────────────────────────────────────────────────────────
