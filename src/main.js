@@ -1854,6 +1854,7 @@ function lightenColor(hex, amount = 0.12) {
 }
 
 function roundRect(ctx, x, y, w, h, r) {
+  r = Math.max(0, Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2))
   ctx.beginPath()
   ctx.moveTo(x + r, y)
   ctx.lineTo(x + w - r, y)
