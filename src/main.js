@@ -1507,8 +1507,19 @@ function horizontalSideBetween(fromNode, toNode) {
   return toCx >= fromCx ? 'east' : 'west'
 }
 
-function directHorizontalEdgePoints(fromNode, toNode) {
-  const side = horizontalSideBetween(fromNode, toNode)
+function floatingSideBetween(fromNode, toNode) {
+  const fromCx = fromNode.x + fromNode.width / 2
+  const fromCy = fromNode.y + fromNode.height / 2
+  const toCx = toNode.x + toNode.width / 2
+  const toCy = toNode.y + toNode.height / 2
+  const dx = toCx - fromCx
+  const dy = toCy - fromCy
+  if (Math.abs(dx) >= Math.abs(dy)) return dx >= 0 ? 'east' : 'west'
+  return dy >= 0 ? 'south' : 'north'
+}
+
+function directFloatingEdgePoints(fromNode, toNode) {
+  const side = floatingSideBetween(fromNode, toNode)
   return [edgePortForSide(fromNode, side, true), edgePortForSide(toNode, side, false)]
 }
 
@@ -1517,9 +1528,11 @@ function refreshRoutedEdgePoints(edge, fromNode, toNode) {
   const side = edge.side || toNode?.treeSide || fromNode?.treeSide || 'east'
   edge.side = side
   if (edge.directRoute) {
-    edge.side = edge.horizontalDirectRoute ? horizontalSideBetween(fromNode, toNode) : side
-    edge.points = edge.horizontalDirectRoute
-      ? directHorizontalEdgePoints(fromNode, toNode)
+    const shouldFloat = edge.floatingDirectRoute || edge.horizontalDirectRoute
+    if (edge.horizontalDirectRoute) edge.floatingDirectRoute = true
+    edge.side = shouldFloat ? floatingSideBetween(fromNode, toNode) : side
+    edge.points = shouldFloat
+      ? directFloatingEdgePoints(fromNode, toNode)
       : [edgePortForSide(fromNode, side, true), edgePortForSide(toNode, side, false)]
   } else if (edge.simpleRoute) {
     edge.points = simpleOrthogonalPoints(fromNode, toNode, side)
@@ -2769,7 +2782,6 @@ function arrangeSecondOrderExpansion(node) {
         edge.side = child.treeSide
         edge.simpleRoute = true
         edge.directRoute = false
-        edge.horizontalDirectRoute = false
         edge.points = simpleOrthogonalPoints(node, child, child.treeSide)
       })
     descendantIds(child.id, children).forEach(id => {
@@ -3639,10 +3651,10 @@ function buildOrganizedMindMapPage(page, plan) {
         if (rootNode) {
           const edge = addPageEdge(page, rootNode, result.node, result.node.organizedConcept || '')
           edge.route = 'polyline'
-          edge.side = horizontalSideBetween(rootNode, result.node)
+          edge.side = floatingSideBetween(rootNode, result.node)
           edge.directRoute = true
-          edge.horizontalDirectRoute = true
-          edge.points = directHorizontalEdgePoints(rootNode, result.node)
+          edge.floatingDirectRoute = true
+          edge.points = directFloatingEdgePoints(rootNode, result.node)
         }
       })
     }
@@ -3668,8 +3680,10 @@ function buildOrganizedMindMapPage(page, plan) {
       const to = page.nodes.find(node => node.id === toId(edge))
       if (!from || !to) return
       edge.route = 'polyline'
-      edge.side = edge.horizontalDirectRoute ? horizontalSideBetween(from, to) : (to.treeSide || from.treeSide || edge.side || 'east')
-      edge.points = edge.horizontalDirectRoute ? directHorizontalEdgePoints(from, to) : orthogonalRoute(from, to, edge.side)
+      const shouldFloat = edge.floatingDirectRoute || edge.horizontalDirectRoute
+      if (edge.horizontalDirectRoute) edge.floatingDirectRoute = true
+      edge.side = shouldFloat ? floatingSideBetween(from, to) : (to.treeSide || from.treeSide || edge.side || 'east')
+      edge.points = shouldFloat ? directFloatingEdgePoints(from, to) : orthogonalRoute(from, to, edge.side)
     })
     applyProjectConceptColorsToPage(page)
     page.importCompassTreeLayout = true
