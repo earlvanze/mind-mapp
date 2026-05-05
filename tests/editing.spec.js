@@ -66,3 +66,41 @@ test('delete key removes selected node even when an edge shares its id', async (
   expect(saved.edges).toEqual([])
   expect(saved.edgeLabels).toEqual({})
 })
+
+test('routed edge vertices stay attached when connected nodes move', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('mind-mapp-v1', JSON.stringify({
+      nodes: [
+        { id: 1, x: 100, y: 100, text: 'Root', width: 100, height: 50, treeSide: 'east' },
+        { id: 2, x: 400, y: 100, text: 'Child', width: 100, height: 50, treeSide: 'east' },
+      ],
+      edges: [{
+        id: 1,
+        from: 1,
+        to: 2,
+        route: 'polyline',
+        side: 'east',
+        points: [{ x: 200, y: 125 }, { x: 300, y: 125 }, { x: 300, y: 125 }, { x: 400, y: 125 }],
+      }],
+      edgeLabels: {},
+      lastId: 2,
+      lastEdgeId: 1,
+      view: { x: 0, y: 0, scale: 1 },
+    }))
+  })
+  await page.goto('/')
+
+  const canvas = page.locator('#canvas')
+  await canvas.dragTo(canvas, {
+    sourcePosition: { x: 450, y: 125 },
+    targetPosition: { x: 450, y: 245 },
+  })
+
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
+  const child = saved.nodes.find(node => node.id === 2)
+  const edge = saved.edges[0]
+  const last = edge.points.at(-1)
+  expect(child.y).toBeGreaterThan(215)
+  expect(last.x).toBeCloseTo(child.x, 1)
+  expect(last.y).toBeCloseTo(child.y + child.height / 2, 1)
+})

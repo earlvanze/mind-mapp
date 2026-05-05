@@ -1307,6 +1307,15 @@ function edgeAt(mx, my) {
     const from = state.nodes.find(n => n.id === fromId(e))
     const to = state.nodes.find(n => n.id === toId(e))
     if (!from || !to) continue
+    if (e.route === 'polyline') {
+      const points = refreshRoutedEdgePoints(e, from, to) || []
+      for (let i = 1; i < points.length; i += 1) {
+        const a = points[i - 1]
+        const b = points[i]
+        if (distPointToSegment(world.x, world.y, a.x, a.y, b.x, b.y) < 8) return e
+      }
+      continue
+    }
     const [ax, ay, bx, by] = endpoints(from, to)
     const d = distPointToSegment(world.x, world.y, ax, ay, bx, by)
     if (d < 8) return e
@@ -1321,6 +1330,35 @@ function endpoints(a, b) {
   const ax = a.x + a.width / 2, ay = a.y + a.height / 2
   const bx = b.x + b.width / 2, by = b.y + b.height / 2
   return [ax, ay, bx, by]
+}
+
+function edgePortForSide(node, side, isSource) {
+  const cx = node.x + node.width / 2
+  const cy = node.y + node.height / 2
+  if (side === 'east') return isSource ? { x: node.x + node.width, y: cy } : { x: node.x, y: cy }
+  if (side === 'west') return isSource ? { x: node.x, y: cy } : { x: node.x + node.width, y: cy }
+  if (side === 'south') return isSource ? { x: cx, y: node.y + node.height } : { x: cx, y: node.y }
+  if (side === 'north') return isSource ? { x: cx, y: node.y } : { x: cx, y: node.y + node.height }
+  return { x: cx, y: cy }
+}
+
+function routedPolylinePoints(fromNode, toNode, side = 'east') {
+  const start = edgePortForSide(fromNode, side, true)
+  const end = edgePortForSide(toNode, side, false)
+  if (side === 'east' || side === 'west') {
+    const mx = (start.x + end.x) / 2
+    return [start, { x: mx, y: start.y }, { x: mx, y: end.y }, end]
+  }
+  const my = (start.y + end.y) / 2
+  return [start, { x: start.x, y: my }, { x: end.x, y: my }, end]
+}
+
+function refreshRoutedEdgePoints(edge, fromNode, toNode) {
+  if (edge?.route !== 'polyline') return edge?.points || null
+  const side = edge.side || toNode?.treeSide || fromNode?.treeSide || 'east'
+  edge.side = side
+  edge.points = routedPolylinePoints(fromNode, toNode, side)
+  return edge.points
 }
 
 
@@ -1533,9 +1571,12 @@ function drawEdge(ctx, e) {
   const isHovered = state.hoveredEdge === e.id
   const label = state.edgeLabels[e.id] || null
   const color = isHovered ? '#aa3bff' : (e.color || from.style?.accent || '#6b6375')
-  if (e.route === 'polyline' && Array.isArray(e.points) && e.points.length >= 2) {
-    drawPolylineEdgeLine(ctx, e.points, color, isHovered, label)
-    return
+  if (e.route === 'polyline') {
+    const points = refreshRoutedEdgePoints(e, from, to)
+    if (Array.isArray(points) && points.length >= 2) {
+      drawPolylineEdgeLine(ctx, points, color, isHovered, label)
+      return
+    }
   }
   if (e.route === 'orthogonal') {
     drawOrthogonalEdgeLine(ctx, from, to, color, isHovered, label)
@@ -3236,25 +3277,8 @@ function buildOrganizedMindMapPage(page, plan) {
       return node
     }
 
-    function edgePort(node, side, isSource) {
-      const cx = node.x + node.width / 2
-      const cy = node.y + node.height / 2
-      if (side === 'east') return isSource ? { x: node.x + node.width, y: cy } : { x: node.x, y: cy }
-      if (side === 'west') return isSource ? { x: node.x, y: cy } : { x: node.x + node.width, y: cy }
-      if (side === 'south') return isSource ? { x: cx, y: node.y + node.height } : { x: cx, y: node.y }
-      if (side === 'north') return isSource ? { x: cx, y: node.y } : { x: cx, y: node.y + node.height }
-      return { x: cx, y: cy }
-    }
-
     function orthogonalRoute(fromNode, toNode, side) {
-      const start = edgePort(fromNode, side, true)
-      const end = edgePort(toNode, side, false)
-      if (side === 'east' || side === 'west') {
-        const mx = (start.x + end.x) / 2
-        return [start, { x: mx, y: start.y }, { x: mx, y: end.y }, end]
-      }
-      const my = (start.y + end.y) / 2
-      return [start, { x: start.x, y: my }, { x: end.x, y: my }, end]
+      return routedPolylinePoints(fromNode, toNode, side)
     }
 
     function assignSubtree(item, side, depth, nextLane, siblingIndex) {
@@ -3275,6 +3299,7 @@ function buildOrganizedMindMapPage(page, plan) {
       childResults.forEach(result => {
         const edge = addPageEdge(page, node, result.node, result.node.organizedConcept || '')
         edge.route = 'polyline'
+        edge.side = side
         edge.points = orthogonalRoute(node, result.node, side)
       })
       return { lane, nextLane: cursor, node }
@@ -3296,6 +3321,7 @@ function buildOrganizedMindMapPage(page, plan) {
         if (rootNode) {
           const edge = addPageEdge(page, rootNode, result.node, result.node.organizedConcept || '')
           edge.route = 'polyline'
+          edge.side = side
           edge.points = orthogonalRoute(rootNode, result.node, side)
         }
       })
@@ -3307,7 +3333,8 @@ function buildOrganizedMindMapPage(page, plan) {
       const to = page.nodes.find(node => node.id === toId(edge))
       if (!from || !to) return
       edge.route = 'polyline'
-      edge.points = orthogonalRoute(from, to, to.treeSide || from.treeSide || 'east')
+      edge.side = to.treeSide || from.treeSide || edge.side || 'east'
+      edge.points = orthogonalRoute(from, to, edge.side)
     })
     page.importFourWayTreeLayout = true
     centerPageViewOnContent(page)
