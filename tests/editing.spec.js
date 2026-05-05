@@ -106,7 +106,7 @@ test('routed edge vertices stay attached when connected nodes move', async ({ pa
 })
 
 
-test('double-clicking a parent collapses its subtree and double-clicking again zooms back in', async ({ page }) => {
+test('double-clicking a parent collapses and expands without changing zoom', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('mind-mapp-v1', JSON.stringify({
       nodes: [
@@ -124,9 +124,11 @@ test('double-clicking a parent collapses its subtree and double-clicking again z
   await page.goto('/')
   const canvas = page.locator('#canvas')
 
+  const startingView = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')).view)
   await canvas.dblclick({ position: { x: 150, y: 125 } })
   let saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
   expect(saved.nodes.find(node => node.id === 1).collapsed).toBe(true)
+  expect(saved.view).toEqual(startingView)
 
   const childScreen = await page.evaluate(() => {
     const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
@@ -152,5 +154,5 @@ test('double-clicking a parent collapses its subtree and double-clicking again z
   await canvas.dblclick({ position: rootScreen })
   saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
   expect(saved.nodes.find(node => node.id === 1).collapsed).toBe(false)
-  expect(saved.view.scale).toBeGreaterThan(1)
+  expect(saved.view).toEqual(startingView)
 })

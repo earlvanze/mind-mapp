@@ -2598,13 +2598,6 @@ function toggleNodeCollapse(node) {
   node.collapsed = !node.collapsed
   state.selected = node.id
   state.selectedType = 'node'
-  if (node.collapsed) {
-    focusNodesInView([node], 180)
-  } else {
-    const ids = descendantIds(node.id)
-    const subtree = state.nodes.filter(candidate => candidate.id === node.id || ids.has(candidate.id))
-    focusNodesInView(subtree, 160)
-  }
   historyCommit()
   save()
   render()
@@ -3529,6 +3522,10 @@ function buildOrganizedMindMapPage(page, plan) {
       edge.route = 'polyline'
       edge.side = to.treeSide || from.treeSide || edge.side || 'east'
       edge.points = orthogonalRoute(from, to, edge.side)
+    })
+    const parentNodeIds = new Set(page.edges.map(edge => fromId(edge)))
+    page.nodes.forEach(node => {
+      node.collapsed = node.organizedDepth === 1 && parentNodeIds.has(node.id)
     })
     page.importCompassTreeLayout = true
     centerPageViewOnContent(page)
