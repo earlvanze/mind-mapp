@@ -138,6 +138,38 @@ test('routed edge vertices stay attached when connected nodes move', async ({ pa
 })
 
 
+test('expanding a compacted parent pushes only visible nodes apart', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('mind-mapp-v1', JSON.stringify({
+      nodes: [
+        { id: 1, x: 100, y: 100, text: 'Parent', width: 100, height: 50, collapsed: true },
+        { id: 2, x: 220, y: 100, text: 'Hidden child', width: 120, height: 50 },
+        { id: 3, x: 230, y: 105, text: 'Opened neighbor', width: 140, height: 50 },
+      ],
+      edges: [{ id: 1, from: 1, to: 2 }],
+      edgeLabels: {},
+      lastId: 3,
+      lastEdgeId: 1,
+      view: { x: 0, y: 0, scale: 1 },
+    }))
+  })
+  await page.goto('/')
+
+  const canvas = page.locator('#canvas')
+  await canvas.dblclick({ position: { x: 150, y: 125 } })
+
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
+  const child = saved.nodes.find(node => node.id === 2)
+  const neighbor = saved.nodes.find(node => node.id === 3)
+  const pad = 28
+  const overlap = child.x - pad < neighbor.x + neighbor.width + pad &&
+    child.x + child.width + pad > neighbor.x - pad &&
+    child.y - pad < neighbor.y + neighbor.height + pad &&
+    child.y + child.height + pad > neighbor.y - pad
+  expect(saved.nodes.find(node => node.id === 1).collapsed).toBe(false)
+  expect(overlap).toBe(false)
+})
+
 test('double-clicking a parent collapses and expands without changing zoom', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('mind-mapp-v1', JSON.stringify({

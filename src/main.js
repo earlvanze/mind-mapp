@@ -1330,6 +1330,20 @@ function visibleNodes() {
   return state.nodes.filter(node => visible.has(node.id))
 }
 
+function refreshPolylineEdges(edges = state.edges, nodes = state.nodes) {
+  edges.forEach(edge => {
+    const from = nodes.find(node => node.id === fromId(edge))
+    const to = nodes.find(node => node.id === toId(edge))
+    if (!from || !to || edge.route !== 'polyline') return
+    refreshRoutedEdgePoints(edge, from, to)
+  })
+}
+
+function pushVisibleNodesApart(options = {}) {
+  pushNodesApart(visibleNodes(), options)
+  refreshPolylineEdges(visibleEdges())
+}
+
 function visibleEdges() {
   const visible = visibleNodeSet()
   return state.edges.filter(edge => visible.has(fromId(edge)) && visible.has(toId(edge)))
@@ -2620,6 +2634,7 @@ function toggleNodeCollapse(node) {
   node.collapsed = !node.collapsed
   state.selected = node.id
   state.selectedType = 'node'
+  pushVisibleNodesApart({ pad: 28, maxPasses: 120, anchoredIds: [node.id] })
   historyCommit()
   save()
   render()
@@ -3371,8 +3386,8 @@ function buildOrganizedMindMapPage(page, plan) {
       north: { dx: 0, dy: -1, px: 1, py: 0 },
       northeast: { dx: diagonal, dy: -diagonal, px: diagonal, py: diagonal },
     }
-    const firstGap = 720
-    const depthGap = 540
+    const firstGap = 360
+    const depthGap = 270
     const laneGap = 75
     const groupGap = 110
     const rootItem = roots.slice().sort((a, b) => a.order - b.order)[0]
@@ -3471,70 +3486,22 @@ function buildOrganizedMindMapPage(page, plan) {
       })
     }
 
-    const childIdsByParent = new Map(page.nodes.map(node => [node.id, []]))
-    page.edges.forEach(edge => childIdsByParent.get(fromId(edge))?.push(toId(edge)))
-    function collectSubtreeNodes(rootNode) {
-      const collected = []
-      const stack = [rootNode.id]
-      while (stack.length) {
-        const id = stack.pop()
-        const node = page.nodes.find(candidate => candidate.id === id)
-        if (!node) continue
-        collected.push(node)
-        ;(childIdsByParent.get(id) || []).forEach(childId => stack.push(childId))
+    const parentNodeIds = new Set(page.edges.map(edge => fromId(edge)))
+    page.nodes.forEach(node => {
+      node.collapsed = node.organizedDepth === 1 && parentNodeIds.has(node.id)
+    })
+    const parentById = new Map(page.edges.map(edge => [toId(edge), fromId(edge)]))
+    function isVisibleInCompactedImport(node) {
+      // Keep roots and first-order compacted nodes visible; hide descendants under compacted parents.
+      let currentId = node.id
+      while (parentById.has(currentId)) {
+        currentId = parentById.get(currentId)
+        const parent = page.nodes.find(candidate => candidate.id === currentId)
+        if (parent?.collapsed) return false
       }
-      return collected
+      return true
     }
-    function boundsFor(nodes) {
-      return nodes.reduce((acc, node) => ({
-        minX: Math.min(acc.minX, node.x),
-        minY: Math.min(acc.minY, node.y),
-        maxX: Math.max(acc.maxX, node.x + node.width),
-        maxY: Math.max(acc.maxY, node.y + node.height),
-      }), { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity })
-    }
-    function shiftNodes(nodes, dx, dy) {
-      nodes.forEach(node => {
-        node.x += dx
-        node.y += dy
-      })
-    }
-    const projectGroups = page.nodes
-      .filter(node => node.organizedDepth === 1)
-      .map(root => ({ root, nodes: collectSubtreeNodes(root) }))
-    projectGroups.forEach(group => pushNodesApart(group.nodes, { pad: 28, maxPasses: 90, anchoredIds: [group.root.id] }))
-    for (let pass = 0; pass < 80; pass += 1) {
-      let moved = false
-      for (let i = 0; i < projectGroups.length; i += 1) {
-        for (let j = i + 1; j < projectGroups.length; j += 1) {
-          const a = projectGroups[i]
-          const b = projectGroups[j]
-          const ab = boundsFor(a.nodes)
-          const bb = boundsFor(b.nodes)
-          const pad = 50
-          const overlapX = Math.min(ab.maxX + pad, bb.maxX + pad) - Math.max(ab.minX - pad, bb.minX - pad)
-          const overlapY = Math.min(ab.maxY + pad, bb.maxY + pad) - Math.max(ab.minY - pad, bb.minY - pad)
-          if (overlapX <= 0 || overlapY <= 0) continue
-          const ax = a.root.x + a.root.width / 2
-          const ay = a.root.y + a.root.height / 2
-          const bx = b.root.x + b.root.width / 2
-          const by = b.root.y + b.root.height / 2
-          if (overlapX < overlapY) {
-            const dir = ax <= bx ? -1 : 1
-            const delta = overlapX / 2 + 6
-            shiftNodes(a.nodes, dir * delta, 0)
-            shiftNodes(b.nodes, -dir * delta, 0)
-          } else {
-            const dir = ay <= by ? -1 : 1
-            const delta = overlapY / 2 + 6
-            shiftNodes(a.nodes, 0, dir * delta)
-            shiftNodes(b.nodes, 0, -dir * delta)
-          }
-          moved = true
-        }
-      }
-      if (!moved) break
-    }
+    pushNodesApart(page.nodes.filter(isVisibleInCompactedImport), { pad: 28, maxPasses: 120 })
     page.edges.forEach(edge => {
       const from = page.nodes.find(node => node.id === fromId(edge))
       const to = page.nodes.find(node => node.id === toId(edge))
@@ -3542,10 +3509,6 @@ function buildOrganizedMindMapPage(page, plan) {
       edge.route = 'polyline'
       edge.side = to.treeSide || from.treeSide || edge.side || 'east'
       edge.points = orthogonalRoute(from, to, edge.side)
-    })
-    const parentNodeIds = new Set(page.edges.map(edge => fromId(edge)))
-    page.nodes.forEach(node => {
-      node.collapsed = node.organizedDepth === 1 && parentNodeIds.has(node.id)
     })
     page.importCompassTreeLayout = true
     centerPageViewOnContent(page)
