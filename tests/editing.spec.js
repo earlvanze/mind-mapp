@@ -170,6 +170,36 @@ test('expanding a compacted parent pushes only visible nodes apart', async ({ pa
   expect(overlap).toBe(false)
 })
 
+
+test('expanding a second-order node prefers an east-west child fanout', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('mind-mapp-v1', JSON.stringify({
+      nodes: [
+        { id: 1, x: 100, y: 100, text: 'Root', width: 100, height: 50, organizedDepth: 0, treeSide: 'east' },
+        { id: 2, x: 260, y: 100, text: 'Project', width: 120, height: 50, organizedDepth: 1, treeSide: 'east' },
+        { id: 3, x: 420, y: 100, text: 'Second order', width: 140, height: 50, organizedDepth: 2, treeSide: 'east', collapsed: true },
+        { id: 4, x: 430, y: 260, text: 'Hidden detail A', width: 130, height: 50, organizedDepth: 3, treeSide: 'east' },
+        { id: 5, x: 430, y: 340, text: 'Hidden detail B', width: 130, height: 50, organizedDepth: 3, treeSide: 'east' },
+      ],
+      edges: [{ id: 1, from: 1, to: 2 }, { id: 2, from: 2, to: 3 }, { id: 3, from: 3, to: 4 }, { id: 4, from: 3, to: 5 }],
+      edgeLabels: {},
+      lastId: 5,
+      lastEdgeId: 4,
+      view: { x: 0, y: 0, scale: 1 },
+    }))
+  })
+  await page.goto('/')
+
+  await page.locator('#canvas').dblclick({ position: { x: 490, y: 125 } })
+
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
+  const parent = saved.nodes.find(node => node.id === 3)
+  const children = saved.nodes.filter(node => [4, 5].includes(node.id))
+  expect(parent.collapsed).toBe(false)
+  expect(children.every(child => child.x > parent.x + parent.width)).toBe(true)
+  expect(Math.abs(children[0].y - children[1].y)).toBeGreaterThan(50)
+})
+
 test('double-clicking a parent collapses and expands without changing zoom', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('mind-mapp-v1', JSON.stringify({

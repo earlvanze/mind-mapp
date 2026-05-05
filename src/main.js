@@ -228,7 +228,7 @@ function conceptStyleForText(text, fallbackIndex = 0) {
 }
 
 function primaryConceptStyleForNode(node, parentStyle, fallbackIndex = 0) {
-  const ownText = `${node?.text || ''} ${node?.details?.text || ''}`
+  const ownText = `${node?.text || ''} ${node?.details?.text || ''} ${node?.organizedConcept || ''} ${node?.organizedStatus || ''}`
   const ownStyle = conceptStyleForText(ownText, fallbackIndex)
   const matchedOwn = CONCEPT_COLOR_RULES.some(rule => rule.words.some(word => normalizeConceptText(ownText).includes(word)))
   return matchedOwn || !parentStyle ? ownStyle : cloneStyle(parentStyle)
@@ -259,10 +259,47 @@ function applyConceptColorsToNodeTree(nodes, edges) {
 
   roots.forEach((root, index) => visit(root, null, index))
   nodes.forEach((node, index) => {
-    if (!visited.has(node.id)) styleNode(node, conceptStyleForText(`${node.text || ''} ${node.details?.text || ''}`, index))
+    if (!visited.has(node.id)) styleNode(node, conceptStyleForText(`${node.text || ''} ${node.details?.text || ''} ${node.organizedConcept || ''} ${node.organizedStatus || ''}`, index))
   })
   edges.forEach((edge, index) => {
     const from = nodes.find(node => node.id === fromId(edge))
+    edge.color = from?.style?.accent || COLORFUL_PALETTE[index % COLORFUL_PALETTE.length].accent
+  })
+}
+
+
+function applyProjectConceptColorsToPage(page) {
+  if (!page?.nodes?.length) return
+  const children = new Map(page.nodes.map(node => [node.id, []]))
+  page.edges.forEach(edge => children.get(fromId(edge))?.push(toId(edge)))
+  const projectNodes = page.nodes
+    .filter(node => node.organizedDepth === 1)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.y - b.y || a.x - b.x)
+  const projectStyleById = new Map()
+  projectNodes.forEach((project, index) => {
+    const style = colorForIndex(index)
+    styleNode(project, style)
+    projectStyleById.set(project.id, style)
+  })
+
+  function visit(node, inheritedStyle, siblingIndex) {
+    if (!node) return
+    const style = primaryConceptStyleForNode(node, inheritedStyle, siblingIndex)
+    if (node.organizedDepth !== 1) styleNode(node, style)
+    const nextStyle = node.style || style
+    ;(children.get(node.id) || [])
+      .map(id => page.nodes.find(candidate => candidate.id === id))
+      .filter(Boolean)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.y - b.y || a.x - b.x)
+      .forEach((child, index) => visit(child, nextStyle, index))
+  }
+
+  projectNodes.forEach((project, index) => visit(project, projectStyleById.get(project.id), index))
+  page.nodes
+    .filter(node => node.organizedDepth === 0)
+    .forEach((node, index) => styleNode(node, conceptStyleForText(`${node.text || ''} ${node.organizedConcept || ''}`, index)))
+  page.edges.forEach((edge, index) => {
+    const from = page.nodes.find(node => node.id === fromId(edge))
     edge.color = from?.style?.accent || COLORFUL_PALETTE[index % COLORFUL_PALETTE.length].accent
   })
 }
@@ -2629,11 +2666,42 @@ function focusNodesInView(nodes, pad = 140) {
   })
 }
 
+
+function arrangeSecondOrderExpansion(node) {
+  if (!node || node.organizedDepth !== 2) return
+  const children = childIdsByNode()
+  const directChildren = (children.get(node.id) || [])
+    .map(id => state.nodes.find(candidate => candidate.id === id))
+    .filter(Boolean)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.y - b.y || a.x - b.x)
+  if (!directChildren.length) return
+  const direction = node.treeSide === 'west' || node.treeSide === 'northwest' || node.treeSide === 'southwest' ? -1 : 1
+  const gapX = 220
+  const gapY = 72
+  const startY = node.y + node.height / 2 - ((directChildren.length - 1) * gapY) / 2
+  directChildren.forEach((child, index) => {
+    const oldCenterY = child.y + child.height / 2
+    const dx = direction > 0 ? node.width + gapX : -(child.width + gapX)
+    child.x = node.x + dx
+    child.y = startY + index * gapY - child.height / 2
+    child.treeSide = direction > 0 ? 'east' : 'west'
+    descendantIds(child.id, children).forEach(id => {
+      const descendant = state.nodes.find(candidate => candidate.id === id)
+      if (!descendant) return
+      const depthDelta = Math.max(1, (descendant.organizedDepth || child.organizedDepth || 0) - (child.organizedDepth || 0))
+      descendant.x = child.x + direction * depthDelta * gapX
+      descendant.y += child.y + child.height / 2 - oldCenterY
+      descendant.treeSide = child.treeSide
+    })
+  })
+}
+
 function toggleNodeCollapse(node) {
   if (!nodeHasChildren(node)) return false
   node.collapsed = !node.collapsed
   state.selected = node.id
   state.selectedType = 'node'
+  if (!node.collapsed) arrangeSecondOrderExpansion(node)
   pushVisibleNodesApart({ pad: 28, maxPasses: 120, anchoredIds: [node.id] })
   historyCommit()
   save()
@@ -3510,6 +3578,7 @@ function buildOrganizedMindMapPage(page, plan) {
       edge.side = to.treeSide || from.treeSide || edge.side || 'east'
       edge.points = orthogonalRoute(from, to, edge.side)
     })
+    applyProjectConceptColorsToPage(page)
     page.importCompassTreeLayout = true
     centerPageViewOnContent(page)
     focusLargeImportedMapOnRoot(page)
@@ -3532,6 +3601,7 @@ function buildOrganizedMindMapPage(page, plan) {
   const firstLevelNodes = page.nodes.filter(node => node.organizedDepth === 1)
   const anchoredNodes = firstLevelNodes.length > 1 && firstLevelNodes.length <= 96 ? [...rootNodes, ...firstLevelNodes] : rootNodes
   pushNodesApart(page.nodes, { pad: 72, maxPasses: 420, anchoredIds: anchoredNodes.map(node => node.id) })
+  applyProjectConceptColorsToPage(page)
   centerPageViewOnContent(page)
   focusLargeImportedMapOnRoot(page)
   page.edges.forEach((edge, index) => {

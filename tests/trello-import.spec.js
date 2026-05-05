@@ -63,6 +63,10 @@ test('imports a Trello board JSON export as a new mind-map page', async ({ page 
   const review = imported.nodes.find(node => node.text === '☐ Review')
   expect(draft.organizedDepth).toBe(2)
   expect(review.organizedDepth).toBe(2)
+  expect(card.style.fill).not.toBe(imported.nodes.find(node => node.text === 'Finalize import flow').style.fill)
+  expect(draft.style.fill).toBe('#dcfce7')
+  expect(review.style.fill).not.toBe(draft.style.fill)
+  expect(imported.edges.find(edge => edge.from === card.id && edge.to === draft.id).color).toBe(card.style.accent)
   expect(imported.edges).toEqual(expect.arrayContaining([
     expect.objectContaining({ from: card.id, to: draft.id }),
     expect.objectContaining({ from: card.id, to: review.id }),
