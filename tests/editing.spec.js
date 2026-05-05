@@ -43,6 +43,38 @@ test('dragging nodes remains stable after panning the canvas', async ({ page }) 
 })
 
 
+
+test('dragging a parent moves all descendant nodes together', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('mind-mapp-v1', JSON.stringify({
+      nodes: [
+        { id: 1, x: 100, y: 100, text: 'Root', width: 100, height: 50 },
+        { id: 2, x: 340, y: 100, text: 'Child', width: 100, height: 50 },
+        { id: 3, x: 580, y: 100, text: 'Grandchild', width: 120, height: 50 },
+        { id: 4, x: 100, y: 260, text: 'Unrelated', width: 120, height: 50 },
+      ],
+      edges: [{ id: 1, from: 1, to: 2 }, { id: 2, from: 2, to: 3 }],
+      edgeLabels: {},
+      lastId: 4,
+      lastEdgeId: 2,
+      view: { x: 0, y: 0, scale: 1 },
+    }))
+  })
+  await page.goto('/')
+
+  const canvas = page.locator('#canvas')
+  await canvas.dragTo(canvas, {
+    sourcePosition: { x: 150, y: 125 },
+    targetPosition: { x: 190, y: 165 },
+  })
+
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
+  expect(saved.nodes.find(node => node.id === 1)).toMatchObject({ x: 140, y: 140 })
+  expect(saved.nodes.find(node => node.id === 2)).toMatchObject({ x: 380, y: 140 })
+  expect(saved.nodes.find(node => node.id === 3)).toMatchObject({ x: 620, y: 140 })
+  expect(saved.nodes.find(node => node.id === 4)).toMatchObject({ x: 100, y: 260 })
+})
+
 test('delete key removes selected node even when an edge shares its id', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('mind-mapp-v1', JSON.stringify({

@@ -2500,7 +2500,17 @@ canvas.addEventListener('pointerdown', e => {
       save()
     } else {
       const world = screenToWorld(mx, my)
-      state.dragging = { id: node.id, offsetX: world.x - node.x, offsetY: world.y - node.y }
+      const draggedIds = new Set([node.id, ...descendantIds(node.id)])
+      state.dragging = {
+        id: node.id,
+        startX: world.x,
+        startY: world.y,
+        offsetX: world.x - node.x,
+        offsetY: world.y - node.y,
+        nodes: state.nodes
+          .filter(candidate => draggedIds.has(candidate.id))
+          .map(candidate => ({ id: candidate.id, x: candidate.x, y: candidate.y })),
+      }
     }
   } else {
     const edge = edgeAt(mx, my)
@@ -2533,8 +2543,19 @@ canvas.addEventListener('pointermove', e => {
     const node = state.nodes.find(n => n.id === state.dragging.id)
     if (node) {
       const world = screenToWorld(mx, my)
-      node.x = world.x - state.dragging.offsetX
-      node.y = world.y - state.dragging.offsetY
+      if (Array.isArray(state.dragging.nodes)) {
+        const dx = world.x - state.dragging.startX
+        const dy = world.y - state.dragging.startY
+        state.dragging.nodes.forEach(start => {
+          const draggedNode = state.nodes.find(n => n.id === start.id)
+          if (!draggedNode) return
+          draggedNode.x = start.x + dx
+          draggedNode.y = start.y + dy
+        })
+      } else {
+        node.x = world.x - state.dragging.offsetX
+        node.y = world.y - state.dragging.offsetY
+      }
     }
   } else if (state.panning) {
     setView({ ...state.view, x: mx - state.panStart.x, y: my - state.panStart.y })
