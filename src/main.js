@@ -1339,6 +1339,10 @@ function edgePortForSide(node, side, isSource) {
   if (side === 'west') return isSource ? { x: node.x, y: cy } : { x: node.x + node.width, y: cy }
   if (side === 'south') return isSource ? { x: cx, y: node.y + node.height } : { x: cx, y: node.y }
   if (side === 'north') return isSource ? { x: cx, y: node.y } : { x: cx, y: node.y + node.height }
+  if (side === 'northeast') return isSource ? { x: node.x + node.width, y: node.y } : { x: node.x, y: node.y + node.height }
+  if (side === 'southeast') return isSource ? { x: node.x + node.width, y: node.y + node.height } : { x: node.x, y: node.y }
+  if (side === 'southwest') return isSource ? { x: node.x, y: node.y + node.height } : { x: node.x + node.width, y: node.y }
+  if (side === 'northwest') return isSource ? { x: node.x, y: node.y } : { x: node.x + node.width, y: node.y + node.height }
   return { x: cx, y: cy }
 }
 
@@ -1349,8 +1353,14 @@ function routedPolylinePoints(fromNode, toNode, side = 'east') {
     const mx = (start.x + end.x) / 2
     return [start, { x: mx, y: start.y }, { x: mx, y: end.y }, end]
   }
-  const my = (start.y + end.y) / 2
-  return [start, { x: start.x, y: my }, { x: end.x, y: my }, end]
+  if (side === 'north' || side === 'south') {
+    const my = (start.y + end.y) / 2
+    return [start, { x: start.x, y: my }, { x: end.x, y: my }, end]
+  }
+  if (side === 'northeast' || side === 'southwest') {
+    return [start, { x: end.x, y: start.y }, end]
+  }
+  return [start, { x: start.x, y: end.y }, end]
 }
 
 function refreshRoutedEdgePoints(edge, fromNode, toNode) {
@@ -3231,20 +3241,25 @@ function buildOrganizedMindMapPage(page, plan) {
     })
   }
 
-  function layoutAsFourWayTree() {
+  function layoutAsCompassTree() {
     const rootX = centerX
     const rootY = centerY
-    const sideOrder = ['east', 'south', 'west', 'north']
+    const sideOrder = ['east', 'southeast', 'south', 'southwest', 'west', 'northwest', 'north', 'northeast']
+    const diagonal = Math.SQRT1_2
     const sideConfig = {
       east: { dx: 1, dy: 0, px: 0, py: 1 },
-      west: { dx: -1, dy: 0, px: 0, py: 1 },
+      southeast: { dx: diagonal, dy: diagonal, px: diagonal, py: -diagonal },
       south: { dx: 0, dy: 1, px: 1, py: 0 },
+      southwest: { dx: -diagonal, dy: diagonal, px: diagonal, py: diagonal },
+      west: { dx: -1, dy: 0, px: 0, py: 1 },
+      northwest: { dx: -diagonal, dy: -diagonal, px: diagonal, py: -diagonal },
       north: { dx: 0, dy: -1, px: 1, py: 0 },
+      northeast: { dx: diagonal, dy: -diagonal, px: diagonal, py: diagonal },
     }
-    const firstGap = 980
-    const depthGap = 760
-    const laneGap = 150
-    const groupGap = 320
+    const firstGap = 720
+    const depthGap = 540
+    const laneGap = 190
+    const groupGap = 220
     const rootItem = roots.slice().sort((a, b) => a.order - b.order)[0]
     const topLevel = rootItem && roots.length === 1
       ? (children.get(rootItem.id) || []).sort((a, b) => a.order - b.order)
@@ -3327,7 +3342,7 @@ function buildOrganizedMindMapPage(page, plan) {
       })
     }
 
-    pushNodesApart(page.nodes, { pad: 54, maxPasses: 260, anchoredIds: page.nodes.filter(node => node.organizedDepth <= 1).map(node => node.id) })
+    pushNodesApart(page.nodes, { pad: 58, maxPasses: 320, anchoredIds: page.nodes.filter(node => node.organizedDepth === 0).map(node => node.id) })
     page.edges.forEach(edge => {
       const from = page.nodes.find(node => node.id === fromId(edge))
       const to = page.nodes.find(node => node.id === toId(edge))
@@ -3336,7 +3351,7 @@ function buildOrganizedMindMapPage(page, plan) {
       edge.side = to.treeSide || from.treeSide || edge.side || 'east'
       edge.points = orthogonalRoute(from, to, edge.side)
     })
-    page.importFourWayTreeLayout = true
+    page.importCompassTreeLayout = true
     centerPageViewOnContent(page)
     focusLargeImportedMapOnRoot(page)
     page.edges.forEach((edge, index) => {
@@ -3346,7 +3361,7 @@ function buildOrganizedMindMapPage(page, plan) {
   }
 
   if (/import/i.test(parsed.provider || '') && parsed.nodes.length > 80) {
-    layoutAsFourWayTree()
+    layoutAsCompassTree()
     return
   }
 

@@ -151,7 +151,7 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   expect(opsGroup.organizedDepth).toBe(1)
   expect(mindMapp.organizedDepth).toBe(2)
   expect(imported.edges).toEqual(expect.arrayContaining([expect.objectContaining({ from: opsGroup.id, to: mindMapp.id })]))
-  expect(imported.importFourWayTreeLayout).toBe(true)
+  expect(imported.importCompassTreeLayout).toBe(true)
 
   const bounds = imported.nodes.reduce((acc, node) => ({
     minX: Math.min(acc.minX, node.x),
@@ -161,15 +161,15 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   }), { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity })
   const width = bounds.maxX - bounds.minX
   const height = bounds.maxY - bounds.minY
-  expect(width).toBeLessThan(10000)
-  expect(height).toBeLessThan(14500)
+  expect(width).toBeLessThan(8000)
+  expect(height).toBeLessThan(8000)
   expect(Math.max(width, height) / Math.min(width, height)).toBeLessThan(2.25)
   const root = imported.nodes.find(node => node.organizedDepth === 0)
   expect(imported.nodes.some(node => node.x + node.width / 2 < root.x)).toBe(true)
   expect(imported.nodes.some(node => node.x > root.x + root.width)).toBe(true)
   expect(imported.nodes.some(node => node.y + node.height / 2 < root.y)).toBe(true)
   expect(imported.nodes.some(node => node.y > root.y + root.height)).toBe(true)
-  expect(new Set(imported.nodes.filter(node => node.organizedDepth === 1).map(node => node.treeSide)).size).toBeGreaterThanOrEqual(4)
+  expect(new Set(imported.nodes.filter(node => node.organizedDepth === 1).map(node => node.treeSide)).size).toBeGreaterThanOrEqual(8)
 
   const pad = 24
   for (let i = 0; i < imported.nodes.length; i += 1) {
