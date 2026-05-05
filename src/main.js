@@ -1514,8 +1514,9 @@ function floatingSideBetween(fromNode, toNode) {
   const toCy = toNode.y + toNode.height / 2
   const dx = toCx - fromCx
   const dy = toCy - fromCy
-  if (Math.abs(dx) >= Math.abs(dy)) return dx >= 0 ? 'east' : 'west'
-  return dy >= 0 ? 'south' : 'north'
+  const compass = ['east', 'southeast', 'south', 'southwest', 'west', 'northwest', 'north', 'northeast']
+  const sector = Math.round(Math.atan2(dy, dx) / (Math.PI / 4))
+  return compass[((sector % compass.length) + compass.length) % compass.length]
 }
 
 function directFloatingEdgePoints(fromNode, toNode) {
