@@ -176,11 +176,25 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   expect(firstOrderParents.every(node => node.collapsed)).toBe(true)
   expect(imported.nodes.filter(node => node.organizedDepth !== 1).every(node => !node.collapsed)).toBe(true)
 
+  const nodeById = new Map(imported.nodes.map(node => [node.id, node]))
+  const parentById = new Map(imported.edges.map(edge => [edge.to, edge.from]))
+  function visibleInCompactedImport(node) {
+    let current = node.id
+    while (parentById.has(current)) {
+      current = parentById.get(current)
+      if (nodeById.get(current)?.collapsed) return false
+    }
+    return true
+  }
+  const visibleImportedNodes = imported.nodes.filter(visibleInCompactedImport)
+  const visibleImportedNodeIds = new Set(visibleImportedNodes.map(node => node.id))
+  expect(visibleImportedNodes.length).toBeLessThan(imported.nodes.length)
+
   const pad = 24
-  for (let i = 0; i < imported.nodes.length; i += 1) {
-    for (let j = i + 1; j < imported.nodes.length; j += 1) {
-      const a = imported.nodes[i]
-      const b = imported.nodes[j]
+  for (let i = 0; i < visibleImportedNodes.length; i += 1) {
+    for (let j = i + 1; j < visibleImportedNodes.length; j += 1) {
+      const a = visibleImportedNodes[i]
+      const b = visibleImportedNodes[j]
       const overlap = a.x - pad < b.x + b.width + pad && a.x + a.width + pad > b.x - pad && a.y - pad < b.y + b.height + pad && a.y + a.height + pad > b.y - pad
       expect(overlap, a.text + ' overlaps ' + b.text).toBe(false)
     }
@@ -205,8 +219,6 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
     }
   }
 
-  const nodeById = new Map(imported.nodes.map(node => [node.id, node]))
-  const parentById = new Map(imported.edges.map(edge => [edge.to, edge.from]))
   function projectRootId(nodeId) {
     let current = nodeId
     let previous = nodeId
@@ -233,11 +245,12 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
     return false
   }
   for (const edge of imported.edges) {
+    if (!visibleImportedNodeIds.has(edge.from) || !visibleImportedNodeIds.has(edge.to)) continue
     const from = nodeById.get(edge.from)
     if (from?.organizedDepth === 0) continue
     const edgeProjectId = projectByNodeId.get(edge.to)
     const segments = edge.points.slice(1).map((point, index) => [edge.points[index], point])
-    for (const node of imported.nodes) {
+    for (const node of visibleImportedNodes) {
       if (node.id === edge.from || node.id === edge.to || projectByNodeId.get(node.id) === edgeProjectId) continue
       const crossesSeparateProject = segments.some(([a, b]) => segmentHitsNode(a.x, a.y, b.x, b.y, node))
       expect(crossesSeparateProject, `${from.text} -> ${nodeById.get(edge.to).text} crosses ${node.text}`).toBe(false)
