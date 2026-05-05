@@ -2091,41 +2091,6 @@ function targetViewForPage(page) {
   return sanitizeView(page?.view ? { ...page.view } : { x: 0, y: 0, scale: 1 })
 }
 
-function viewCenteredOnNode(node, scale = 2.4) {
-  return {
-    x: canvas.width / 2 - (node.x + node.width / 2) * scale,
-    y: canvas.height / 2 - (node.y + node.height / 2) * scale,
-    scale,
-  }
-}
-
-function animateViewTo(target, duration = 420) {
-  const start = { ...state.view }
-  const startTime = performance.now()
-  canvas.classList.add('prezi-zooming')
-  return new Promise(resolve => {
-    function tick(now) {
-      const t = Math.min(1, (now - startTime) / duration)
-      const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
-      setView({
-        x: start.x + (target.x - start.x) * eased,
-        y: start.y + (target.y - start.y) * eased,
-        scale: start.scale + (target.scale - start.scale) * eased,
-      })
-      render()
-      if (t < 1) requestAnimationFrame(tick)
-      else {
-        setView(target)
-        canvas.classList.remove('prezi-zooming')
-        render()
-        resolve()
-      }
-    }
-    requestAnimationFrame(tick)
-  })
-}
-
-
 function updateZoomBackButton() {
   if (!btnZoomBack) return
   btnZoomBack.disabled = state.zoomTrail.length === 0
@@ -2160,16 +2125,7 @@ async function zoomBackOut() {
   }
 
   switchPage(returnPage.id, { skipResize: true })
-  const returnNode = state.nodes.find(node => node.id === entry.nodeId)
-  if (returnNode) {
-    setView(viewCenteredOnNode(returnNode, 1.7))
-    state.selected = returnNode.id
-    state.selectedType = 'node'
-  } else {
-    setView(targetViewForPage(returnPage))
-  }
-  render()
-  await animateViewTo(entry.view || targetViewForPage(returnPage), 280)
+  setView(entry.view || targetViewForPage(returnPage))
   state.selected = null
   state.selectedType = null
   save()
@@ -2189,7 +2145,6 @@ async function openLinkedPageFromNode(node) {
   hideDetails()
   state.selected = node.id
   state.selectedType = 'node'
-  await animateViewTo(viewCenteredOnNode(node, 1.7), 220)
   const targetView = targetViewForPage(targetPage)
   switchPage(targetPage.id, { skipResize: true })
   setView(targetView)
