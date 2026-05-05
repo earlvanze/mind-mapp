@@ -2152,7 +2152,6 @@ async function zoomBackOut() {
 
   const entry = state.zoomTrail.pop()
   updateZoomBackButton()
-  await animateViewTo({ x: canvas.width / 2, y: canvas.height / 2, scale: 0.08 }, 360)
 
   const returnPage = state.notebook.pages.find(page => page.id === entry.pageId)
   if (!returnPage) {
@@ -2163,14 +2162,14 @@ async function zoomBackOut() {
   switchPage(returnPage.id, { skipResize: true })
   const returnNode = state.nodes.find(node => node.id === entry.nodeId)
   if (returnNode) {
-    setView(viewCenteredOnNode(returnNode, 2.65))
+    setView(viewCenteredOnNode(returnNode, 1.7))
     state.selected = returnNode.id
     state.selectedType = 'node'
   } else {
-    setView({ x: canvas.width / 2, y: canvas.height / 2, scale: MIN_VIEW_SCALE })
+    setView(targetViewForPage(returnPage))
   }
   render()
-  await animateViewTo(entry.view || targetViewForPage(returnPage), 520)
+  await animateViewTo(entry.view || targetViewForPage(returnPage), 280)
   state.selected = null
   state.selectedType = null
   save()
@@ -2190,12 +2189,11 @@ async function openLinkedPageFromNode(node) {
   hideDetails()
   state.selected = node.id
   state.selectedType = 'node'
-  await animateViewTo(viewCenteredOnNode(node, 2.65), 360)
+  await animateViewTo(viewCenteredOnNode(node, 1.7), 220)
   const targetView = targetViewForPage(targetPage)
   switchPage(targetPage.id, { skipResize: true })
-  setView({ x: canvas.width / 2, y: canvas.height / 2, scale: MIN_VIEW_SCALE })
+  setView(targetView)
   render()
-  await animateViewTo(targetView, 520)
   save()
   return true
 }
