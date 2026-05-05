@@ -1584,18 +1584,22 @@ function worldToScreen(wx, wy) {
   }
 }
 
-function measureText(text, fontSize = 16) {
+function measureText(text, fontSize = 16, options = {}) {
   ctx.font = `${fontSize}px system-ui, sans-serif`
   const lines = text.split('\n')
   let maxWidth = 0
   for (const line of lines) {
     maxWidth = Math.max(maxWidth, ctx.measureText(line).width)
   }
+  const padX = options.padX ?? 24
+  const padY = options.padY ?? 12
+  const lineHeight = options.lineHeight ?? 1.4
   return {
-    width: maxWidth + 24,
-    height: lines.length * (fontSize * 1.4) + 12,
+    width: maxWidth + padX,
+    height: lines.length * (fontSize * lineHeight) + padY,
   }
 }
+
 
 function newNode(x, y, text = 'New Node') {
   const id = ++state.lastId
@@ -3385,10 +3389,15 @@ function buildOrganizedMindMapPage(page, plan) {
     const details = [item.details, item.concept ? `Concept: ${item.concept}` : '', item.status ? `Status: ${item.status}` : '', `Organized by ${parsed.provider}.`]
       .filter(Boolean)
       .join('\n')
-    const title = depth === 0 ? item.title : wrapMindMapTitle(item.title, depth === 1 ? 30 : 34)
+    const tier = depth <= 0 ? { font: 19, padX: 42, padY: 22, minW: 270, minH: 68 }
+      : depth === 1 ? { font: 17, padX: 34, padY: 18, minW: 230, minH: 58 }
+        : depth === 2 ? { font: 15, padX: 26, padY: 14, minW: 190, minH: 48 }
+          : { font: 13, padX: 20, padY: 10, minW: 145, minH: 38 }
+    const title = depth === 0 ? item.title : wrapMindMapTitle(item.title, depth === 1 ? 28 : depth === 2 ? 26 : 24)
     const node = makeNodeForPage(page, x, y, title, details)
-    node.width = Math.max(node.width, depth === 0 ? 250 : 215)
-    node.height = Math.max(node.height, depth === 0 ? 58 : 50)
+    const size = measureText(title, tier.font, { padX: tier.padX, padY: tier.padY })
+    node.width = Math.max(size.width, tier.minW)
+    node.height = Math.max(size.height, tier.minH)
     styleNode(node, colorForConcept(item.concept, siblingIndex))
     node.organizedDepth = depth
     node.organizedConcept = item.concept

@@ -41,6 +41,49 @@ test('Colorful applies intelligent concept coloring without restructuring the cu
   expect(saved.nodes.find(n => n.id === 3).organizedConcept).toBe('finance')
 })
 
+
+test('Organize sizes tiers from largest root to smallest third-order descendants', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('mind-mapp-v1', JSON.stringify({
+      nodes: [{ id: 1, x: 100, y: 100, text: 'Root', width: 100, height: 44 }],
+      edges: [],
+      lastId: 1,
+      lastEdgeId: 0,
+      edgeLabels: {},
+    }))
+  })
+  await page.route('**/api/organize-mind-map', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      title: 'Tiered Sizes',
+      provider: 'sage-router:test',
+      nodes: [
+        { id: 'root', title: 'Root', parentId: null, concept: 'project', order: 0 },
+        { id: 'project', title: 'First Order Project', parentId: 'root', concept: 'product', order: 1 },
+        { id: 'second', title: 'Second Order Work', parentId: 'project', concept: 'active', order: 2 },
+        { id: 'third', title: 'Third Order Detail', parentId: 'second', concept: 'next', order: 3 },
+      ],
+    }),
+  }))
+  await page.goto('/')
+  await page.locator('#btn-templates').click()
+  await page.locator('[data-layout-template-id="knowledge-graph"]').click()
+  await page.locator('#btn-template-apply-layout').click()
+  await expect(page.locator('#page-select')).toContainText('Tiered Sizes')
+
+  const organized = await page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem('mind-mapp-v1'))
+    return saved.notebook.pages.find(p => p.title === 'Tiered Sizes')
+  })
+  const byDepth = depth => organized.nodes.find(node => node.organizedDepth === depth)
+  expect(byDepth(0).width).toBeGreaterThan(byDepth(1).width)
+  expect(byDepth(1).width).toBeGreaterThan(byDepth(2).width)
+  expect(byDepth(2).width).toBeGreaterThan(byDepth(3).width)
+  expect(byDepth(0).height).toBeGreaterThan(byDepth(1).height)
+  expect(byDepth(3).height).toBeLessThan(byDepth(2).height)
+})
+
 test('Organize uses deterministic local structure by default', async ({ page }) => {
   await seedLaunchPlan(page)
   let apiCalls = 0
