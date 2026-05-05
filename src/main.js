@@ -1332,7 +1332,14 @@ function visibleNodes() {
 
 function visibleEdges() {
   const visible = visibleNodeSet()
-  return state.edges.filter(edge => visible.has(fromId(edge)) && visible.has(toId(edge)))
+  return state.edges.filter(edge => {
+    if (!visible.has(fromId(edge)) || !visible.has(toId(edge))) return false
+    if (edge.hideWhenTargetCollapsed) {
+      const to = state.nodes.find(node => node.id === toId(edge))
+      if (to?.collapsed) return false
+    }
+    return true
+  })
 }
 
 function nodeHasChildren(node) {
@@ -3445,8 +3452,9 @@ function buildOrganizedMindMapPage(page, plan) {
           const edge = addPageEdge(page, rootNode, result.node, result.node.organizedConcept || '')
           edge.route = 'polyline'
           edge.side = side
-          edge.simpleRoute = true
-          edge.points = simpleOrthogonalPoints(rootNode, result.node, side)
+          edge.directRoute = true
+          edge.hideWhenTargetCollapsed = true
+          edge.points = [edgePortForSide(rootNode, side, true), edgePortForSide(result.node, side, false)]
         }
       })
     }
@@ -3521,7 +3529,9 @@ function buildOrganizedMindMapPage(page, plan) {
       if (!from || !to) return
       edge.route = 'polyline'
       edge.side = to.treeSide || from.treeSide || edge.side || 'east'
-      edge.points = orthogonalRoute(from, to, edge.side)
+      edge.points = edge.directRoute
+        ? [edgePortForSide(from, edge.side, true), edgePortForSide(to, edge.side, false)]
+        : orthogonalRoute(from, to, edge.side)
     })
     const parentNodeIds = new Set(page.edges.map(edge => fromId(edge)))
     page.nodes.forEach(node => {
