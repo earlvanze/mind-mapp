@@ -176,12 +176,11 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   expect(new Set(imported.nodes.filter(node => node.organizedDepth === 1).map(node => node.treeSide)).size).toBeGreaterThanOrEqual(8)
   const rootEdges = imported.edges.filter(edge => edge.from === root.id)
   expect(rootEdges.length).toBeGreaterThan(0)
-  expect(rootEdges.every(edge => edge.directRoute && edge.floatingDirectRoute)).toBe(true)
+  expect(rootEdges.every(edge => edge.route === 'polyline' && !edge.directRoute && !edge.floatingDirectRoute)).toBe(true)
   const rootEdgeSides = new Set(rootEdges.map(edge => edge.side))
   expect(rootEdges.every(edge => ['east', 'southeast', 'south', 'southwest', 'west', 'northwest', 'north', 'northeast'].includes(edge.side))).toBe(true)
-  expect(rootEdgeSides.size).toBeGreaterThanOrEqual(6)
-  expect(rootEdges.some(edge => ['northeast', 'southeast', 'southwest', 'northwest'].includes(edge.side))).toBe(true)
-  expect(rootEdges.every(edge => edge.points.length === 2)).toBe(true)
+  expect(rootEdgeSides.size).toBeGreaterThanOrEqual(8)
+  expect(rootEdges.every(edge => edge.points.length >= 4)).toBe(true)
   const parentIds = new Set(imported.edges.map(edge => edge.from))
   const firstOrderParents = imported.nodes.filter(node => node.organizedDepth === 1 && parentIds.has(node.id))
   expect(firstOrderParents.length).toBeGreaterThan(0)
@@ -223,13 +222,11 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
     expect(touchesFrom, `edge from ${from.text} starts on node boundary`).toBe(true)
     expect(touchesTo, `edge to ${to.text} ends on node boundary`).toBe(true)
 
-    if (!edge.directRoute) {
-      for (let i = 1; i < edge.points.length; i += 1) {
-        const previous = edge.points[i - 1]
-        const current = edge.points[i]
-        const axisAligned = Math.abs(previous.x - current.x) < 0.01 || Math.abs(previous.y - current.y) < 0.01
-        expect(axisAligned, `edge from ${from.text} to ${to.text} has orthogonal segment`).toBe(true)
-      }
+    for (let i = 1; i < edge.points.length; i += 1) {
+      const previous = edge.points[i - 1]
+      const current = edge.points[i]
+      const axisAligned = Math.abs(previous.x - current.x) < 0.01 || Math.abs(previous.y - current.y) < 0.01
+      expect(axisAligned, `edge from ${from.text} to ${to.text} has orthogonal segment`).toBe(true)
     }
   }
 

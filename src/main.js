@@ -1528,7 +1528,8 @@ function refreshRoutedEdgePoints(edge, fromNode, toNode) {
   if (edge?.route !== 'polyline') return edge?.points || null
   const side = edge.side || toNode?.treeSide || fromNode?.treeSide || 'east'
   edge.side = side
-  if (edge.directRoute) {
+  const isRootFirstOrderEdge = fromNode?.organizedDepth === 0 && toNode?.organizedDepth === 1
+  if (edge.directRoute && !isRootFirstOrderEdge) {
     const shouldFloat = edge.floatingDirectRoute || edge.horizontalDirectRoute
     if (edge.horizontalDirectRoute) edge.floatingDirectRoute = true
     edge.side = shouldFloat ? floatingSideBetween(fromNode, toNode) : side
@@ -3652,10 +3653,10 @@ function buildOrganizedMindMapPage(page, plan) {
         if (rootNode) {
           const edge = addPageEdge(page, rootNode, result.node, result.node.organizedConcept || '')
           edge.route = 'polyline'
-          edge.side = floatingSideBetween(rootNode, result.node)
-          edge.directRoute = true
-          edge.floatingDirectRoute = true
-          edge.points = directFloatingEdgePoints(rootNode, result.node)
+          edge.side = side
+          edge.directRoute = false
+          edge.floatingDirectRoute = false
+          edge.points = orthogonalRoute(rootNode, result.node, side)
         }
       })
     }
@@ -3681,8 +3682,14 @@ function buildOrganizedMindMapPage(page, plan) {
       const to = page.nodes.find(node => node.id === toId(edge))
       if (!from || !to) return
       edge.route = 'polyline'
-      const shouldFloat = edge.floatingDirectRoute || edge.horizontalDirectRoute
-      if (edge.horizontalDirectRoute) edge.floatingDirectRoute = true
+      const isRootFirstOrderEdge = from.organizedDepth === 0 && to.organizedDepth === 1
+      const shouldFloat = !isRootFirstOrderEdge && (edge.floatingDirectRoute || edge.horizontalDirectRoute)
+      if (edge.horizontalDirectRoute && !isRootFirstOrderEdge) edge.floatingDirectRoute = true
+      if (isRootFirstOrderEdge) {
+        edge.directRoute = false
+        edge.floatingDirectRoute = false
+        edge.horizontalDirectRoute = false
+      }
       edge.side = shouldFloat ? floatingSideBetween(from, to) : (to.treeSide || from.treeSide || edge.side || 'east')
       edge.points = shouldFloat ? directFloatingEdgePoints(from, to) : orthogonalRoute(from, to, edge.side)
     })
