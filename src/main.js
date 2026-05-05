@@ -1332,15 +1332,7 @@ function visibleNodes() {
 
 function visibleEdges() {
   const visible = visibleNodeSet()
-  return state.edges.filter(edge => {
-    if (edge.hiddenFromCanvas) return false
-    if (!visible.has(fromId(edge)) || !visible.has(toId(edge))) return false
-    if (edge.hideWhenTargetCollapsed) {
-      const to = state.nodes.find(node => node.id === toId(edge))
-      if (to?.collapsed) return false
-    }
-    return true
-  })
+  return state.edges.filter(edge => visible.has(fromId(edge)) && visible.has(toId(edge)))
 }
 
 function nodeHasChildren(node) {
@@ -1854,7 +1846,6 @@ function lightenColor(hex, amount = 0.12) {
 }
 
 function roundRect(ctx, x, y, w, h, r) {
-  r = Math.max(0, Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2))
   ctx.beginPath()
   ctx.moveTo(x + r, y)
   ctx.lineTo(x + w - r, y)
@@ -1963,7 +1954,7 @@ function startEditing(node) {
       top:${screen.y}px;
       width:${scaledW}px;
       height:${scaledH}px;
-      font-size:${(node.fontSize || 16) * state.view.scale}px;
+      font-size:${16 * state.view.scale}px;
       font-family:system-ui,sans-serif;
       padding:6px;
       box-sizing:border-box;
@@ -2100,6 +2091,41 @@ function targetViewForPage(page) {
   return sanitizeView(page?.view ? { ...page.view } : { x: 0, y: 0, scale: 1 })
 }
 
+function viewCenteredOnNode(node, scale = 2.4) {
+  return {
+    x: canvas.width / 2 - (node.x + node.width / 2) * scale,
+    y: canvas.height / 2 - (node.y + node.height / 2) * scale,
+    scale,
+  }
+}
+
+function animateViewTo(target, duration = 420) {
+  const start = { ...state.view }
+  const startTime = performance.now()
+  canvas.classList.add('prezi-zooming')
+  return new Promise(resolve => {
+    function tick(now) {
+      const t = Math.min(1, (now - startTime) / duration)
+      const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
+      setView({
+        x: start.x + (target.x - start.x) * eased,
+        y: start.y + (target.y - start.y) * eased,
+        scale: start.scale + (target.scale - start.scale) * eased,
+      })
+      render()
+      if (t < 1) requestAnimationFrame(tick)
+      else {
+        setView(target)
+        canvas.classList.remove('prezi-zooming')
+        render()
+        resolve()
+      }
+    }
+    requestAnimationFrame(tick)
+  })
+}
+
+
 function updateZoomBackButton() {
   if (!btnZoomBack) return
   btnZoomBack.disabled = state.zoomTrail.length === 0
@@ -2134,7 +2160,16 @@ async function zoomBackOut() {
   }
 
   switchPage(returnPage.id, { skipResize: true })
-  setView(entry.view || targetViewForPage(returnPage))
+  const returnNode = state.nodes.find(node => node.id === entry.nodeId)
+  if (returnNode) {
+    setView(viewCenteredOnNode(returnNode, 1.7))
+    state.selected = returnNode.id
+    state.selectedType = 'node'
+  } else {
+    setView(targetViewForPage(returnPage))
+  }
+  render()
+  await animateViewTo(entry.view || targetViewForPage(returnPage), 280)
   state.selected = null
   state.selectedType = null
   save()
@@ -2154,6 +2189,7 @@ async function openLinkedPageFromNode(node) {
   hideDetails()
   state.selected = node.id
   state.selectedType = 'node'
+  await animateViewTo(viewCenteredOnNode(node, 1.7), 220)
   const targetView = targetViewForPage(targetPage)
   switchPage(targetPage.id, { skipResize: true })
   setView(targetView)
@@ -2196,7 +2232,7 @@ let detailsTitleSaveTimer = null
 function resizeNodeToTitle(node, title) {
   const centerX = node.x + node.width / 2
   const centerY = node.y + node.height / 2
-  const size = measureText(title || 'Untitled', node.fontSize || 16)
+  const size = measureText(title || 'Untitled')
   node.text = title || 'Untitled'
   node.width = size.width
   node.height = size.height
@@ -3290,11 +3326,9 @@ function buildOrganizedMindMapPage(page, plan) {
       .filter(Boolean)
       .join('\n')
     const title = depth === 0 ? item.title : wrapMindMapTitle(item.title, depth === 1 ? 30 : 34)
-    const fontSize = depth === 0 ? 24 : depth === 1 ? 19 : 16
     const node = makeNodeForPage(page, x, y, title, details)
-    node.fontSize = fontSize
-    const measured = measureText(title, fontSize)
-    setMinNodeSize(node, Math.max(measured.width, depth === 0 ? 340 : depth === 1 ? 270 : 215), Math.max(measured.height, depth === 0 ? 78 : depth === 1 ? 62 : 50))
+    node.width = Math.max(node.width, depth === 0 ? 250 : 215)
+    node.height = Math.max(node.height, depth === 0 ? 58 : 50)
     styleNode(node, colorForConcept(item.concept, siblingIndex))
     node.organizedDepth = depth
     node.organizedConcept = item.concept
@@ -3362,8 +3396,8 @@ function buildOrganizedMindMapPage(page, plan) {
     }
     const firstGap = 720
     const depthGap = 540
-    const laneGap = 75
-    const groupGap = 110
+    const laneGap = 150
+    const groupGap = 220
     const rootItem = roots.slice().sort((a, b) => a.order - b.order)[0]
     const topLevel = rootItem && roots.length === 1
       ? (children.get(rootItem.id) || []).sort((a, b) => a.order - b.order)
@@ -3454,10 +3488,8 @@ function buildOrganizedMindMapPage(page, plan) {
           const edge = addPageEdge(page, rootNode, result.node, result.node.organizedConcept || '')
           edge.route = 'polyline'
           edge.side = side
-          edge.directRoute = true
-          edge.hideWhenTargetCollapsed = true
-          edge.hiddenFromCanvas = true
-          edge.points = [edgePortForSide(rootNode, side, true), edgePortForSide(result.node, side, false)]
+          edge.simpleRoute = true
+          edge.points = simpleOrthogonalPoints(rootNode, result.node, side)
         }
       })
     }
@@ -3532,9 +3564,7 @@ function buildOrganizedMindMapPage(page, plan) {
       if (!from || !to) return
       edge.route = 'polyline'
       edge.side = to.treeSide || from.treeSide || edge.side || 'east'
-      edge.points = edge.directRoute
-        ? [edgePortForSide(from, edge.side, true), edgePortForSide(to, edge.side, false)]
-        : orthogonalRoute(from, to, edge.side)
+      edge.points = orthogonalRoute(from, to, edge.side)
     })
     const parentNodeIds = new Set(page.edges.map(edge => fromId(edge)))
     page.nodes.forEach(node => {

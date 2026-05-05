@@ -165,12 +165,6 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   expect(height).toBeLessThan(8000)
   expect(Math.max(width, height) / Math.min(width, height)).toBeLessThan(2.25)
   const root = imported.nodes.find(node => node.organizedDepth === 0)
-  const firstOrder = imported.nodes.find(node => node.organizedDepth === 1)
-  const secondOrder = imported.nodes.find(node => node.organizedDepth === 2)
-  expect(root.fontSize).toBeGreaterThan(firstOrder.fontSize)
-  expect(firstOrder.fontSize).toBeGreaterThan(secondOrder.fontSize)
-  expect(root.width).toBeGreaterThan(firstOrder.width)
-  expect(firstOrder.width).toBeGreaterThanOrEqual(secondOrder.width)
   expect(imported.nodes.some(node => node.x + node.width / 2 < root.x)).toBe(true)
   expect(imported.nodes.some(node => node.x > root.x + root.width)).toBe(true)
   expect(imported.nodes.some(node => node.y + node.height / 2 < root.y)).toBe(true)
@@ -181,9 +175,6 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   expect(firstOrderParents.length).toBeGreaterThan(0)
   expect(firstOrderParents.every(node => node.collapsed)).toBe(true)
   expect(imported.nodes.filter(node => node.organizedDepth !== 1).every(node => !node.collapsed)).toBe(true)
-  const rootEdges = imported.edges.filter(edge => imported.nodes.find(node => node.id === edge.from)?.organizedDepth === 0)
-  expect(rootEdges.length).toBeGreaterThan(0)
-  expect(rootEdges.every(edge => edge.directRoute && edge.hideWhenTargetCollapsed && edge.hiddenFromCanvas && edge.points.length === 2)).toBe(true)
 
   const pad = 24
   for (let i = 0; i < imported.nodes.length; i += 1) {
@@ -199,7 +190,6 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   for (const edge of imported.edges) {
     const from = imported.nodes.find(node => node.id === edge.from)
     const to = imported.nodes.find(node => node.id === edge.to)
-    if (from?.organizedDepth === 0) continue
     const first = edge.points[0]
     const last = edge.points[edge.points.length - 1]
     const touchesFrom = Math.abs(first.x - from.x) < 0.01 || Math.abs(first.x - (from.x + from.width)) < 0.01 || Math.abs(first.y - from.y) < 0.01 || Math.abs(first.y - (from.y + from.height)) < 0.01
