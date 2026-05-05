@@ -151,7 +151,7 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   expect(opsGroup.organizedDepth).toBe(1)
   expect(mindMapp.organizedDepth).toBe(2)
   expect(imported.edges).toEqual(expect.arrayContaining([expect.objectContaining({ from: opsGroup.id, to: mindMapp.id })]))
-  expect(imported.importRadialLayout).toBe(true)
+  expect(imported.importFourWayTreeLayout).toBe(true)
 
   const bounds = imported.nodes.reduce((acc, node) => ({
     minX: Math.min(acc.minX, node.x),
@@ -169,6 +169,7 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   expect(imported.nodes.some(node => node.x > root.x + root.width)).toBe(true)
   expect(imported.nodes.some(node => node.y + node.height / 2 < root.y)).toBe(true)
   expect(imported.nodes.some(node => node.y > root.y + root.height)).toBe(true)
+  expect(new Set(imported.nodes.filter(node => node.organizedDepth === 1).map(node => node.treeSide)).size).toBeGreaterThanOrEqual(4)
 
   const pad = 24
   for (let i = 0; i < imported.nodes.length; i += 1) {

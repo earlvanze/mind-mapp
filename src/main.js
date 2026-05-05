@@ -3190,103 +3190,118 @@ function buildOrganizedMindMapPage(page, plan) {
     })
   }
 
-  function layoutAsSpaciousRadialTree() {
+  function layoutAsFourWayTree() {
     const rootX = centerX
     const rootY = centerY
-    const nodeByPlanId = new Map()
-    const positionByPlanId = new Map()
-    const depthRadius = [0, 1500, 3900, 6300, 8600]
+    const sideOrder = ['east', 'south', 'west', 'north']
+    const sideConfig = {
+      east: { dx: 1, dy: 0, px: 0, py: 1 },
+      west: { dx: -1, dy: 0, px: 0, py: 1 },
+      south: { dx: 0, dy: 1, px: 1, py: 0 },
+      north: { dx: 0, dy: -1, px: 1, py: 0 },
+    }
+    const firstGap = 980
+    const depthGap = 760
+    const laneGap = 150
+    const groupGap = 320
     const rootItem = roots.slice().sort((a, b) => a.order - b.order)[0]
-    const topLevel = rootItem ? (children.get(rootItem.id) || []).sort((a, b) => a.order - b.order) : roots.slice().sort((a, b) => a.order - b.order)
+    const topLevel = rootItem && roots.length === 1
+      ? (children.get(rootItem.id) || []).sort((a, b) => a.order - b.order)
+      : roots.slice().sort((a, b) => a.order - b.order)
+    const nodeByPlanId = new Map()
+    const placementByPlanId = new Map()
 
-    function nodeCenter(node) {
-      return { x: node.x + node.width / 2, y: node.y + node.height / 2 }
+    function subtreeLeafCount(item) {
+      const kids = (children.get(item.id) || []).sort((a, b) => a.order - b.order)
+      if (!kids.length) return 1
+      return kids.reduce((sum, child) => sum + subtreeLeafCount(child), 0)
     }
 
-    function polarPoint(radius, angle) {
+    function pointFor(side, depth, lane) {
+      const cfg = sideConfig[side]
+      const outward = depth === 0 ? 0 : firstGap + (depth - 1) * depthGap
       return {
-        x: rootX + Math.cos(angle) * radius,
-        y: rootY + Math.sin(angle) * radius,
+        x: rootX + cfg.dx * outward + cfg.px * lane,
+        y: rootY + cfg.dy * outward + cfg.py * lane,
       }
     }
 
-    function createNodeAt(item, radius, angle, depth, siblingIndex) {
-      const point = polarPoint(radius, angle)
+    function createTreeNode(item, side, depth, lane, siblingIndex) {
+      const point = pointFor(side, depth, lane)
       const node = createOrganizedNode(item, point.x, point.y, depth, siblingIndex)
-      node.radialAngle = angle
-      node.radialRadius = radius
+      node.treeSide = side
+      node.treeLane = lane
       nodeByPlanId.set(item.id, node)
-      positionByPlanId.set(item.id, { radius, angle, depth })
+      placementByPlanId.set(item.id, { side, depth, lane })
       return node
     }
 
-    function radialRoute(parentNode, childNode, parentPos, childPos) {
-      const start = nodeCenter(parentNode)
-      const end = nodeCenter(childNode)
-      if (parentPos.depth === 0) return [start, end]
-      return [start, polarPoint(parentPos.radius + 360, childPos.angle), end]
+    function orthogonalRoute(fromNode, toNode, side) {
+      const ax = fromNode.x + fromNode.width / 2
+      const ay = fromNode.y + fromNode.height / 2
+      const bx = toNode.x + toNode.width / 2
+      const by = toNode.y + toNode.height / 2
+      if (side === 'east' || side === 'west') {
+        const mx = (ax + bx) / 2
+        return [{ x: ax, y: ay }, { x: mx, y: ay }, { x: mx, y: by }, { x: bx, y: by }]
+      }
+      const my = (ay + by) / 2
+      return [{ x: ax, y: ay }, { x: ax, y: my }, { x: bx, y: my }, { x: bx, y: by }]
     }
 
-    function layoutSubtree(item, depth, sectorStart, sectorEnd, siblingIndex) {
+    function assignSubtree(item, side, depth, nextLane, siblingIndex) {
       const kids = (children.get(item.id) || []).sort((a, b) => a.order - b.order)
-      const angle = (sectorStart + sectorEnd) / 2
-      const radius = depthRadius[depth] || depthRadius[depthRadius.length - 1] + (depth - depthRadius.length + 1) * 3600
-      const node = createNodeAt(item, radius, angle, depth, siblingIndex)
-      if (!kids.length) return node
-      const childSector = (sectorEnd - sectorStart) * 0.92
-      const childStart = angle - childSector / 2
-      const step = childSector / Math.max(1, kids.length)
+      if (!kids.length) {
+        const node = createTreeNode(item, side, depth, nextLane, siblingIndex)
+        return { lane: nextLane, nextLane: nextLane + laneGap, node }
+      }
+      const childResults = []
+      let cursor = nextLane
       kids.forEach((child, index) => {
-        const from = childStart + step * index
-        const to = childStart + step * (index + 1)
-        const childNode = layoutSubtree(child, depth + 1, from, to, index)
-        const childPos = positionByPlanId.get(child.id)
-        const edge = addPageEdge(page, node, childNode, child.edgeLabel ?? child.concept ?? '')
-        edge.route = 'polyline'
-        edge.points = radialRoute(node, childNode, { radius, angle, depth }, childPos)
+        const result = assignSubtree(child, side, depth + 1, cursor, index)
+        childResults.push(result)
+        cursor = result.nextLane
       })
-      return node
+      const lane = (childResults[0].lane + childResults[childResults.length - 1].lane) / 2
+      const node = createTreeNode(item, side, depth, lane, siblingIndex)
+      childResults.forEach(result => {
+        const edge = addPageEdge(page, node, result.node, result.node.organizedConcept || '')
+        edge.route = 'polyline'
+        edge.points = orthogonalRoute(node, result.node, side)
+      })
+      return { lane, nextLane: cursor, node }
     }
 
-    if (rootItem && roots.length === 1) {
-      const rootNode = createNodeAt(rootItem, 0, 0, 0, 0)
-      const sectorStep = Math.PI * 2 / Math.max(1, topLevel.length)
-      topLevel.forEach((child, index) => {
-        const center = -Math.PI / 2 + sectorStep * index
-        const sector = sectorStep * 0.82
-        const childNode = layoutSubtree(child, 1, center - sector / 2, center + sector / 2, index)
-        const childPos = positionByPlanId.get(child.id)
-        const edge = addPageEdge(page, rootNode, childNode, child.edgeLabel ?? child.concept ?? '')
-        edge.route = 'polyline'
-        edge.points = radialRoute(rootNode, childNode, { radius: 0, angle: 0, depth: 0 }, childPos)
-      })
-    } else {
-      const sectorStep = Math.PI * 2 / Math.max(1, roots.length)
-      roots.slice().sort((a, b) => a.order - b.order).forEach((root, index) => {
-        const center = -Math.PI / 2 + sectorStep * index
-        layoutSubtree(root, 0, center - sectorStep * 0.4, center + sectorStep * 0.4, index)
+    const rootNode = rootItem && roots.length === 1
+      ? createTreeNode(rootItem, 'east', 0, 0, 0)
+      : null
+    const sides = new Map(sideOrder.map(side => [side, []]))
+    topLevel.forEach((item, index) => sides.get(sideOrder[index % sideOrder.length]).push(item))
+
+    for (const side of sideOrder) {
+      const items = sides.get(side)
+      const totalLanes = items.reduce((sum, item) => sum + subtreeLeafCount(item), 0)
+      let cursor = -((Math.max(1, totalLanes) - 1) * laneGap + Math.max(0, items.length - 1) * groupGap) / 2
+      items.forEach((item, index) => {
+        const result = assignSubtree(item, side, rootNode ? 1 : 0, cursor, index)
+        cursor = result.nextLane + groupGap
+        if (rootNode) {
+          const edge = addPageEdge(page, rootNode, result.node, result.node.organizedConcept || '')
+          edge.route = 'polyline'
+          edge.points = orthogonalRoute(rootNode, result.node, side)
+        }
       })
     }
 
-    pushNodesApart(page.nodes, { pad: 56, maxPasses: 220, anchoredIds: page.nodes.filter(node => node.organizedDepth <= 1).map(node => node.id) })
-    page.nodes.forEach(node => {
-      const center = nodeCenter(node)
-      node.radialAngle = Math.atan2(center.y - rootY, center.x - rootX)
-      node.radialRadius = Math.hypot(center.x - rootX, center.y - rootY)
-    })
+    pushNodesApart(page.nodes, { pad: 54, maxPasses: 260, anchoredIds: page.nodes.filter(node => node.organizedDepth <= 1).map(node => node.id) })
     page.edges.forEach(edge => {
-      const parentNode = page.nodes.find(node => node.id === fromId(edge))
-      const childNode = page.nodes.find(node => node.id === toId(edge))
-      if (!parentNode || !childNode) return
+      const from = page.nodes.find(node => node.id === fromId(edge))
+      const to = page.nodes.find(node => node.id === toId(edge))
+      if (!from || !to) return
       edge.route = 'polyline'
-      edge.points = radialRoute(
-        parentNode,
-        childNode,
-        { radius: parentNode.radialRadius || 0, angle: parentNode.radialAngle || 0, depth: parentNode.organizedDepth || 0 },
-        { radius: childNode.radialRadius || 0, angle: childNode.radialAngle || 0, depth: childNode.organizedDepth || 0 },
-      )
+      edge.points = orthogonalRoute(from, to, to.treeSide || from.treeSide || 'east')
     })
-    page.importRadialLayout = true
+    page.importFourWayTreeLayout = true
     centerPageViewOnContent(page)
     focusLargeImportedMapOnRoot(page)
     page.edges.forEach((edge, index) => {
@@ -3296,7 +3311,7 @@ function buildOrganizedMindMapPage(page, plan) {
   }
 
   if (/import/i.test(parsed.provider || '') && parsed.nodes.length > 80) {
-    layoutAsSpaciousRadialTree()
+    layoutAsFourWayTree()
     return
   }
 
