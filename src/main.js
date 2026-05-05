@@ -1533,12 +1533,37 @@ function drawEdge(ctx, e) {
   const isHovered = state.hoveredEdge === e.id
   const label = state.edgeLabels[e.id] || null
   const color = isHovered ? '#aa3bff' : (e.color || from.style?.accent || '#6b6375')
+  if (e.route === 'polyline' && Array.isArray(e.points) && e.points.length >= 2) {
+    drawPolylineEdgeLine(ctx, e.points, color, isHovered, label)
+    return
+  }
   if (e.route === 'orthogonal') {
     drawOrthogonalEdgeLine(ctx, from, to, color, isHovered, label)
     return
   }
   const [ax, ay, bx, by] = endpoints(from, to)
   drawEdgeLine(ctx, ax, ay, bx, by, color, false, isHovered, label)
+}
+
+function drawPolylineEdgeLine(ctx, points, color, highlighted = false, label = null) {
+  ctx.strokeStyle = color
+  ctx.lineWidth = (highlighted ? 3 : 2) / state.view.scale
+  ctx.setLineDash([])
+  ctx.beginPath()
+  ctx.moveTo(points[0].x, points[0].y)
+  points.slice(1).forEach(point => ctx.lineTo(point.x, point.y))
+  ctx.stroke()
+  if (label) {
+    const middle = points[Math.floor(points.length / 2)]
+    const fontSize = 12 / state.view.scale
+    ctx.font = `${fontSize}px system-ui, sans-serif`
+    ctx.fillStyle = '#fff'
+    ctx.strokeStyle = color
+    ctx.lineWidth = 3 / state.view.scale
+    const metrics = ctx.measureText(label)
+    ctx.strokeText(label, middle.x - metrics.width / 2, middle.y + fontSize / 3)
+    ctx.fillText(label, middle.x - metrics.width / 2, middle.y + fontSize / 3)
+  }
 }
 
 function drawOrthogonalEdgeLine(ctx, from, to, color, highlighted = false, label = null) {
@@ -3165,48 +3190,103 @@ function buildOrganizedMindMapPage(page, plan) {
     })
   }
 
-  function layoutAsSpaciousTree() {
-    const xStart = 320
-    const xGap = 820
-    const yStart = 260
-    const yGap = 170
-    let nextY = yStart
-    const positions = new Map()
-
-    function assignPosition(item, depth, siblingIndex) {
-      const kids = (children.get(item.id) || []).sort((a, b) => a.order - b.order)
-      if (!kids.length) {
-        const y = nextY
-        nextY += yGap
-        positions.set(item.id, { depth, siblingIndex, x: xStart + depth * xGap, y })
-        return y
-      }
-      const childYs = kids.map((child, index) => assignPosition(child, depth + 1, index))
-      const y = (childYs[0] + childYs[childYs.length - 1]) / 2
-      positions.set(item.id, { depth, siblingIndex, x: xStart + depth * xGap, y })
-      return y
-    }
-
-    roots.forEach((root, index) => assignPosition(root, 0, index))
-
+  function layoutAsSpaciousRadialTree() {
+    const rootX = centerX
+    const rootY = centerY
     const nodeByPlanId = new Map()
-    function createTreeNodes(item) {
-      const pos = positions.get(item.id)
-      const node = createOrganizedNode(item, pos.x, pos.y, pos.depth, pos.siblingIndex)
-      nodeByPlanId.set(item.id, node)
-      ;(children.get(item.id) || []).sort((a, b) => a.order - b.order).forEach(createTreeNodes)
-    }
-    roots.forEach(createTreeNodes)
+    const positionByPlanId = new Map()
+    const depthRadius = [0, 2500, 7000, 11200, 15400]
+    const rootItem = roots.slice().sort((a, b) => a.order - b.order)[0]
+    const topLevel = rootItem ? (children.get(rootItem.id) || []).sort((a, b) => a.order - b.order) : roots.slice().sort((a, b) => a.order - b.order)
 
-    parsed.nodes.forEach(item => {
-      if (!item.parentId) return
-      const parentNode = nodeByPlanId.get(item.parentId)
-      const node = nodeByPlanId.get(item.id)
-      if (!parentNode || !node) return
-      const edge = addPageEdge(page, parentNode, node, item.edgeLabel ?? item.concept ?? '')
-      edge.route = 'orthogonal'
+    function nodeCenter(node) {
+      return { x: node.x + node.width / 2, y: node.y + node.height / 2 }
+    }
+
+    function polarPoint(radius, angle) {
+      return {
+        x: rootX + Math.cos(angle) * radius,
+        y: rootY + Math.sin(angle) * radius,
+      }
+    }
+
+    function createNodeAt(item, radius, angle, depth, siblingIndex) {
+      const point = polarPoint(radius, angle)
+      const node = createOrganizedNode(item, point.x, point.y, depth, siblingIndex)
+      node.radialAngle = angle
+      node.radialRadius = radius
+      nodeByPlanId.set(item.id, node)
+      positionByPlanId.set(item.id, { radius, angle, depth })
+      return node
+    }
+
+    function radialRoute(parentNode, childNode, parentPos, childPos) {
+      const start = nodeCenter(parentNode)
+      const end = nodeCenter(childNode)
+      if (parentPos.depth === 0) return [start, end]
+      return [start, polarPoint(parentPos.radius + 620, childPos.angle), end]
+    }
+
+    function layoutSubtree(item, depth, sectorStart, sectorEnd, siblingIndex) {
+      const kids = (children.get(item.id) || []).sort((a, b) => a.order - b.order)
+      const angle = (sectorStart + sectorEnd) / 2
+      const radius = depthRadius[depth] || depthRadius[depthRadius.length - 1] + (depth - depthRadius.length + 1) * 3600
+      const node = createNodeAt(item, radius, angle, depth, siblingIndex)
+      if (!kids.length) return node
+      const childSector = (sectorEnd - sectorStart) * 0.92
+      const childStart = angle - childSector / 2
+      const step = childSector / Math.max(1, kids.length)
+      kids.forEach((child, index) => {
+        const from = childStart + step * index
+        const to = childStart + step * (index + 1)
+        const childNode = layoutSubtree(child, depth + 1, from, to, index)
+        const childPos = positionByPlanId.get(child.id)
+        const edge = addPageEdge(page, node, childNode, child.edgeLabel ?? child.concept ?? '')
+        edge.route = 'polyline'
+        edge.points = radialRoute(node, childNode, { radius, angle, depth }, childPos)
+      })
+      return node
+    }
+
+    if (rootItem && roots.length === 1) {
+      const rootNode = createNodeAt(rootItem, 0, 0, 0, 0)
+      const sectorStep = Math.PI * 2 / Math.max(1, topLevel.length)
+      topLevel.forEach((child, index) => {
+        const center = -Math.PI / 2 + sectorStep * index
+        const sector = sectorStep * 0.82
+        const childNode = layoutSubtree(child, 1, center - sector / 2, center + sector / 2, index)
+        const childPos = positionByPlanId.get(child.id)
+        const edge = addPageEdge(page, rootNode, childNode, child.edgeLabel ?? child.concept ?? '')
+        edge.route = 'polyline'
+        edge.points = radialRoute(rootNode, childNode, { radius: 0, angle: 0, depth: 0 }, childPos)
+      })
+    } else {
+      const sectorStep = Math.PI * 2 / Math.max(1, roots.length)
+      roots.slice().sort((a, b) => a.order - b.order).forEach((root, index) => {
+        const center = -Math.PI / 2 + sectorStep * index
+        layoutSubtree(root, 0, center - sectorStep * 0.4, center + sectorStep * 0.4, index)
+      })
+    }
+
+    pushNodesApart(page.nodes, { pad: 96, maxPasses: 280, anchoredIds: page.nodes.filter(node => node.organizedDepth <= 1).map(node => node.id) })
+    page.nodes.forEach(node => {
+      const center = nodeCenter(node)
+      node.radialAngle = Math.atan2(center.y - rootY, center.x - rootX)
+      node.radialRadius = Math.hypot(center.x - rootX, center.y - rootY)
     })
-    page.importTreeLayout = true
+    page.edges.forEach(edge => {
+      const parentNode = page.nodes.find(node => node.id === fromId(edge))
+      const childNode = page.nodes.find(node => node.id === toId(edge))
+      if (!parentNode || !childNode) return
+      edge.route = 'polyline'
+      edge.points = radialRoute(
+        parentNode,
+        childNode,
+        { radius: parentNode.radialRadius || 0, angle: parentNode.radialAngle || 0, depth: parentNode.organizedDepth || 0 },
+        { radius: childNode.radialRadius || 0, angle: childNode.radialAngle || 0, depth: childNode.organizedDepth || 0 },
+      )
+    })
+    page.importRadialLayout = true
     centerPageViewOnContent(page)
     focusLargeImportedMapOnRoot(page)
     page.edges.forEach((edge, index) => {
@@ -3216,7 +3296,7 @@ function buildOrganizedMindMapPage(page, plan) {
   }
 
   if (/import/i.test(parsed.provider || '') && parsed.nodes.length > 80) {
-    layoutAsSpaciousTree()
+    layoutAsSpaciousRadialTree()
     return
   }
 

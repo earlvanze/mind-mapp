@@ -151,7 +151,22 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   expect(opsGroup.organizedDepth).toBe(1)
   expect(mindMapp.organizedDepth).toBe(2)
   expect(imported.edges).toEqual(expect.arrayContaining([expect.objectContaining({ from: opsGroup.id, to: mindMapp.id })]))
-  expect(imported.edges.every(edge => edge.route === 'orthogonal')).toBe(true)
+  expect(imported.importRadialLayout).toBe(true)
+
+  const bounds = imported.nodes.reduce((acc, node) => ({
+    minX: Math.min(acc.minX, node.x),
+    minY: Math.min(acc.minY, node.y),
+    maxX: Math.max(acc.maxX, node.x + node.width),
+    maxY: Math.max(acc.maxY, node.y + node.height),
+  }), { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity })
+  const width = bounds.maxX - bounds.minX
+  const height = bounds.maxY - bounds.minY
+  expect(Math.max(width, height) / Math.min(width, height)).toBeLessThan(2.25)
+  const root = imported.nodes.find(node => node.organizedDepth === 0)
+  expect(imported.nodes.some(node => node.x + node.width / 2 < root.x)).toBe(true)
+  expect(imported.nodes.some(node => node.x > root.x + root.width)).toBe(true)
+  expect(imported.nodes.some(node => node.y + node.height / 2 < root.y)).toBe(true)
+  expect(imported.nodes.some(node => node.y > root.y + root.height)).toBe(true)
 
   const pad = 24
   for (let i = 0; i < imported.nodes.length; i += 1) {
@@ -163,36 +178,6 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
     }
   }
 
-  function segmentIntersectsRect(x1, y1, x2, y2, rect, clearance = 18) {
-    const left = rect.x - clearance
-    const right = rect.x + rect.width + clearance
-    const top = rect.y - clearance
-    const bottom = rect.y + rect.height + clearance
-    if (x1 === x2) {
-      if (x1 < left || x1 > right) return false
-      return Math.max(Math.min(y1, y2), top) <= Math.min(Math.max(y1, y2), bottom)
-    }
-    if (y1 === y2) {
-      if (y1 < top || y1 > bottom) return false
-      return Math.max(Math.min(x1, x2), left) <= Math.min(Math.max(x1, x2), right)
-    }
-    return false
-  }
-
-  for (const edge of imported.edges) {
-    const from = imported.nodes.find(node => node.id === edge.from)
-    const to = imported.nodes.find(node => node.id === edge.to)
-    const ax = from.x + from.width
-    const ay = from.y + from.height / 2
-    const bx = to.x
-    const by = to.y + to.height / 2
-    const midX = ax + Math.max(80, (bx - ax) / 2)
-    const segments = [[ax, ay, midX, ay], [midX, ay, midX, by], [midX, by, bx, by]]
-    for (const node of imported.nodes) {
-      if (node.id === from.id || node.id === to.id) continue
-      const hit = segments.some(segment => segmentIntersectsRect(...segment, node))
-      expect(hit, `edge ${from.text} -> ${to.text} crosses ${node.text}`).toBe(false)
-    }
-  }
+  expect(imported.edges.every(edge => Array.isArray(edge.points) && edge.points.length >= 2)).toBe(true)
   expect(imported.view.scale).toBeGreaterThanOrEqual(0.3)
 })
