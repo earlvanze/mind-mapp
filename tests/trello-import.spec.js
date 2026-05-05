@@ -171,6 +171,10 @@ test('imports the real Trello mindmap JSON as consolidated project groups', asyn
   expect(imported.nodes.some(node => node.y > root.y + root.height)).toBe(true)
   expect(new Set(imported.nodes.filter(node => node.organizedDepth === 1).map(node => node.treeSide)).size).toBeGreaterThanOrEqual(8)
 
+  const collapsedParents = imported.nodes.filter(node => node.organizedDepth === 2 && node.collapsed)
+  expect(collapsedParents.length).toBeGreaterThan(0)
+  expect(imported.nodes.filter(node => node.collapsed).every(node => node.organizedDepth >= 2)).toBe(true)
+
   const pad = 24
   for (let i = 0; i < imported.nodes.length; i += 1) {
     for (let j = i + 1; j < imported.nodes.length; j += 1) {

@@ -2638,6 +2638,14 @@ function focusNodesInView(nodes, pad = 140) {
   })
 }
 
+function expandNodeWithoutOverlaps(node) {
+  const ids = descendantIds(node.id)
+  const subtree = state.nodes.filter(candidate => candidate.id === node.id || ids.has(candidate.id))
+  const anchorIds = subtree.map(candidate => candidate.id)
+  pushNodesApart(visibleNodes(), { pad: 56, maxPasses: 260, anchoredIds: anchorIds })
+  focusNodesInView(subtree.filter(candidate => visibleNodeSet().has(candidate.id)), 160)
+}
+
 function toggleNodeCollapse(node) {
   if (!nodeHasChildren(node)) return false
   node.collapsed = !node.collapsed
@@ -2646,9 +2654,7 @@ function toggleNodeCollapse(node) {
   if (node.collapsed) {
     focusNodesInView([node], 180)
   } else {
-    const ids = descendantIds(node.id)
-    const subtree = state.nodes.filter(candidate => candidate.id === node.id || ids.has(candidate.id))
-    focusNodesInView(subtree, 160)
+    expandNodeWithoutOverlaps(node)
   }
   historyCommit()
   save()
@@ -3572,6 +3578,10 @@ function buildOrganizedMindMapPage(page, plan) {
       edge.route = 'polyline'
       edge.side = to.treeSide || from.treeSide || edge.side || 'east'
       edge.points = orthogonalRoute(from, to, edge.side)
+    })
+    const hasChildren = new Set(page.edges.map(edge => fromId(edge)))
+    page.nodes.forEach(node => {
+      node.collapsed = node.organizedDepth >= 2 && hasChildren.has(node.id)
     })
     page.importCompassTreeLayout = true
     centerPageViewOnContent(page)

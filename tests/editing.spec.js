@@ -154,3 +154,32 @@ test('double-clicking a parent collapses its subtree and double-clicking again z
   expect(saved.nodes.find(node => node.id === 1).collapsed).toBe(false)
   expect(saved.view.scale).toBeGreaterThan(1)
 })
+
+
+test('expanding a collapsed subtree shifts visible nodes away from the revealed children', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('mind-mapp-v1', JSON.stringify({
+      nodes: [
+        { id: 1, x: 100, y: 100, text: 'Parent', width: 100, height: 50, collapsed: true },
+        { id: 2, x: 250, y: 100, text: 'Hidden child', width: 120, height: 50 },
+        { id: 3, x: 260, y: 105, text: 'Other visible', width: 120, height: 50 },
+      ],
+      edges: [{ id: 1, from: 1, to: 2 }],
+      edgeLabels: {},
+      lastId: 3,
+      lastEdgeId: 1,
+      view: { x: 0, y: 0, scale: 1 },
+    }))
+  })
+  await page.goto('/')
+  await page.locator('#canvas').dblclick({ position: { x: 150, y: 125 } })
+
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('mind-mapp-v1')))
+  const parent = saved.nodes.find(node => node.id === 1)
+  const child = saved.nodes.find(node => node.id === 2)
+  const other = saved.nodes.find(node => node.id === 3)
+  expect(parent.collapsed).toBe(false)
+  const pad = 24
+  const overlap = child.x - pad < other.x + other.width + pad && child.x + child.width + pad > other.x - pad && child.y - pad < other.y + other.height + pad && child.y + child.height + pad > other.y - pad
+  expect(overlap).toBe(false)
+})
