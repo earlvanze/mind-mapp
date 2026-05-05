@@ -198,6 +198,8 @@ test('expanding a second-order node prefers an east-west child fanout', async ({
   expect(parent.collapsed).toBe(false)
   expect(children.every(child => child.x > parent.x + parent.width)).toBe(true)
   expect(Math.abs(children[0].y - children[1].y)).toBeGreaterThan(50)
+  const expandedEdges = saved.edges.filter(edge => edge.from === 3)
+  expect(expandedEdges.every(edge => edge.side === 'east' && edge.simpleRoute)).toBe(true)
 })
 
 test('double-clicking a parent collapses and expands without changing zoom', async ({ page }) => {

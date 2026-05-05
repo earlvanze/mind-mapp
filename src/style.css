@@ -493,7 +493,7 @@ canvas.eraser-mode { cursor: not-allowed; }
 .color-legend {
   position: absolute;
   left: 12px;
-  bottom: 12px;
+  bottom: max(76px, calc(12px + env(safe-area-inset-bottom)));
   z-index: 20;
   max-width: min(360px, calc(100vw - 24px));
   display: flex;

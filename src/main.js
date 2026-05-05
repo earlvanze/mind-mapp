@@ -1501,12 +1501,26 @@ function routedPolylinePoints(fromNode, toNode, side = 'east') {
   return [start, { x: start.x, y: sy }, { x: ex, y: sy }, { x: ex, y: end.y }, end]
 }
 
+function horizontalSideBetween(fromNode, toNode) {
+  const fromCx = fromNode.x + fromNode.width / 2
+  const toCx = toNode.x + toNode.width / 2
+  return toCx >= fromCx ? 'east' : 'west'
+}
+
+function directHorizontalEdgePoints(fromNode, toNode) {
+  const side = horizontalSideBetween(fromNode, toNode)
+  return [edgePortForSide(fromNode, side, true), edgePortForSide(toNode, side, false)]
+}
+
 function refreshRoutedEdgePoints(edge, fromNode, toNode) {
   if (edge?.route !== 'polyline') return edge?.points || null
   const side = edge.side || toNode?.treeSide || fromNode?.treeSide || 'east'
   edge.side = side
   if (edge.directRoute) {
-    edge.points = [edgePortForSide(fromNode, side, true), edgePortForSide(toNode, side, false)]
+    edge.side = edge.horizontalDirectRoute ? horizontalSideBetween(fromNode, toNode) : side
+    edge.points = edge.horizontalDirectRoute
+      ? directHorizontalEdgePoints(fromNode, toNode)
+      : [edgePortForSide(fromNode, side, true), edgePortForSide(toNode, side, false)]
   } else if (edge.simpleRoute) {
     edge.points = simpleOrthogonalPoints(fromNode, toNode, side)
   } else {
@@ -2748,6 +2762,16 @@ function arrangeSecondOrderExpansion(node) {
     child.x = node.x + dx
     child.y = startY + index * gapY - child.height / 2
     child.treeSide = direction > 0 ? 'east' : 'west'
+    state.edges
+      .filter(edge => fromId(edge) === node.id && toId(edge) === child.id)
+      .forEach(edge => {
+        edge.route = 'polyline'
+        edge.side = child.treeSide
+        edge.simpleRoute = true
+        edge.directRoute = false
+        edge.horizontalDirectRoute = false
+        edge.points = simpleOrthogonalPoints(node, child, child.treeSide)
+      })
     descendantIds(child.id, children).forEach(id => {
       const descendant = state.nodes.find(candidate => candidate.id === id)
       if (!descendant) return
@@ -3615,9 +3639,10 @@ function buildOrganizedMindMapPage(page, plan) {
         if (rootNode) {
           const edge = addPageEdge(page, rootNode, result.node, result.node.organizedConcept || '')
           edge.route = 'polyline'
-          edge.side = side
-          edge.simpleRoute = true
-          edge.points = simpleOrthogonalPoints(rootNode, result.node, side)
+          edge.side = horizontalSideBetween(rootNode, result.node)
+          edge.directRoute = true
+          edge.horizontalDirectRoute = true
+          edge.points = directHorizontalEdgePoints(rootNode, result.node)
         }
       })
     }
@@ -3643,8 +3668,8 @@ function buildOrganizedMindMapPage(page, plan) {
       const to = page.nodes.find(node => node.id === toId(edge))
       if (!from || !to) return
       edge.route = 'polyline'
-      edge.side = to.treeSide || from.treeSide || edge.side || 'east'
-      edge.points = orthogonalRoute(from, to, edge.side)
+      edge.side = edge.horizontalDirectRoute ? horizontalSideBetween(from, to) : (to.treeSide || from.treeSide || edge.side || 'east')
+      edge.points = edge.horizontalDirectRoute ? directHorizontalEdgePoints(from, to) : orthogonalRoute(from, to, edge.side)
     })
     applyProjectConceptColorsToPage(page)
     page.importCompassTreeLayout = true
